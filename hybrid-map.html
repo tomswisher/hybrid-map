@@ -5,17 +5,19 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width" />
     <title>Hybrid Map</title>
-    <link rel="stylesheet" type="text/css" href="css/map.css"></link>
     <link rel="stylesheet" type="text/css" href="css/hybrid-map.css">
 </head>
 
 <body>
     <div id="visualization-container">
         <div class="column column1">
-            <div id="map-container" class="row unselectable" attr="unselectable">
-                <svg id="map-svg">
-                    <rect id="map-bg"></rect>
-                    <g id="graph-container"></g>
+            <div id="main-container" class="row unselectable" attr="unselectable">
+                <svg id="main-svg">
+                    <rect id="main-bg"></rect>
+                    <g id="states-g"></g>
+                    <g id="nodes-g"></g>
+                    <g id="links-g"></g>
+                    <g id="hover-g"></g>
                 </svg>
             </div><!--
          --><div id="filters-container" class="row unselectable" attr="unselectable">
@@ -32,8 +34,13 @@
         </div>
     </div>
     <svg id="" width="960" height="600"></svg>
-    <script src="js/d3.v4.min.js"></script>
-    <script src="js/map.js"></script>
+    <script src="js/d3.v4.10.2.js"></script>
+    <script src="data/usStatesJSON.js"></script>
+    <script src="data/graphApril6JSON.js"></script>
+    <script>
+        console.log('usStatesJSON.js', window.usStatesJSON);
+        console.log('graphApril6JSON.js', window.graphApril6JSON);
+    </script>
     <script src="js/hybrid-map.js"></script>
 </body>
 

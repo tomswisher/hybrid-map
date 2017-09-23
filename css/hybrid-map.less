@@ -1,3 +1,95 @@
+/*
+1   320     568     P iPhone 5
+2   375     627     P iPhone 6
+3   414     736     P iPhone 6+
+4   667     375     
+5   736     414
+6   768     1024    P iPad
+7   1024    768
+*/
+@font1Size: 14px;
+@bodyMargin: 5px;
+@backgroundColor:    white;
+@statesStrokeColor:  white;
+@statesStrokeWidth:  0;
+@gradesStrokeColor:  black;
+@gradesStrokeWidth:  0;
+@hoverStrokeColor:   white;
+@hoverFillColor:     white;
+@infoboxStrokeColor: black;
+
+body {
+    opacity: 0;
+    margin: @bodyMargin;
+    font-family: 'Lato', sans-serif;
+    font-weight: 400;
+}
+
+#visualization-container {
+    background-color: @backgroundColor;
+    font-size: 0px;
+    /* Filters */
+    #filters-svg {
+        font-size: @font1Size;
+    }
+    rect.grade-rect {
+        stroke: @gradesStrokeColor;
+        stroke-width: @gradesStrokeWidth;
+    }
+    text.grade-label {
+        text-anchor: middle;
+        dominant-baseline: middle;
+        pointer-events: none;
+    }
+    #main-svg { 
+        font-size: @font1Size;
+    }
+    .state-path {
+        stroke: @statesStrokeColor;
+        stroke-width: @statesStrokeWidth;
+    }
+    g.hover-g {
+        pointer-events: none;
+    }
+    text.hover-text {
+        dominant-baseline: middle;
+        text-anchor: middle;
+    }
+    rect.hover-rect {
+        stroke: @hoverStrokeColor;
+        stroke-width: 1px;
+        fill: @hoverFillColor;
+    }
+    /* Infobox */
+    #infobox-svg {
+        display: block;
+        font-size: @font1Size;
+    }
+    #states-dropdown {
+        font-size: @font1Size;
+    }
+    /* General Styles */
+    .button-object {
+        cursor: pointer;
+    }
+    .button-text {
+        // pointer-events: none;
+    }
+    .unselectable { 
+        -webkit-touch-callout: none;
+        -moz-user-select: -moz-none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        /*
+         Introduced in IE 10.
+         See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+        */
+        -ms-user-select: none;
+        user-select: none;
+    }
+}
+
+
 .node {
   stroke: #fff;
   stroke-width: 1.5px;
