@@ -4,6 +4,7 @@
 'use strict';
 
 // window.debug = true;
+var mapRatio = 1.7;
 var animateDuration = 500;
 var animateEase = 'cubic-out';
 var hoverHeight = 0;
@@ -62,13 +63,13 @@ vs.gradeColorArray = [];
 
 // BH Paint
 // black  34 34  34  
-// blue  28 44  140 
+// blue  28 44  160 
 // gold  251    204 12  
-// red   232    6   55  
+// red   240    6   55  
 // white 239    230 221 
 
 
-/*BH1*/ vs.gradeColorArray = ['rgb(60,60,60)','rgb(28,44,140)','rgb(232,6,55)','rgb(251,204,12)','rgb(239,230,221)'];
+/*BH1*/ vs.gradeColorArray = ['rgb(50,50,50)','rgb(28,44,160)','rgb(240,6,55)','rgb(251,204,12)','rgb(239,230,221)'];
 // /*BH2*/ vs.gradeColorArray = ['rgb(240,243,247)','rgb(191,162,26)','rgb(20,65,132)','rgb(153,40,26)','rgb(34,34,34)'];
 // vs.gradeColorArray = ['rgb(40,40,40)','rgb(80,80,80)','rgb(120,120,120)','rgb(160,160,160)','rgb(180,180,180)']; // grayscale
 // vs.gradeColorArray = ['#c7e9b4','#7fcdbb','#41b6c4','#2c7fb8','#253494']; // blue - torquise
@@ -153,7 +154,7 @@ function InitializePage() {
     var csvDataURL = 'data/4_6_reduced_privatization_report_card.csv';
     // var csvDataURL = 'data/data-08-04-2017.csv';
     mapInstance = new MapObject();
-    mapInstance._jsonData = window.usStatesJSON;
+    mapInstance.jsonData(window.usStatesJSON);
     mapInstance.csvData(csvDataURL, function() {
         ResizePage();
         // ResetGraph();
@@ -181,7 +182,7 @@ function UpdateFilters() {
         .attr('height', filtersHeight+3)
         // .transition().duration(animateDuration).ease(animateEase)
         .style('opacity', function() {
-            return mapInstance.Category() !== 'Overall Grade' ? 0 : 1;
+            return mapInstance.category() !== 'Overall Grade' ? 0 : 1;
         });
     var gradeDataArray = gradeArray.slice();
     // var gradeRectSize = (1/2)*(1/gradeDataArray.length)*filtersWidth;
@@ -268,16 +269,16 @@ function UpdateFilters() {
 
 function UpdateInfobox(source) {
     // console.log('UpdateInfobox', source);
-    if (mapInstance._categoryNames === undefined || mapInstance._csvData === undefined) { return; }
+    if (!mapInstance.categoryNames() || !mapInstance.csvData()) { return; }
     var stateDataRow;
     if (stateHovered === 'National') {
         stateDataRow = {};
     } else {
-        stateDataRow = mapInstance._csvData.filter(function(row) {
+        stateDataRow = mapInstance.csvData().filter(function(row) {
             return row.State === stateHovered;
         })[0];
     }
-    var categoryRowsData = mapInstance._categoryNames.slice();
+    var categoryRowsData = mapInstance.categoryNames().slice();
     statesDropdown
         .attr('class', 'button-object')
         // .style('background', 'url("img/orange-triangle-flipped.png") 90% no-repeat '+vs.inactiveColor)
@@ -291,13 +292,13 @@ function UpdateInfobox(source) {
                 var d = mainSVG.selectAll('.state-path')
                     .filter(function(d) { return d.properties.name === stateHovered; })
                     .datum();
-                hoverText1 = stateHovered+': '+d.properties[mapInstance._category];
+                hoverText1 = stateHovered+': '+d.properties[mapInstance.category()];
                 UpdateHover();
             }
             UpdateInfobox('statesDropdown change');
             mapInstance.UpdateMap();
         });
-    var statesDropdownOptionsData = mapInstance._csvData.slice();
+    var statesDropdownOptionsData = mapInstance.csvData().slice();
     statesDropdownOptionsData = statesDropdownOptionsData.map(function(row) {
         return row.State;
     });
@@ -315,12 +316,12 @@ function UpdateInfobox(source) {
 
 function ResizePage() {
     requestAnimationFrame(function() {
-        mapWidth = window.innerWidth || 500;
-        mapHeight = mapWidth/1.7;
+        var width = window.innerWidth || 500;
+        var height = width/mapRatio;
         mapInstance
-            .Width(mapWidth)
-            .Height(mapHeight)
-            .Scale(mapWidth*1.3);
+            .width(width)
+            .height(height)
+            .scale(width*1.3);
         UpdateFilters();
         UpdateInfobox('CheckSize');
         // ResetGraph();
@@ -342,16 +343,16 @@ function ResizePage() {
         */
         // var newVisualizationWidth = Math.max(0, parseFloat(visualizationContainer.style('width'))); 
         // var newVisualizationHeight = Math.max(0, parseFloat(visualizationContainer.style('height'))); 
-        // var mapWidth = Math.max(0, parseFloat(mainContainer.style('width'))); 
+        // var width = Math.max(0, parseFloat(mainContainer.style('width'))); 
         // var mapHeight = Math.max(0, parseFloat(mainContainer.style('height'))); 
         // if (newVisualizationWidth !== currentVisualizationWidth || newVisualizationHeight !== currentVisualizationHeight) {
         //     // console.log(newVisualizationWidth, newVisualizationHeight);
         //     currentVisualizationWidth = newVisualizationWidth;
         //     currentVisualizationHeight = newVisualizationHeight;
         //     mapInstance
-        //         .Width(mapWidth)
-        //         .Height(mapHeight)
-        //         .Scale(mapWidth*1.3);
+        //         .width(width)
+        //         .height(mapHeight)
+        //         .scale(width*1.3);
         //     UpdateFilters();
         //     UpdateInfobox('CheckSize');
         // }
@@ -360,63 +361,80 @@ function ResizePage() {
 
 
 function MapObject() {
-    this._category = 'Overall Grade';
-    this._width = 0;
-    this._height = 0;
-    this._scale = 1000;
+    var _width = 0;
+    var _height = 0;
+    var _scale = 1000;
+    var _category = 'Overall Grade';
+    var _csvData = null;
+    var _jsonData = null;
+    var _categoryNames = null;
+
+    this.categoryNames = function(categoryNames) {
+        if (!arguments.length) { return _categoryNames; }
+        _categoryNames = categoryNames;
+        this.UpdateMap();
+        return this;
+    }
 
     this.csvData = function(csvDataURL, callback) {
+        if (!arguments.length) { return _csvData; }
         var that = this;
         d3.csv(csvDataURL, function(csvData) {
             // console.log('d3.csv');
             // console.log(csvData);
-            that._csvData = csvData;
+            _csvData = csvData;
             // Get all category names
-            that._categoryNames = [];
-            for (var name in that._csvData[0]) {
+            _categoryNames = [];
+            for (var name in _csvData[0]) {
                 // if (name !== 'State' && name !== 'Overall Grade') {
                 if (name !== 'State') {
                 // if (name !== 'State') {
-                    that._categoryNames.push(name);
+                    _categoryNames.push(name);
                 }
             }
-            console.log(that._categoryNames);
             return callback.call(that);
         });
     };
 
-    this.Category = function(category) {
-        if (!arguments.length) { return this._category; }
-        this._category = category;
+    this.category = function(category) {
+        if (!arguments.length) { return _category; }
+        _category = category;
         this.UpdateMap();
         return this;
     };
 
-    this.Width = function(width) {
-        if (!arguments.length) { return this._width; }
-        this._width = width;
-        // this.UpdateMap();
+    this.width = function(width) {
+        if (!arguments.length) { return _width; }
+        _width = width;
+        this.UpdateMap();
         return this;
     };
     
-    this.Height = function(height) {
-        if (!arguments.length) { return this._height; }
-        this._height = height;
-        // this.UpdateMap();
+    this.height = function(height) {
+        if (!arguments.length) { return _height; }
+        _height = height;
+        this.UpdateMap();
         return this;
     };
 
-    this.Scale = function(scale) {
-        if (!arguments.length) { return this._scale; }
-        this._scale = scale;
+    this.scale = function(scale) {
+        if (!arguments.length) { return _scale; }
+        _scale = scale;
+        this.UpdateMap();
+        return this;
+    };
+
+    this.jsonData = function(jsonData) {
+        if (!arguments.length) { return _jsonData; }
+        _jsonData = jsonData;
         this.UpdateMap();
         return this;
     };
 
     this.UpdateMap = function() {
-        if (this._csvData === undefined) {
+        if (!_csvData) {
             return;
-        } else if (this._jsonData === undefined) {
+        } else if (!_jsonData) {
             return;
         }
         // console.log('UpdateMap');
@@ -428,31 +446,31 @@ function MapObject() {
             console.log('Using a mobile device');
         }
         var i, j, csvDataState, csvDataValue, jsonDataState;
-        for (i = 0; i < this._csvData.length; i++) {
-            csvDataState = this._csvData[i].State;
-            csvDataValue = this._csvData[i][this._category];
-            for (j = 0; j < this._jsonData.features.length; j++) {
-                jsonDataState = this._jsonData.features[j].properties.name;
+        for (i = 0; i < _csvData.length; i++) {
+            csvDataState = _csvData[i].State;
+            csvDataValue = _csvData[i][_category];
+            for (j = 0; j < _jsonData.features.length; j++) {
+                jsonDataState = _jsonData.features[j].properties.name;
                 if (csvDataState == jsonDataState) {
-                    this._jsonData.features[j].properties[this._category] = csvDataValue;
+                    _jsonData.features[j].properties[_category] = csvDataValue;
                     break;
                 }
             }   
         }
         var projection = d3.geoAlbersUsa()
-           .translate([this._width/2, this._height/2])
-           .scale([this._scale]);
+           .translate([_width/2, _height/2])
+           .scale([_scale]);
         var path = d3.geoPath()
            .projection(projection);
         //
         mainSVG
             .on('mousemove', function() { UpdateHover(); })
-            .attr('width', this._width)
-            .attr('height', this._height);
+            .attr('width', _width)
+            .attr('height', _height);
         //
         mainBG
-            .attr('width', this._width)
-            .attr('height', this._height)
+            .attr('width', _width)
+            .attr('height', _height)
             .attr('x', 0)
             .attr('y', 0)
             .on('mouseover', function() {
@@ -466,7 +484,7 @@ function MapObject() {
             })
             .style('fill', visualizationContainer.style('background-color'));
         //
-        var stateGs = statesG.selectAll('g.state-g').data(this._jsonData.features, function(d) { return d.properties.name; });
+        var stateGs = statesG.selectAll('g.state-g').data(_jsonData.features, function(d) { return d.properties.name; });
         stateGs = stateGs
             .enter().append('g')
                 .classed('state-g', true)
@@ -480,7 +498,7 @@ function MapObject() {
                 // .classed('unselectable', true)
                 // .attr('unselectable', 'on') // IE < 10 and Opera
                 .style('fill', function(d) {
-                    var grade = d.properties[that._category];
+                    var grade = d.properties[_category];
                     if (grade === undefined) { return '#ccc'; }
                     if (grade === '_') { return vs.inactiveColor; }
                     if (grade === 'Yes') { return vs.yesColor; }
@@ -492,7 +510,7 @@ function MapObject() {
         statePaths
             .on('mouseover', function(d) {
                 if (isMobile === true) { return; }
-                if (visibleGrades[d.properties[that._category]] === false) {
+                if (visibleGrades[d.properties[_category]] === false) {
                     stateHovered = 'National';
                     mainSVG.selectAll('.state-path').style('opacity', 1);
                     hoverText1 = '';
@@ -507,8 +525,8 @@ function MapObject() {
                         if (stateHovered === d.properties.name) { return vs.stateHoveredOpacity; }
                         return 1;
                     });
-                hoverText1 = d.properties.name+': '+d.properties[that._category];
-                hoverText2 = mapInstance._category;
+                hoverText1 = d.properties.name+': '+d.properties[_category];
+                hoverText2 = _category;
                 UpdateHover();
                 UpdateInfobox('statePaths mouseover');
                 // console.log(projection.invert(d3.mouse(this)));
@@ -537,7 +555,7 @@ function MapObject() {
             })
             // .transition().duration(animateDuration).ease(animateEase)
             .style('fill', function(d) {
-                var grade = d.properties[that._category];
+                var grade = d.properties[_category];
                 if (grade === false) { return vs.inactiveColor; }
                 if (grade === undefined) { return '#ccc'; }
                 if (grade === '_') { return vs.inactiveColor; }
@@ -547,7 +565,7 @@ function MapObject() {
             });
         statePaths
             .filter(function(d) { 
-                var gradeLetter = d.properties[that._category];
+                var gradeLetter = d.properties[_category];
                 return visibleGrades[gradeLetter] === false;
             })
             // .transition().duration(animateDuration).ease(animateEase)
@@ -578,7 +596,7 @@ function MapObject() {
                     .enter().append('text').attr('class', 'hover-text row2')
                         .attr('x', 0)
                         .attr('y', -0.25*hoverHeight-5)
-                        .text(stateHovered !== 'National' ? mapInstance._category: null);
+                        .text(stateHovered !== 'National' ? _category: null);
             }
         });
 
@@ -597,10 +615,10 @@ function MapObject() {
                     .classed('vertical-guide', true)
                     .merge(verticalGuid);
             verticalGuid
-                .attr('x', this._width/2-1)
+                .attr('x', _width/2-1)
                 .attr('y', 0)
                 .attr('width', 2)
-                .attr('height', this._height)
+                .attr('height', _height)
                 .style('fill', 'darkorange');
         }
     };
@@ -638,8 +656,8 @@ function UpdateHover() {
         .attr('x', -0.5*hoverWidth);
     hoverG
         .attr('transform', function() {
-            var mouseX = d3.mouse(mainSVG.node())[0];
-            var mouseY = d3.mouse(mainSVG.node())[1];
+            var mouseX = d3.mouse(mainSVG.node())[0] || mapInstance.width()/2;
+            var mouseY = d3.mouse(mainSVG.node())[1] || mapInstance.height()/2;
             if (mouseX < hoverWidth/2 + 1) {
                 mouseX = hoverWidth/2 + 1;
             } else if (mouseX > parseInt(mainSVG.style('width')) - hoverWidth/2 - 1) {
@@ -687,24 +705,18 @@ function BostockTextWrap(text, width) {
 
 
 
-// function GraphObject() {
-//     this._width = 
-//     this._simulation = d3.forceSimulation()
-//         .force('link', d3.forceLink().distance(20).strength(0.5))
-//         .force('charge', d3.forceManyBody())
-//         .force('center', d3.forceCenter(this._width/2, this._height/2));
-// };
+function GraphObject() {
+    var _width = window.innerWidth || 500;
+    var _height = _width/mapRatio;
+    this._simulation = d3.forceSimulation()
+        .force('link', d3.forceLink().distance(20).strength(0.5))
+        .force('charge', d3.forceManyBody())
+        .force('center', d3.forceCenter(_width/2, _height/2));
+    return this;
+}
 
 
 function ResetGraph() {
-    var width = window.innerWidth || 500;
-    var height = window.innerHeight || 500;
-
-    var simulation = d3.forceSimulation()
-        .force('link', d3.forceLink().distance(20).strength(0.5))
-        .force('charge', d3.forceManyBody())
-        .force('center', d3.forceCenter(width / 2, height / 2));
-
     var nodes, links, nodeById;
     var dollarsScale = d3.scaleLinear()
         .range([0.5, 10]);
