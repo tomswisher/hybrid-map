@@ -39,14 +39,14 @@ body {
   stroke: white;
   stroke-width: 0;
 }
-#visualization-container g.hover-g {
+#visualization-container #hover-g {
   pointer-events: none;
 }
-#visualization-container text.hover-text {
+#visualization-container #hover-text {
   dominant-baseline: middle;
   text-anchor: middle;
 }
-#visualization-container rect.hover-rect {
+#visualization-container #hover-rect {
   stroke: white;
   stroke-width: 1px;
   fill: white;

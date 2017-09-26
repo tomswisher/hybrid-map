@@ -8,7 +8,6 @@ var mapRatio = 1.7;
 var animateDuration = 500;
 var animateEase = 'cubic-out';
 var hoverHeight = 0;
-var hoverText1 = '', hoverText2 = '';
 var rxValue = 15;
 var gradeArray = ['A','B','C','D','F'];
 var visibleGrades = {'A':true,'B':true,'C':true,'D':true,'F':true};
@@ -97,7 +96,6 @@ var colorScale = d3.scaleQuantize()
 
 vs.stateHoveredOpacity = 0.3;
 vs.stateNotClickedOpacity = 0.2;
-vs.hoverShowCategoryName = false;
 vs.hoverMargin = 5;
 
 window.onload = InitializePage;
@@ -117,6 +115,8 @@ var statesG = body.select('#states-g');
 var nodesG = body.select('#nodes-g');
 var linksG = body.select('#links-g');
 var hoverG = body.select('#hover-g');
+var hoverRect = body.select('#hover-rect');
+var hoverText = body.select('#hover-text');
 var defs = filtersSVG.append('defs');
 
 // height=130% so that the shadow is not clipped
@@ -188,11 +188,11 @@ function UpdateFilters() {
     // var gradeRectSize = (1/2)*(1/gradeDataArray.length)*filtersWidth;
     var gradeRectSize = filtersHeight - 2*vs.gradeMargin;
     //
-    var gradeGs = filtersSVG.selectAll('g.grade-g').data(gradeDataArray);
-    gradeGs = gradeGs
-        .enter().append('g')
-            .attr('class', 'grade-g')
-            .merge(gradeGs);
+    var gradeGs = filtersSVG.selectAll('g.grade-g')
+        .data(gradeDataArray);
+    gradeGs = gradeGs.enter().append('g')
+        .attr('class', 'grade-g')
+        .merge(gradeGs);
     gradeGs
         .attr('transform', function(d,i) {
             var tx = (1/2)*filtersWidth + (1/2-1/2*gradeDataArray.length+i)*filtersHeight;
@@ -211,20 +211,21 @@ function UpdateFilters() {
             mapInstance.UpdateMap();
         })
         .each(function(grade) {
-            var gradeBG = d3.select(this).selectAll('rect.grade-bg').data([grade]);
-            gradeBG = gradeBG
-                .enter().append('rect')
-                    .attr('class', 'grade-bg')
-                    .attr('rx', vs.gradeBGRounded ? rxValue : 0)
-                    .style('fill', vs.inactiveColor)
-                    .merge(gradeBG);
+            var gradeBG = d3.select(this).selectAll('rect.grade-bg')
+                .data([grade]);
+            gradeBG = gradeBG.enter().append('rect')
+                .attr('class', 'grade-bg')
+                .attr('rx', vs.gradeBGRounded ? rxValue : 0)
+                .style('fill', vs.inactiveColor)
+                .merge(gradeBG);
             gradeBG
                 .attr('x', (-1/2)*filtersHeight)
                 .attr('y', (-1/2)*filtersHeight)
                 .attr('width', filtersHeight)
                 .attr('height', filtersHeight-2);
             //
-            var gradeRect = d3.select(this).selectAll('rect.grade-rect').data([grade]);
+            var gradeRect = d3.select(this).selectAll('rect.grade-rect')
+                .data([grade]);
             gradeRect = gradeRect
                 .enter().append('rect')
                     .attr('class', 'grade-rect')
@@ -250,12 +251,12 @@ function UpdateFilters() {
                     return visibleGrades[d] === true ? colorScale(gradeScale(d)) : vs.inactiveColor;
                 });
             //
-            var gradeLabel = d3.select(this).selectAll('text.grade-label').data([grade]);
-            gradeLabel = gradeLabel
-                .enter().append('text')
-                    .attr('class', 'grade-label button-text')
-                    .text(function(d) { return d; })
-                    .merge(gradeLabel);
+            var gradeLabel = d3.select(this).selectAll('text.grade-label')
+                .data([grade]);
+            gradeLabel = gradeLabel.enter().append('text')
+                .attr('class', 'grade-label button-text')
+                .text(function(d) { return d; })
+                .merge(gradeLabel);
             gradeLabel
                 .attr('x', function(d) {
                     return visibleGrades[d] === true ? -1*vs.popupDX : 0;
@@ -285,31 +286,31 @@ function UpdateInfobox(source) {
         .on('change', function() {
             if (this.value === 'National') {
                 stateHovered = 'National';
-                hoverG.selectAll('text.hover-text').text('');   
-                hoverG.selectAll('rect.hover-rect').attr('width', 0);
+                hoverText.text('');
+                UpdateHover('change');
             } else {
                 stateHovered = this.value;
                 var d = mainSVG.selectAll('.state-path')
                     .filter(function(d) { return d.properties.name === stateHovered; })
                     .datum();
-                hoverText1 = stateHovered+': '+d.properties[mapInstance.category()];
-                UpdateHover();
+                hoverText.text(stateHovered+': '+d.properties[mapInstance.category()]);
+                UpdateHover('change');
             }
             UpdateInfobox('statesDropdown change');
             mapInstance.UpdateMap();
         });
     var statesDropdownOptionsData = mapInstance.csvData().slice();
-    statesDropdownOptionsData = statesDropdownOptionsData.map(function(row) {
-        return row.State;
-    });
+    statesDropdownOptionsData = statesDropdownOptionsData
+        .map(function(row) { return row.State; })
+        .filter(function(state) { return state !== 'DC'; });
     statesDropdownOptionsData.unshift('National');
     //
-    var statesDropdownOptions = statesDropdown.selectAll('option.states-dropdown-option').data(statesDropdownOptionsData);
-    statesDropdownOptions = statesDropdownOptions
-        .enter().append('option')
-            .classed('states-dropdown-option', true)
-            .text(function(d) { return d; })
-            .merge(statesDropdownOptions);
+    var statesDropdownOptions = statesDropdown.selectAll('option.states-dropdown-option')
+        .data(statesDropdownOptionsData);
+    statesDropdownOptions = statesDropdownOptions.enter().append('option')
+        .classed('states-dropdown-option', true)
+        .text(function(d) { return d; })
+        .merge(statesDropdownOptions);
     statesDropdown.node().value = stateHovered;
 }
 
@@ -324,6 +325,7 @@ function ResizePage() {
             .scale(width*1.2);
         UpdateFilters();
         UpdateInfobox('CheckSize');
+        UpdateHover('resize');
         // ResetGraph();
         /*
         1   320     568     P iPhone 5
@@ -374,8 +376,6 @@ function MapObject() {
         if (!arguments.length) { return _csvData; }
         var that = this;
         d3.csv(csvDataURL, function(csvData) {
-            // console.log('d3.csv');
-            // console.log(csvData);
             _csvData = csvData;
             // Get all category names
             _categoryNames = [];
@@ -395,7 +395,7 @@ function MapObject() {
         _categoryNames = categoryNames;
         this.UpdateMap('categoryNames');
         return this;
-    }
+    };
 
     this.category = function(category) {
         if (!arguments.length) { return _category; }
@@ -440,13 +440,12 @@ function MapObject() {
     };
 
     this.UpdateMap = function(source) {
-        console.log('UpdateMap', source);
+        // console.log('UpdateMap', source);
         if (!_csvData) {
             return;
         } else if (!_jsonData) {
             return;
         }
-        // console.log('UpdateMap');
         var that = this;
 
         isMobile = false;
@@ -473,7 +472,9 @@ function MapObject() {
            .projection(projection);
         //
         mainSVG
-            .on('mousemove', function() { UpdateHover(); })
+            .on('mousemove', function() {
+                UpdateHover('mouse');
+            })
             .attr('width', _width)
             .attr('height', _height);
         //
@@ -486,45 +487,43 @@ function MapObject() {
                 // if (isMobile === true) { return; }
                 stateHovered = 'National';
                 mainSVG.selectAll('.state-path').style('opacity', 1);
-                hoverText1 = '';
-                hoverText2 = '';
-                UpdateHover();
+                hoverText.text('');
+                UpdateHover('mouse');
                 UpdateInfobox('mainBG mouseover');
             })
             .style('fill', visualizationContainer.style('background-color'));
         //
-        var stateGs = statesG.selectAll('g.state-g').data(_jsonData.features, function(d) { return d.properties.name; });
-        stateGs = stateGs
-            .enter().append('g')
-                .classed('state-g', true)
-                .merge(stateGs);
+        var stateGs = statesG.selectAll('g.state-g')
+            .data(_jsonData.features, function(d) { return d.properties.name; });
+        stateGs = stateGs.enter().append('g')
+            .classed('state-g', true)
+            .merge(stateGs);
         //
-        var statePaths = stateGs.selectAll('.state-path').data(function(d) { return [d]; }, function(d) { return d.properties.name; });
-        statePaths = statePaths
-            .enter().append('path')
-                .classed('state-path', true)
-                .classed('button-object', true)
-                // .classed('unselectable', true)
-                // .attr('unselectable', 'on') // IE < 10 and Opera
-                .style('fill', function(d) {
-                    var grade = d.properties[_category];
-                    if (grade === undefined) { return '#ccc'; }
-                    if (grade === '_') { return vs.inactiveColor; }
-                    if (grade === 'Yes') { return vs.yesColor; }
-                    if (grade === 'No') { return vs.noColor; }
-                    return colorScale(gradeScale(grade));
-                })
-                .attr('d', _path)
-                .merge(statePaths);
+        var statePaths = stateGs.selectAll('.state-path')
+            .data(function(d) { return [d]; }, function(d) { return d.properties.name; });
+        statePaths = statePaths.enter().append('path')
+            .classed('state-path', true)
+            .classed('button-object', true)
+            // .classed('unselectable', true)
+            // .attr('unselectable', 'on') // IE < 10 and Opera
+            .style('fill', function(d) {
+                var grade = d.properties[_category];
+                if (grade === undefined) { return '#ccc'; }
+                if (grade === '_') { return vs.inactiveColor; }
+                if (grade === 'Yes') { return vs.yesColor; }
+                if (grade === 'No') { return vs.noColor; }
+                return colorScale(gradeScale(grade));
+            })
+            .attr('d', _path)
+            .merge(statePaths);
         statePaths
             .on('mouseover', function(d) {
                 if (isMobile === true) { return; }
                 if (visibleGrades[d.properties[_category]] === false) {
                     stateHovered = 'National';
                     mainSVG.selectAll('.state-path').style('opacity', 1);
-                    hoverText1 = '';
-                    hoverText2 = '';
-                    UpdateHover();
+                    hoverText.text('');
+                    UpdateHover('mouse');
                     UpdateInfobox('statePaths mouseover');
                     return;
                 }
@@ -534,9 +533,8 @@ function MapObject() {
                         if (stateHovered === d.properties.name) { return vs.stateHoveredOpacity; }
                         return 1;
                     });
-                hoverText1 = d.properties.name+': '+d.properties[_category];
-                hoverText2 = _category;
-                UpdateHover();
+                hoverText.text(d.properties.name+': '+d.properties[_category]);
+                UpdateHover('mouse');
                 UpdateInfobox('statePaths mouseover');
                 // console.log(projection.invert(d3.mouse(this)));
             })
@@ -580,34 +578,21 @@ function MapObject() {
             // .transition().duration(animateDuration).ease(animateEase)
             .style('fill', vs.inactiveColor);
         //
-        // stateThumbs = stateGs.selectAll('.state-thumb').data(function(d) { return [d]; }, function(d) { return d.properties.name; });
+        // stateThumbs = stateGs.selectAll('.state-thumb')
+        //     .data(function(d) { return [d]; }, function(d) { return d.properties.name; });
         // stateThumbs.enter().append('svg:image').classed('state-thumb', true);
         // this.UpdateThumbs();
         // Update font size and dependent objects
         mapFontSize = parseFloat(mainSVG.style('font-size'));
-        hoverHeight = (vs.hoverShowCategoryName === true) ? 2*mapFontSize+3*vs.hoverMargin : mapFontSize+2*vs.hoverMargin;
+        hoverHeight = mapFontSize+2*vs.hoverMargin;
 
-        hoverG.each(function() {
-            d3.select(this).selectAll('rect.hover-rect').data([null])
-                .enter().append('rect').classed('hover-rect', true)
-                    .attr('width', 0) // dynamic
-                    .attr('height', hoverHeight)
-                    .attr('x', 0) // dynamic
-                    .attr('y', -1*hoverHeight-5)
-                    .style('filter', 'url(#drop-shadow)');
-            d3.select(this).selectAll('text.hover-text.row1').data([null])
-                .enter().append('text').attr('class', 'hover-text row1')
-                    .attr('x', 0)
-                    .attr('y', -0.5*hoverHeight-5)
-                    .text(stateHovered !== 'National' ? stateHovered : null);
-            if (vs.hoverShowCategoryName === true) {
-                d3.select(this).selectAll('text.hover-text.row2').data([null])
-                    .enter().append('text').attr('class', 'hover-text row2')
-                        .attr('x', 0)
-                        .attr('y', -0.25*hoverHeight-5)
-                        .text(stateHovered !== 'National' ? _category: null);
-            }
-        });
+        hoverRect
+            .attr('height', hoverHeight)
+            .attr('y', -1*hoverHeight-5)
+            .style('filter', 'url(#drop-shadow)');
+        hoverText
+            .attr('x', 0)
+            .attr('y', -0.5*hoverHeight-5);
 
         var oldSizeOfDom = sizeOfDOM;
         sizeOfDOM = d3.selectAll('*').size();
@@ -618,7 +603,8 @@ function MapObject() {
         // DEBUG
         if (window.debugMode === true) {
             body.selectAll('*').style('outline', '1px solid green');
-            var verticalGuid = mainSVG.selectAll('rect.vertical-guide').data([null]);
+            var verticalGuid = mainSVG.selectAll('rect.vertical-guide')
+                .data([null]);
             verticalGuid = verticalGuid
                 .enter().append('rect')
                     .classed('vertical-guide', true)
@@ -648,25 +634,27 @@ function MapObject() {
     // }
 }
 
-
-function UpdateHover() {
-    var hoverWidth, text1, text2;
-    text1 = hoverG.selectAll('text.hover-text.row1').text(hoverText1);
-    if (!text1.node() || hoverText1 === '') {
+function UpdateHover(source) {
+    var hoverWidth;
+    if (hoverText.text() === '') {
         hoverWidth = 0;
-    } else if (vs.hoverShowCategoryName === true) {
-        text2 = hoverG.selectAll('text.hover-text.row2').text(hoverText2);
-        hoverWidth = Math.max(text1.node().getBBox().width, text2.node().getBBox().width)+2*vs.hoverMargin;
     } else {
-        hoverWidth = text1.node().getBBox().width+2*vs.hoverMargin;
+        hoverWidth = hoverText.node().getBBox().width+2*vs.hoverMargin;
     }
-    hoverG.selectAll('rect.hover-rect')
+    // console.log('UpdateHover', source, hoverWidth);
+    hoverRect
         .attr('width', hoverWidth)
         .attr('x', -0.5*hoverWidth);
     hoverG
         .attr('transform', function() {
-            var mouseX = d3.mouse(mainSVG.node())[0] || mapInstance.width()/2;
-            var mouseY = d3.mouse(mainSVG.node())[1] || mapInstance.height()/2;
+            var mouseX, mouseY;
+            if (source === 'mouse') {
+                mouseX = d3.mouse(mainSVG.node())[0];
+                mouseY = d3.mouse(mainSVG.node())[1];
+            } else {
+                mouseX = mapInstance.width()/2;
+                mouseY = mapInstance.height()/2;
+            }
             if (mouseX < hoverWidth/2 + 1) {
                 mouseX = hoverWidth/2 + 1;
             } else if (mouseX > parseInt(mainSVG.style('width')) - hoverWidth/2 - 1) {
