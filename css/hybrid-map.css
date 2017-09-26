@@ -35,7 +35,7 @@ body {
 #visualization-container #main-svg {
   font-size: 14px;
 }
-#visualization-container .state-path {
+#visualization-container path.state-path {
   stroke: white;
   stroke-width: 0;
 }

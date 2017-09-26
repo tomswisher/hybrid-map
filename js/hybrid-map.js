@@ -282,7 +282,6 @@ function UpdateInfobox(source) {
     var categoryRowsData = mapInstance.categoryNames().slice();
     statesDropdown
         .attr('class', 'button-object')
-        // .style('background', 'url("img/orange-triangle-flipped.png") 90% no-repeat '+vs.inactiveColor)
         .on('change', function() {
             if (this.value === 'National') {
                 stateHovered = 'National';
@@ -290,7 +289,7 @@ function UpdateInfobox(source) {
                 UpdateHover('change');
             } else {
                 stateHovered = this.value;
-                var d = mainSVG.selectAll('.state-path')
+                var d = mainSVG.selectAll('path.state-path')
                     .filter(function(d) { return d.properties.name === stateHovered; })
                     .datum();
                 hoverText.text(stateHovered+': '+d.properties[mapInstance.category()]);
@@ -486,7 +485,7 @@ function MapObject() {
             .on('mouseover', function() {
                 // if (isMobile === true) { return; }
                 stateHovered = 'National';
-                mainSVG.selectAll('.state-path').style('opacity', 1);
+                statePaths.style('opacity', 1);
                 hoverText.text('');
                 UpdateHover('mouse');
                 UpdateInfobox('mainBG mouseover');
@@ -499,13 +498,10 @@ function MapObject() {
             .classed('state-g', true)
             .merge(stateGs);
         //
-        var statePaths = stateGs.selectAll('.state-path')
+        var statePaths = stateGs.selectAll('path.state-path')
             .data(function(d) { return [d]; }, function(d) { return d.properties.name; });
         statePaths = statePaths.enter().append('path')
             .classed('state-path', true)
-            .classed('button-object', true)
-            // .classed('unselectable', true)
-            // .attr('unselectable', 'on') // IE < 10 and Opera
             .style('fill', function(d) {
                 var grade = d.properties[_category];
                 if (grade === undefined) { return '#ccc'; }
@@ -521,14 +517,14 @@ function MapObject() {
                 if (isMobile === true) { return; }
                 if (visibleGrades[d.properties[_category]] === false) {
                     stateHovered = 'National';
-                    mainSVG.selectAll('.state-path').style('opacity', 1);
+                    statePaths.style('opacity', 1);
                     hoverText.text('');
                     UpdateHover('mouse');
                     UpdateInfobox('statePaths mouseover');
                     return;
                 }
                 stateHovered = d.properties.name;
-                mainSVG.selectAll('.state-path')
+                statePaths
                     .style('opacity', function(d) {
                         if (stateHovered === d.properties.name) { return vs.stateHoveredOpacity; }
                         return 1;
@@ -544,7 +540,7 @@ function MapObject() {
             .attr('d', _path);
         // ---
         stateGs
-            .attr('transform', 'scale(1)'); 
+            .attr('transform', 'scale(1)');
         statePaths
             .attr('transform', 'scale(1)')
             .each(function(d) {
@@ -578,10 +574,6 @@ function MapObject() {
             // .transition().duration(animateDuration).ease(animateEase)
             .style('fill', vs.inactiveColor);
         //
-        // stateThumbs = stateGs.selectAll('.state-thumb')
-        //     .data(function(d) { return [d]; }, function(d) { return d.properties.name; });
-        // stateThumbs.enter().append('svg:image').classed('state-thumb', true);
-        // this.UpdateThumbs();
         // Update font size and dependent objects
         mapFontSize = parseFloat(mainSVG.style('font-size'));
         hoverHeight = mapFontSize+2*vs.hoverMargin;
@@ -617,22 +609,8 @@ function MapObject() {
                 .style('fill', 'darkorange');
         }
     };
-
-    // this.UpdateThumbs = function() {
-    //  var thumbSize = 20;
-    //  body.selectAll('.state-thumb')
-    //      .attr('xlink:href', function(d,i) {
-    //          return i % 2 === 0 ? 'img/thumbs_up_36922.svg' : 'img/thumbs_down_36922.svg';
-    //      })
-    //      .attr('width', thumbSize+'px')
-    //      .attr('height', thumbSize+'px')
-    //      .attr('transform', function(d) {
-    //          var tx = d.transformOriginX-(1/2)*thumbSize;
-    //          var ty = d.transformOriginY-(1/2)*thumbSize;
-    //          return 'translate('+tx+','+ty+')';
-    //      });
-    // }
 }
+
 
 function UpdateHover(source) {
     var hoverWidth;
@@ -762,7 +740,7 @@ function ResetGraph() {
             d3.max(nodes, function(node) { return node.dollarsReceived; })
         ]);
 
-        var linkElements = linksG.selectAll('.link')
+        var linkElements = linksG.selectAll('line.link')
             .data(links)
             .enter().append('line')
             // .enter().append('path')
@@ -770,7 +748,7 @@ function ResetGraph() {
             .style('stroke-width', function(d) { return dollarsScale(d.dollars); })
             .attr('class', function(d) { return 'link-path report' + d.report; });
 
-        var nodeElements = nodesG.selectAll('.node')
+        var nodeElements = nodesG.selectAll('circle.node')
             .data(nodes.filter(function(d) { return d.id; }))
             .enter().append('circle')
             .attr('class', function(d) { return 'node ' + d.state; })
