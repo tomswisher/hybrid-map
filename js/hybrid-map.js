@@ -3,7 +3,7 @@
 /* jshint -W069, unused:false */
 'use strict';
 
-// window.debug = true;
+window.debugMode = false;
 var mapRatio = 1.7;
 var animateDuration = 500;
 var animateEase = 'cubic-out';
@@ -321,7 +321,7 @@ function ResizePage() {
         mapInstance
             .width(width)
             .height(height)
-            .scale(width*1.3);
+            .scale(width*1.2);
         UpdateFilters();
         UpdateInfobox('CheckSize');
         // ResetGraph();
@@ -368,13 +368,7 @@ function MapObject() {
     var _csvData = null;
     var _jsonData = null;
     var _categoryNames = null;
-
-    this.categoryNames = function(categoryNames) {
-        if (!arguments.length) { return _categoryNames; }
-        _categoryNames = categoryNames;
-        this.UpdateMap();
-        return this;
-    }
+    var _path = null;
 
     this.csvData = function(csvDataURL, callback) {
         if (!arguments.length) { return _csvData; }
@@ -396,42 +390,57 @@ function MapObject() {
         });
     };
 
+    this.categoryNames = function(categoryNames) {
+        if (!arguments.length) { return _categoryNames; }
+        _categoryNames = categoryNames;
+        this.UpdateMap('categoryNames');
+        return this;
+    }
+
     this.category = function(category) {
         if (!arguments.length) { return _category; }
         _category = category;
-        this.UpdateMap();
+        this.UpdateMap('category');
         return this;
     };
 
     this.width = function(width) {
         if (!arguments.length) { return _width; }
         _width = width;
-        this.UpdateMap();
+        this.UpdateMap('width');
         return this;
     };
     
     this.height = function(height) {
         if (!arguments.length) { return _height; }
         _height = height;
-        this.UpdateMap();
+        this.UpdateMap('height');
         return this;
     };
 
     this.scale = function(scale) {
         if (!arguments.length) { return _scale; }
         _scale = scale;
-        this.UpdateMap();
+        this.UpdateMap('scale');
+        return this;
+    };
+
+    this.path = function(path) {
+        if (!arguments.length) { return _path; }
+        _path = path;
+        this.UpdateMap('path');
         return this;
     };
 
     this.jsonData = function(jsonData) {
         if (!arguments.length) { return _jsonData; }
         _jsonData = jsonData;
-        this.UpdateMap();
+        this.UpdateMap('jsonData');
         return this;
     };
 
-    this.UpdateMap = function() {
+    this.UpdateMap = function(source) {
+        console.log('UpdateMap', source);
         if (!_csvData) {
             return;
         } else if (!_jsonData) {
@@ -460,7 +469,7 @@ function MapObject() {
         var projection = d3.geoAlbersUsa()
            .translate([_width/2, _height/2])
            .scale([_scale]);
-        var path = d3.geoPath()
+        _path = d3.geoPath()
            .projection(projection);
         //
         mainSVG
@@ -505,7 +514,7 @@ function MapObject() {
                     if (grade === 'No') { return vs.noColor; }
                     return colorScale(gradeScale(grade));
                 })
-                .attr('d', path)
+                .attr('d', _path)
                 .merge(statePaths);
         statePaths
             .on('mouseover', function(d) {
@@ -534,7 +543,7 @@ function MapObject() {
             .on('mouseup', function() {
                 return;
             })
-            .attr('d', path);
+            .attr('d', _path);
         // ---
         stateGs
             .attr('transform', 'scale(1)'); 
@@ -607,7 +616,7 @@ function MapObject() {
         }
 
         // DEBUG
-        if (window.debug) {
+        if (window.debugMode === true) {
             body.selectAll('*').style('outline', '1px solid green');
             var verticalGuid = mainSVG.selectAll('rect.vertical-guide').data([null]);
             verticalGuid = verticalGuid
