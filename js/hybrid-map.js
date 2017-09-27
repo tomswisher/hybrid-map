@@ -2,7 +2,7 @@
 // tomswisherlabs@gmail.com
 
 
-/* global d3, console, graphApril6JSON */
+/* global d3, console */
 /* jshint -W069, unused:false */
 'use strict';
 
@@ -22,7 +22,8 @@ if (isMobile) { console.log('isMobile'); }
 var animating = false;
 var debugMode = false;
 var minMapWidth = 300;
-var mapRatio = 1.8;
+var mapWidthHeightRatio = 1.8;
+var mapScale = 1.2;
 var animateDuration = 500;
 var animateEase = 'cubic-out';
 var hoverHeight = 0;
@@ -38,10 +39,10 @@ var gradeScale = function(letter) {
         default: return NaN;
     }
 };
-var mapObj, graphObj;
 var sizeOfDom = 0;
 var usedJSHeapSize = 0;
 var stateSelected = 'National';
+var mapObj, graphObj;
 
 
 // Selectors
@@ -69,8 +70,6 @@ vs.popupDX = 2;
 vs.popupDY = 2;
 vs.gradeMargin = 2.5;
 vs.hoverMargin = 5;
-vs.stateSelectedOpacity = 0.3;
-vs.stateNotClickedOpacity = 0.2;
 vs.activeColor = '#D02626';
 vs.inactiveColor = 'white';
 vs.yesColor = '#D02626';
@@ -174,12 +173,14 @@ function DebugApp() {
 function InitializePage() {
     console.log('InitializePage');
     //
-    graphObj = (new GraphClass())
-        .jsonData(window.graphApril6JSON)
-        .UpdateGraph('InitializePage');
-    //
     mapObj = (new MapClass())
         .jsonData(window.usStatesJSON);
+    //
+    graphObj = (new GraphClass())
+        .vertices(window.graphApril6JSON.nodes)
+        .edges(window.graphApril6JSON.links)
+        .UpdateGraph('InitializePage');
+    //
     var csvDataURL = 'data/4_6_reduced_privatization_report_card.csv';
     // var csvDataURL = 'data/data-08-04-2017.csv';
     d3.csv(csvDataURL, function(error, csvData) {
@@ -199,22 +200,23 @@ function ResizePage() {
         animating = true;
         var source = 'ResizePage';
         var width = Math.max(minMapWidth, window.innerWidth || minMapWidth);
-        var height = width/mapRatio;
+        var height = width/mapWidthHeightRatio;
+        //
         stateSelected = 'National';
         hoverText.text('');
         mapObj
             .width(width)
             .height(height)
-            .scale(width*1.2)
+            .scale(width*mapScale)
             .UpdateMap(source);
         UpdateFilters(source);
         UpdateInfobox(source);
         UpdateHover(source);
+        //
         graphObj
             .width(width)
             .height(height)
             .UpdateGraph(source);
-        // ResetGraph();
         /*
         1   320     568     P iPhone 5
         2   375     627     P iPhone 6
@@ -480,7 +482,6 @@ function MapClass() {
         } else if (!_jsonData) {
             return;
         }
-        var that = this;
         var i, j, csvDataState, csvDataValue, jsonDataState;
         for (i = 0; i < _csvData.length; i++) {
             csvDataState = _csvData[i].State;
@@ -554,12 +555,11 @@ function MapClass() {
             })
             .merge(statePaths);
         statePaths
+            .classed('hovered', function(d) {
+                return (stateSelected === d.properties.name);
+            })
             // .transition().duration(animateDuration).ease(animateEase)
             .attr('d', _path)
-            .style('opacity', function(d) {
-                if (stateSelected === d.properties.name) { return vs.stateSelectedOpacity; }
-                return 1;
-            })
             .style('fill', function(d) {
                 var grade = d.properties[_category];
                 if (grade === false) { return vs.inactiveColor; }
@@ -583,7 +583,8 @@ function MapClass() {
 function GraphClass() {
     var _width = 0;
     var _height = 0;
-    var _jsonData = null;
+    var _vertices = null;
+    var _edges = null;
     var _simulation = d3.forceSimulation()
         .force('edge', d3.forceLink().distance(20).strength(0.5))
         .force('charge', d3.forceManyBody())
@@ -601,9 +602,15 @@ function GraphClass() {
         return this;
     };
     //
-    this.jsonData = function(jsonData) {
-        if (!arguments.length) { return _jsonData; }
-        _jsonData = jsonData;
+    this.vertices = function(vertices) {
+        if (!arguments.length) { return _vertices; }
+        _vertices = vertices;
+        return this;
+    };
+    //
+    this.edges = function(edges) {
+        if (!arguments.length) { return _edges; }
+        _edges = edges;
         return this;
     };
     //
@@ -614,66 +621,64 @@ function GraphClass() {
     };
     //
     this.UpdateGraph = function(source) {
-        // console.log('UpdateGraph  ', source);
-        if (!_jsonData) {
-            return;
-        }
-        var that = this;
+        console.log('UpdateGraph  ', source);
+        if (!_vertices || !_edges) { return; }
         //
         _simulation
             .force('center', d3.forceCenter(_width, _height));
         //
-        // console.log('GraphClass', this);
-        /*
-        var verticeCircles = verticesG.selectAll('circle.vertice-circle')
-            .data(_jsonData.features, function(d) { return d.properties.name; });
-        verticeCircles = verticeCircles.enter().append('circle')
-            .classed('vertice-circle', true)
-            .on('mouseover', function(d) {
-                // console.log('mouseover', d);
-            })
-            .merge(verticeCircles);
-        verticeCircles
-            // .transition().duration(animateDuration).ease(animateEase)
-            .attr('cx', function(d) {
-                return _path.centroid(d)[0];
-            })
-            .attr('cy', function(d) {
-                return _path.centroid(d)[1];
-            })
-            .attr('r', 10)
-            .style('opacity', function(d) {
-                return 1;
-            })
-            .style('fill', function(d) {
-                return 'lightgreen';
-            });
-        //
-        var edgeLines = edgesG.selectAll('line.edge-line')
-            .data(_jsonData.features, function(d) { return d.properties.name; });
-        edgeLines = edgeLines.enter().append('line')
-            .classed('edge-line', true)
-            .on('mouseover', function(d) {
-                // console.log('mouseover', d);
-            })
-            .merge(edgeLines);
-        edgeLines
-            // .transition().duration(animateDuration).ease(animateEase)
-            .attr('cx', function(d) {
-                return _path.centroid(d)[0];
-            })
-            .attr('cy', function(d) {
-                return _path.centroid(d)[1];
-            })
-            .attr('r', 10)
-            .style('opacity', function(d) {
-                return 1;
-            })
-            .style('fill', function(d) {
-                return 'lightgreen';
-            });
-        //
-        */
+        // var verticeCircles = verticesG.selectAll('circle.vertice-circle')
+        //     .data(_vertices, function(d) { return d.id; });
+        // verticeCircles = verticeCircles.enter().append('circle')
+        //     .classed('vertice-circle', true)
+        //     .on('mouseover', function(d) {
+        //         if (animating === true) { return; }
+        //         var source = 'verticeCircles mouseover '+d.id;
+        //         console.log(source);
+        //     })
+        //     .merge(verticeCircles);
+        // verticeCircles
+        //     // .transition().duration(animateDuration).ease(animateEase)
+        //     .attr('cx', function(d) {
+        //         return Math.random()*_width;
+        //         // return _path.centroid(d)[0];
+        //     })
+        //     .attr('cy', function(d) {
+        //         return Math.random()*_height;
+        //         // return _path.centroid(d)[1];
+        //     })
+        //     .attr('r', 10)
+        //     .style('opacity', function(d) {
+        //         return 1;
+        //     })
+        //     .style('fill', function(d) {
+        //         return 'lightgreen';
+        //     });
+        // //
+        // var edgeLines = edgesG.selectAll('line.edge-line')
+        //     .data(_jsonData.features, function(d) { return d.properties.name; });
+        // edgeLines = edgeLines.enter().append('line')
+        //     .classed('edge-line', true)
+        //     .on('mouseover', function(d) {
+        //         // console.log('mouseover', d);
+        //     })
+        //     .merge(edgeLines);
+        // edgeLines
+        //     // .transition().duration(animateDuration).ease(animateEase)
+        //     .attr('cx', function(d) {
+        //         return _path.centroid(d)[0];
+        //     })
+        //     .attr('cy', function(d) {
+        //         return _path.centroid(d)[1];
+        //     })
+        //     .attr('r', 10)
+        //     .style('opacity', function(d) {
+        //         return 1;
+        //     })
+        //     .style('fill', function(d) {
+        //         return 'lightgreen';
+        //     });
+        // //
         TestMemory();
         return this;
     };
@@ -802,4 +807,5 @@ function ResetGraph() {
         d.fx = null;
         d.fy = null;
     }
-}*/
+}
+*/
