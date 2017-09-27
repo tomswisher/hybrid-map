@@ -15,8 +15,8 @@
                 <svg id="main-svg">
                     <rect id="main-bg"></rect>
                     <g id="states-g"></g>
-                    <g id="nodes-g"></g>
-                    <g id="links-g"></g>
+                    <g id="vertices-g"></g>
+                    <g id="edges-g"></g>
                     <g id="hover-g">
                         <rect id="hover-rect"></rect>
                         <text id="hover-text"></text>
@@ -28,8 +28,8 @@
             </div>
         </div>
         <div class="column column2">
-            <div class="row" id="dropdown-container">
-                <select id="states-dropdown"></select>
+            <div class="row" id="select-container">
+                <select id="states-select"></select>
             </div><!--
          --><div class="row" id="infobox-container">
                 <svg id="infobox-svg"></svg>
@@ -40,10 +40,6 @@
     <script src="js/d3.v4.10.2.js"></script>
     <script src="data/usStatesJSON.js"></script>
     <script src="data/graphApril6JSON.js"></script>
-    <script>
-        console.log('usStatesJSON.js', window.usStatesJSON);
-        console.log('graphApril6JSON.js', window.graphApril6JSON);
-    </script>
     <script src="js/hybrid-map.js"></script>
 </body>
 

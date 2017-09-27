@@ -1,15 +1,15 @@
 // by Tom Swisher
+
 /* global d3, console, graphApril6JSON */
 /* jshint -W069, unused:false */
 'use strict';
 
 window.debugMode = false;
-var minMapWidth = 500;
+var minMapWidth = 300;
 var mapRatio = 1.7;
 var animateDuration = 500;
 var animateEase = 'cubic-out';
 var hoverHeight = 0;
-var rxValue = 15;
 var gradeArray = ['A','B','C','D','F'];
 var visibleGrades = {'A':true,'B':true,'C':true,'D':true,'F':true};
 var gradeScale = function(letter) {
@@ -22,10 +22,10 @@ var gradeScale = function(letter) {
         default: return NaN;
     }
 };
-var mapInstance;
+var mapObj;
 var mapFontSize, infoboxFontSize;
 var sizeOfDOM = 0;
-var stateHovered = 'National';
+var stateSelected = 'National';
 var isMobile;
 
 // Visual Styles
@@ -42,7 +42,6 @@ vs.categoryMarginY = 2;
 vs.c_salmon = '#ff5232';
 vs.c_peagreen = '#6eaa5e';
 vs.c_lightgainsboro = '#eeeeee';
-vs.gradeColorArray = [];
 // arxiv
 // red   179  27  27  
 // gray  104    100 91  
@@ -92,7 +91,7 @@ var colorScale = d3.scaleQuantize()
     .domain([0, 5])
     .range(vs.gradeColorArray);
 
-vs.stateHoveredOpacity = 0.3;
+vs.stateSelectedOpacity = 0.3;
 vs.stateNotClickedOpacity = 0.2;
 vs.hoverMargin = 5;
 
@@ -103,15 +102,15 @@ window.onresize = ResizePage;
 var body = d3.select('body');
 var filtersContainer = body.select('#filters-container');
 var filtersSVG = body.select('#filters-svg');
-var statesDropdown = body.select('#states-dropdown');
+var statesSelect = body.select('#states-select');
 var infoboxContainer = body.select('#infobox-container');
 var visualizationContainer = body.select('#visualization-container');
 var mainContainer = body.select('#main-container');
 var mainSVG = body.select('#main-svg');
 var mainBG = body.select('#main-bg');
 var statesG = body.select('#states-g');
-var nodesG = body.select('#nodes-g');
-var linksG = body.select('#links-g');
+var verticesG = body.select('#vertices-g');
+var edgesG = body.select('#edges-g');
 var hoverG = body.select('#hover-g');
 var hoverRect = body.select('#hover-rect');
 var hoverText = body.select('#hover-text');
@@ -145,17 +144,21 @@ feMerge.append('feMergeNode')
 
 
 function InitializePage() {
-    // ResetGraph();
-    // requestAnimationFrame(function() {
-    //     body.style('opacity', 1);
-    // });
+    mapFontSize = parseFloat(mainSVG.style('font-size'));
+    hoverHeight = mapFontSize+2*vs.hoverMargin;
+    hoverRect
+        .attr('height', hoverHeight)
+        .attr('y', -1*hoverHeight-5)
+        .style('filter', 'url(#drop-shadow)');
+    hoverText
+        .attr('x', 0)
+        .attr('y', -0.5*hoverHeight-5);
     var csvDataURL = 'data/4_6_reduced_privatization_report_card.csv';
     // var csvDataURL = 'data/data-08-04-2017.csv';
-    mapInstance = new MapObject();
-    mapInstance.jsonData(window.usStatesJSON);
-    mapInstance.csvData(csvDataURL, function() {
+    mapObj = new MapClass();
+    mapObj.jsonData(window.usStatesJSON);
+    mapObj.csvData(csvDataURL, function() {
         ResizePage();
-        // ResetGraph();
         requestAnimationFrame(function() {
             body.style('opacity', 1);
         });
@@ -169,16 +172,16 @@ function ToggleGrades(bool) {
 }
 
 
-function UpdateFilters() {
-    // console.log('UpdateFilters');
-    var filtersWidth = mapInstance.width();
+function UpdateFilters(source) {
+    console.log('UpdateFilters '+source);
+    var filtersWidth = mapObj.width();
     var filtersHeight = 40;
     filtersSVG
         .attr('width', filtersWidth)
         .attr('height', filtersHeight+3)
         // .transition().duration(animateDuration).ease(animateEase)
         .style('opacity', function() {
-            return mapInstance.category() !== 'Overall Grade' ? 0 : 1;
+            return mapObj.category() !== 'Overall Grade' ? 0 : 1;
         });
     var gradeDataArray = gradeArray.slice();
     // var gradeRectSize = (1/2)*(1/gradeDataArray.length)*filtersWidth;
@@ -196,22 +199,23 @@ function UpdateFilters() {
             return 'translate('+tx+','+ty+')';
         })
         .on('mouseover', function(d) {
+            var source = 'gradeGs      mouseover '+d;
             ToggleGrades(false);
             visibleGrades[d] = true;
-            UpdateFilters();
-            mapInstance.UpdateMap();
+            mapObj.UpdateMap(source);
+            UpdateFilters(source);
         })
-        .on('mouseout', function() {
+        .on('mouseout', function(d) {
+            var source = 'gradeGs      mouseout  '+d;
             ToggleGrades(true);
-            UpdateFilters();
-            mapInstance.UpdateMap();
+            mapObj.UpdateMap(source);
+            UpdateFilters(source);
         })
         .each(function(grade) {
             var gradeBG = d3.select(this).selectAll('rect.grade-bg')
                 .data([grade]);
             gradeBG = gradeBG.enter().append('rect')
                 .attr('class', 'grade-bg')
-                .attr('rx', vs.gradeBGRounded ? rxValue : 0)
                 .style('fill', vs.inactiveColor)
                 .merge(gradeBG);
             gradeBG
@@ -225,7 +229,6 @@ function UpdateFilters() {
             gradeRect = gradeRect
                 .enter().append('rect')
                     .attr('class', 'grade-rect')
-                    .attr('rx', vs.gradeRounded ? rxValue : 0)
                     .style('fill', function(d) {
                         return colorScale(gradeScale(d));
                     })
@@ -265,48 +268,47 @@ function UpdateFilters() {
 
 
 function UpdateInfobox(source) {
-    // console.log('UpdateInfobox', source);
-    if (!mapInstance.categoryNames() || !mapInstance.csvData()) { return; }
+    console.log('UpdateInfobox '+source);
+    if (!mapObj.categoryNames() || !mapObj.csvData()) { return; }
     var stateDataRow;
-    if (stateHovered === 'National') {
+    if (stateSelected === 'National') {
         stateDataRow = {};
     } else {
-        stateDataRow = mapInstance.csvData().filter(function(row) {
-            return row.State === stateHovered;
+        stateDataRow = mapObj.csvData().filter(function(row) {
+            return row.State === stateSelected;
         })[0];
     }
-    var categoryRowsData = mapInstance.categoryNames().slice();
-    statesDropdown
+    var categoryRowsData = mapObj.categoryNames().slice();
+    statesSelect
         .attr('class', 'button-object')
         .on('change', function() {
+            var source = 'statesSelect change '+this.value;
+            stateSelected = this.value;
             if (this.value === 'National') {
-                stateHovered = 'National';
                 hoverText.text('');
-                UpdateHover('change');
             } else {
-                stateHovered = this.value;
                 var d = mainSVG.selectAll('path.state-path')
-                    .filter(function(d) { return d.properties.name === stateHovered; })
+                    .filter(function(d) { return d.properties.name === stateSelected; })
                     .datum();
-                hoverText.text(stateHovered+': '+d.properties[mapInstance.category()]);
-                UpdateHover('change');
+                hoverText.text(stateSelected+': '+d.properties[mapObj.category()]);
             }
-            UpdateInfobox('statesDropdown change');
-            mapInstance.UpdateMap();
+            mapObj.UpdateMap(source);
+            UpdateInfobox(source);
+            UpdateHover('change');
         });
-    var statesDropdownOptionsData = mapInstance.csvData().slice();
-    statesDropdownOptionsData = statesDropdownOptionsData
+    var statesSelectOptionsData = mapObj.csvData().slice();
+    statesSelectOptionsData = statesSelectOptionsData
         .map(function(row) { return row.State; })
         .filter(function(state) { return state !== 'DC'; });
-    statesDropdownOptionsData.unshift('National');
+    statesSelectOptionsData.unshift('National');
     //
-    var statesDropdownOptions = statesDropdown.selectAll('option.states-dropdown-option')
-        .data(statesDropdownOptionsData);
-    statesDropdownOptions = statesDropdownOptions.enter().append('option')
-        .classed('states-dropdown-option', true)
+    var statesSelectOptions = statesSelect.selectAll('option.states-select-option')
+        .data(statesSelectOptionsData);
+    statesSelectOptions = statesSelectOptions.enter().append('option')
+        .classed('states-select-option', true)
         .text(function(d) { return d; })
-        .merge(statesDropdownOptions);
-    statesDropdown.node().value = stateHovered;
+        .merge(statesSelectOptions);
+    statesSelect.node().value = stateSelected;
 }
 
 
@@ -314,10 +316,11 @@ function ResizePage() {
     requestAnimationFrame(function() {
         var width = Math.max(minMapWidth, window.innerWidth || minMapWidth);
         var height = width/mapRatio;
-        mapInstance
+        mapObj
             .width(width)
             .height(height)
-            .scale(width*1.2);
+            .scale(width*1.2)
+            .UpdateMap('ResizePage');
         UpdateFilters();
         UpdateInfobox('CheckSize');
         UpdateHover('resize');
@@ -342,7 +345,7 @@ function ResizePage() {
 }
 
 
-function MapObject() {
+function MapClass() {
     var _width = 0;
     var _height = 0;
     var _scale = 1000;
@@ -351,6 +354,48 @@ function MapObject() {
     var _jsonData = null;
     var _categoryNames = null;
     var _path = null;
+
+    this.categoryNames = function(categoryNames) {
+        if (!arguments.length) { return _categoryNames; }
+        _categoryNames = categoryNames;
+        return this;
+    };
+
+    this.category = function(category) {
+        if (!arguments.length) { return _category; }
+        _category = category;
+        return this;
+    };
+
+    this.width = function(width) {
+        if (!arguments.length) { return _width; }
+        _width = width;
+        return this;
+    };
+    
+    this.height = function(height) {
+        if (!arguments.length) { return _height; }
+        _height = height;
+        return this;
+    };
+
+    this.scale = function(scale) {
+        if (!arguments.length) { return _scale; }
+        _scale = scale;
+        return this;
+    };
+
+    this.path = function(path) {
+        if (!arguments.length) { return _path; }
+        _path = path;
+        return this;
+    };
+
+    this.jsonData = function(jsonData) {
+        if (!arguments.length) { return _jsonData; }
+        _jsonData = jsonData;
+        return this;
+    };
 
     this.csvData = function(csvDataURL, callback) {
         if (!arguments.length) { return _csvData; }
@@ -370,69 +415,17 @@ function MapObject() {
         });
     };
 
-    this.categoryNames = function(categoryNames) {
-        if (!arguments.length) { return _categoryNames; }
-        _categoryNames = categoryNames;
-        this.UpdateMap('categoryNames');
-        return this;
-    };
-
-    this.category = function(category) {
-        if (!arguments.length) { return _category; }
-        _category = category;
-        this.UpdateMap('category');
-        return this;
-    };
-
-    this.width = function(width) {
-        if (!arguments.length) { return _width; }
-        _width = width;
-        this.UpdateMap('width');
-        return this;
-    };
-    
-    this.height = function(height) {
-        if (!arguments.length) { return _height; }
-        _height = height;
-        this.UpdateMap('height');
-        return this;
-    };
-
-    this.scale = function(scale) {
-        if (!arguments.length) { return _scale; }
-        _scale = scale;
-        this.UpdateMap('scale');
-        return this;
-    };
-
-    this.path = function(path) {
-        if (!arguments.length) { return _path; }
-        _path = path;
-        this.UpdateMap('path');
-        return this;
-    };
-
-    this.jsonData = function(jsonData) {
-        if (!arguments.length) { return _jsonData; }
-        _jsonData = jsonData;
-        this.UpdateMap('jsonData');
-        return this;
-    };
-
     this.UpdateMap = function(source) {
-        // console.log('UpdateMap', source);
+        console.log('UpdateMap    ', source);
         if (!_csvData) {
             return;
         } else if (!_jsonData) {
             return;
         }
         var that = this;
-
         isMobile = false;
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-            isMobile = true;
-            console.log('Using a mobile device');
-        }
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) { isMobile = true; }
+        if (isMobile) { console.log('isMobile'); }
         var i, j, csvDataState, csvDataValue, jsonDataState;
         for (i = 0; i < _csvData.length; i++) {
             csvDataState = _csvData[i].State;
@@ -464,44 +457,33 @@ function MapObject() {
             .attr('x', 0)
             .attr('y', 0)
             .on('mouseover', function() {
+                var source = 'mainBG     mouseover';
                 // if (isMobile === true) { return; }
-                stateHovered = 'National';
-                statePaths.style('opacity', 1);
+                stateSelected = 'National';
                 hoverText.text('');
+                mapObj.UpdateMap(source);
+                UpdateInfobox(source);
                 UpdateHover('mouse');
-                UpdateInfobox('mainBG mouseover');
             })
             .style('fill', visualizationContainer.style('background-color'));
         //
-        var stateGs = statesG.selectAll('g.state-g')
+        var statePaths = statesG.selectAll('path.state-path')
             .data(_jsonData.features, function(d) { return d.properties.name; });
-        stateGs = stateGs.enter().append('g')
-            .classed('state-g', true)
-            .merge(stateGs);
-        //
-        var statePaths = stateGs.selectAll('path.state-path')
-            .data(function(d) { return [d]; }, function(d) { return d.properties.name; });
         statePaths = statePaths.enter().append('path')
             .classed('state-path', true)
             .on('mouseover', function(d) {
-                if (isMobile === true) { return; }
+                var source = 'statePaths mouseover '+stateSelected;
+                // if (isMobile === true) { return; }
                 if (visibleGrades[d.properties[_category]] === false) {
-                    stateHovered = 'National';
-                    statePaths.style('opacity', 1);
+                    stateSelected = 'National';
                     hoverText.text('');
-                    UpdateHover('mouse');
-                    UpdateInfobox('statePaths mouseover');
-                    return;
+                } else {
+                    stateSelected = d.properties.name;
+                    hoverText.text(d.properties.name+': '+d.properties[_category]);
                 }
-                stateHovered = d.properties.name;
-                statePaths
-                    .style('opacity', function(d) {
-                        if (stateHovered === d.properties.name) { return vs.stateHoveredOpacity; }
-                        return 1;
-                    });
-                hoverText.text(d.properties.name+': '+d.properties[_category]);
+                mapObj.UpdateMap(source);
+                UpdateInfobox(source);
                 UpdateHover('mouse');
-                UpdateInfobox('statePaths mouseover');
             })
             .attr('d', _path)
             .style('fill', function(d) {
@@ -517,7 +499,7 @@ function MapObject() {
             // .transition().duration(animateDuration).ease(animateEase)
             .attr('d', _path)
             .style('opacity', function(d) {
-                if (stateHovered === d.properties.name) { return vs.stateHoveredOpacity; }
+                if (stateSelected === d.properties.name) { return vs.stateSelectedOpacity; }
                 return 1;
             })
             .style('fill', function(d) {
@@ -531,15 +513,15 @@ function MapObject() {
                 return colorScale(gradeScale(grade));
             });
         //
-        var stateCentroids = stateGs.selectAll('circle.state-centroid')
-            .data(function(d) { return [d]; }, function(d) { return d.properties.name; });
-        stateCentroids = stateCentroids.enter().append('circle')
-            .classed('state-centroid', true)
+        var vertexCircles = verticesG.selectAll('circle.vertex-circle')
+            .data(_jsonData.features, function(d) { return d.properties.name; });
+        vertexCircles = vertexCircles.enter().append('circle')
+            .classed('vertex-circle', true)
             .on('mouseover', function(d) {
-                console.log('mouseover', d);
+                // console.log('mouseover', d);
             })
-            .merge(stateCentroids);
-        stateCentroids
+            .merge(vertexCircles);
+        vertexCircles
             // .transition().duration(animateDuration).ease(animateEase)
             .attr('cx', function(d) {
                 return _path.centroid(d)[0];
@@ -555,24 +537,11 @@ function MapObject() {
                 return 'lightgreen';
             });
         //
-        // Update font size and dependent objects
-        mapFontSize = parseFloat(mainSVG.style('font-size'));
-        hoverHeight = mapFontSize+2*vs.hoverMargin;
-
-        hoverRect
-            .attr('height', hoverHeight)
-            .attr('y', -1*hoverHeight-5)
-            .style('filter', 'url(#drop-shadow)');
-        hoverText
-            .attr('x', 0)
-            .attr('y', -0.5*hoverHeight-5);
-
         var oldSizeOfDom = sizeOfDOM;
         sizeOfDOM = d3.selectAll('*').size();
         if (sizeOfDOM !== oldSizeOfDom) {
             console.log('sizeOfDOM='+String(sizeOfDOM)+' changed by '+String(sizeOfDOM-oldSizeOfDom));
         }
-
         // DEBUG
         if (window.debugMode === true) {
             body.selectAll('*').style('outline', '1px solid green');
@@ -594,13 +563,11 @@ function MapObject() {
 
 
 function UpdateHover(source) {
-    var hoverWidth;
-    if (hoverText.text() === '') {
-        hoverWidth = 0;
-    } else {
+    // console.log('UpdateHover', source);
+    var hoverWidth = 0;
+    if (hoverText.text() !== '') {
         hoverWidth = hoverText.node().getBBox().width+2*vs.hoverMargin;
     }
-    // console.log('UpdateHover', source, hoverWidth);
     hoverRect
         .attr('width', hoverWidth)
         .attr('x', -0.5*hoverWidth);
@@ -611,8 +578,8 @@ function UpdateHover(source) {
                 mouseX = d3.mouse(mainSVG.node())[0];
                 mouseY = d3.mouse(mainSVG.node())[1];
             } else {
-                mouseX = mapInstance.width()/2;
-                mouseY = mapInstance.height()/2;
+                mouseX = mapObj.width()/2;
+                mouseY = mapObj.height()/2;
             }
             if (mouseX < hoverWidth/2 + 1) {
                 mouseX = hoverWidth/2 + 1;
@@ -665,7 +632,7 @@ function GraphObject() {
     var _width = Math.max(minMapWidth, window.innerWidth || minMapWidth);
     var _height = _width/mapRatio;
     this._simulation = d3.forceSimulation()
-        .force('link', d3.forceLink().distance(20).strength(0.5))
+        .force('edge', d3.forceLink().distance(20).strength(0.5))
         .force('charge', d3.forceManyBody())
         .force('center', d3.forceCenter(_width/2, _height/2));
     return this;
@@ -673,7 +640,7 @@ function GraphObject() {
 
 
 function ResetGraph() {
-    var nodes, links, nodeById;
+    var vertices, edges, vertexById;
     var dollarsScale = d3.scaleLinear()
         .range([0.5, 10]);
     var dollarsGivenScale = d3.scaleLinear()
@@ -684,53 +651,53 @@ function ResetGraph() {
     hybridMap();
 
     function hybridMap() {
-        nodes = graphApril6JSON.nodes;
-        links = graphApril6JSON.links;
-        nodeById = d3.map(nodes, function(d) { return d.id; });
-        nodes.forEach(function(node) {
-            node.dollarsGiven = 0;
-            node.dollarsReceived = 0;
+        vertices = graphApril6JSON.nodes;
+        edges = graphApril6JSON.links;
+        vertexById = d3.map(vertices, function(d) { return d.id; });
+        vertices.forEach(function(vertex) {
+            vertex.dollarsGiven = 0;
+            vertex.dollarsReceived = 0;
         });
 
-        links.forEach(function(link) {
-            link.source = nodeById.get(link.source);
-            link.target = nodeById.get(link.target);
-            link.source.dollarsGiven += link.dollars;
-            link.target.dollarsReceived += link.dollars;
+        edges.forEach(function(edge) {
+            edge.source = vertexById.get(edge.source);
+            edge.target = vertexById.get(edge.target);
+            edge.source.dollarsGiven += edge.dollars;
+            edge.target.dollarsReceived += edge.dollars;
         });
         //         i = {
-        //           report: parseInt(link.report),
-        //           dollars: parseInt(link.dollars),
-        //           month: link.month,
-        //           year: link.year,  
+        //           report: parseInt(edge.report),
+        //           dollars: parseInt(edge.dollars),
+        //           month: edge.month,
+        //           year: edge.year,  
         //         }; // intermediate node
-        //     nodes.push(i);
-        //     links.push({ source: link.source, target: i }, { source: i, target: link.target });
-        //     bilinks.push([link.source, i, link.target]);
+        //     vertices.push(i);
+        //     edges.push({ source: edge.source, target: i }, { source: i, target: edge.target });
+        //     biedges.push([edge.source, i, edge.target]);
 
         dollarsScale.domain([
-            d3.min(links, function(link) { return link.dollars; }),
-            d3.max(links, function(link) { return link.dollars; })
+            d3.min(edges, function(edge) { return edge.dollars; }),
+            d3.max(edges, function(edge) { return edge.dollars; })
         ]);
         dollarsGivenScale.domain([
-            d3.min(nodes, function(node) { return node.dollarsGiven; }),
-            d3.max(nodes, function(node) { return node.dollarsGiven; })
+            d3.min(vertices, function(vertex) { return vertex.dollarsGiven; }),
+            d3.max(vertices, function(vertex) { return vertex.dollarsGiven; })
         ]);
         dollarsReceivedScale.domain([
-            d3.min(nodes, function(node) { return node.dollarsReceived; }),
-            d3.max(nodes, function(node) { return node.dollarsReceived; })
+            d3.min(vertices, function(vertex) { return vertex.dollarsReceived; }),
+            d3.max(vertices, function(vertex) { return vertex.dollarsReceived; })
         ]);
 
-        var linkElements = linksG.selectAll('line.link')
-            .data(links)
+        var edgeElements = edgesG.selectAll('line.link')
+            .data(edges)
             .enter().append('line')
             // .enter().append('path')
             .style('stroke', 'black')
             .style('stroke-width', function(d) { return dollarsScale(d.dollars); })
-            .attr('class', function(d) { return 'link-path report' + d.report; });
+            .attr('class', function(d) { return 'edge-path report' + d.report; });
 
-        var nodeElements = nodesG.selectAll('circle.node')
-            .data(nodes.filter(function(d) { return d.id; }))
+        var nodeElements = verticesG.selectAll('circle.node')
+            .data(vertices.filter(function(d) { return d.id; }))
             .enter().append('circle')
             .attr('class', function(d) { return 'node ' + d.state; })
             .attr('r', function(d) { return dollarsGivenScale(d.dollarsGiven); })
@@ -744,19 +711,19 @@ function ResetGraph() {
             .text(function(d) { return d.id; });
 
         simulation
-            .nodes(nodes)
+            .nodes(vertices)
             .on('tick', ticked);
 
-        simulation.force('link')
-            .links(links);
+        simulation.force('edge')
+            .links(edges);
 
         // function ticked() {
-        //     linkElements.attr('d', positionLink);
-        //     node.attr('transform', positionNode);
+        //     edgeElements.attr('d', positionLink);
+        //     vertex.attr('transform', positionNode);
         // }
 
         function ticked() {
-            linkElements
+            edgeElements
                 .attr('x1', function(d) { return d.source.x; })
                 .attr('y1', function(d) { return d.source.y; })
                 .attr('x2', function(d) { return d.target.x; })
