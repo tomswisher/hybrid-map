@@ -22,9 +22,6 @@ var gradeScale = function(letter) {
     }
 };
 var mapInstance;
-var mapWidth = 0, mapHeight = 0;
-var currentVisualizationWidth = 0;
-var currentVisualizationHeight = 0;
 var mapFontSize, infoboxFontSize;
 var sizeOfDOM = 0;
 var stateHovered = 'National';
@@ -342,21 +339,6 @@ function ResizePage() {
         @mapHeight6: 315px;
         @mapHeight7: 440px;
         */
-        // var newVisualizationWidth = Math.max(0, parseFloat(visualizationContainer.style('width'))); 
-        // var newVisualizationHeight = Math.max(0, parseFloat(visualizationContainer.style('height'))); 
-        // var width = Math.max(0, parseFloat(mainContainer.style('width'))); 
-        // var mapHeight = Math.max(0, parseFloat(mainContainer.style('height'))); 
-        // if (newVisualizationWidth !== currentVisualizationWidth || newVisualizationHeight !== currentVisualizationHeight) {
-        //     // console.log(newVisualizationWidth, newVisualizationHeight);
-        //     currentVisualizationWidth = newVisualizationWidth;
-        //     currentVisualizationHeight = newVisualizationHeight;
-        //     mapInstance
-        //         .width(width)
-        //         .height(mapHeight)
-        //         .scale(width*1.3);
-        //     UpdateFilters();
-        //     UpdateInfobox('CheckSize');
-        // }
     });
 }
 
