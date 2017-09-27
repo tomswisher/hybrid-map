@@ -7,10 +7,19 @@
 'use strict';
 
 
+// Window Functions
 window.onload = InitializePage;
 window.onresize = ResizePage;
 
 
+// Detected Settings
+var isMobile = false;
+if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) { isMobile = true; }
+if (isMobile) { console.log('isMobile'); }
+
+
+// Global Variables
+var animating = false;
 var debugMode = false;
 var minMapWidth = 300;
 var mapRatio = 1.8;
@@ -30,13 +39,9 @@ var gradeScale = function(letter) {
     }
 };
 var mapObj, graphObj;
-var mapFontSize, infoboxFontSize;
 var sizeOfDom = 0;
 var usedJSHeapSize = 0;
 var stateSelected = 'National';
-var isMobile = false;
-if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) { isMobile = true; }
-if (isMobile) { console.log('isMobile'); }
 
 
 // Selectors
@@ -60,40 +65,6 @@ var hoverText = body.select('#hover-text');
 
 // Visual Styles
 var vs = {};
-filtersDefs
-    .append('filter')
-        .attr('id', 'drop-shadow')
-        .attr('height', '130%') // height=130% so that the shadow is not clipped
-        .attr('width', '120%')
-        .each(function() {
-            // SourceAlpha refers to opacity of graphic that this drop-shadow filter will be applied to
-            // convolve that with a Gaussian with standard deviation 3 and store result in blur
-            d3.select(this)
-                .append('feGaussianBlur')
-                    .attr('in', 'SourceAlpha')
-                    .attr('stdDeviation', 3)
-                    .attr('result', 'blur');
-            // Translate the output of the Gaussian blur to the right and downwards
-            // Store result in offsetBlur
-            d3.select(this)
-                .append('feOffset')
-                    .attr('in', 'blur')
-                    .attr('dx', 3)
-                    .attr('dy', 3)
-                    .attr('result', 'offsetBlur');
-            // Overlay original SourceGraphic over translated blurred opacity by using
-            // feMerge drop-shadow. Order of specifying inputs is important!
-            d3.select(this)
-                .append('feMerge')
-                    .each(function() {
-                        d3.select(this)
-                            .append('feMergeNode')
-                                .attr('in', 'offsetBlur');
-                        d3.select(this)
-                            .append('feMergeNode')
-                                .attr('in', 'SourceGraphic');
-                    });
-        });
 vs.popupDX = 2;
 vs.popupDY = 2;
 vs.gradeMargin = 2.5;
@@ -129,6 +100,43 @@ vs.c_lightgainsboro = '#eeeeee';
 vs.gradeColorScale = d3.scaleQuantize()
     .domain([0, 5])
     .range(vs.gradeColorArray);
+filtersDefs
+    .append('filter')
+        .attr('id', 'drop-shadow')
+        .attr('height', '130%') // height=130% so that the shadow is not clipped
+        .attr('width', '120%')
+        .each(function() {
+            // SourceAlpha refers to opacity of graphic that this drop-shadow filter will be applied to
+            // convolve that with a Gaussian with standard deviation 3 and store result in blur
+            d3.select(this)
+                .append('feGaussianBlur')
+                    .attr('in', 'SourceAlpha')
+                    .attr('stdDeviation', 3)
+                    .attr('result', 'blur');
+            // Translate the output of the Gaussian blur to the right and downwards
+            // Store result in offsetBlur
+            d3.select(this)
+                .append('feOffset')
+                    .attr('in', 'blur')
+                    .attr('dx', 3)
+                    .attr('dy', 3)
+                    .attr('result', 'offsetBlur');
+            // Overlay original SourceGraphic over translated blurred opacity by using
+            // feMerge drop-shadow. Order of specifying inputs is important!
+            d3.select(this)
+                .append('feMerge')
+                    .each(function() {
+                        d3.select(this)
+                            .append('feMergeNode')
+                                .attr('in', 'offsetBlur');
+                        d3.select(this)
+                            .append('feMergeNode')
+                                .attr('in', 'SourceGraphic');
+                    });
+        });
+
+
+// ---------------------------------------------------------------------------------------------- //
 
 
 function TestMemory() {
@@ -146,21 +154,34 @@ function TestMemory() {
 }
 
 
+function DebugApp() {
+    body.selectAll('*').style('outline', '1px solid green');
+    var verticalGuid = mainSVG.selectAll('rect.vertical-guide')
+        .data([null]);
+    verticalGuid = verticalGuid
+        .enter().append('rect')
+            .classed('vertical-guide', true)
+            .merge(verticalGuid);
+    verticalGuid
+        .attr('x', mapObj.width()/2-1)
+        .attr('y', 0)
+        .attr('width', 2)
+        .attr('height', mapObj.height())
+        .style('fill', 'darkorange');
+}
+
+
 function InitializePage() {
-    mapFontSize = parseFloat(mainSVG.style('font-size'));
-    hoverHeight = mapFontSize+2*vs.hoverMargin;
-    hoverRect
-        .attr('height', hoverHeight)
-        .attr('y', -1*hoverHeight-5)
-        .style('filter', 'url(#drop-shadow)');
-    hoverText
-        .attr('x', 0)
-        .attr('y', -0.5*hoverHeight-5);
-    mapObj = new MapClass();
-    graphObj = new GraphClass();
+    console.log('InitializePage');
+    //
+    graphObj = (new GraphClass())
+        .jsonData(window.graphApril6JSON)
+        .UpdateGraph('InitializePage');
+    //
+    mapObj = (new MapClass())
+        .jsonData(window.usStatesJSON);
     var csvDataURL = 'data/4_6_reduced_privatization_report_card.csv';
     // var csvDataURL = 'data/data-08-04-2017.csv';
-    mapObj.jsonData(window.usStatesJSON);
     d3.csv(csvDataURL, function(error, csvData) {
         if (error) { return console.error(error); }
         mapObj.csvData(csvData);
@@ -173,21 +194,26 @@ function InitializePage() {
 
 
 function ResizePage() {
+    animating = true;
     requestAnimationFrame(function() {
+        animating = true;
+        var source = 'ResizePage';
         var width = Math.max(minMapWidth, window.innerWidth || minMapWidth);
         var height = width/mapRatio;
+        stateSelected = 'National';
+        hoverText.text('');
         mapObj
             .width(width)
             .height(height)
             .scale(width*1.2)
-            .UpdateMap('ResizePage');
-        UpdateFilters();
-        UpdateInfobox('CheckSize');
-        UpdateHover('resize');
+            .UpdateMap(source);
+        UpdateFilters(source);
+        UpdateInfobox(source);
+        UpdateHover(source);
         graphObj
             .width(width)
             .height(height)
-            .UpdateGraph('ResizePage');
+            .UpdateGraph(source);
         // ResetGraph();
         /*
         1   320     568     P iPhone 5
@@ -205,6 +231,9 @@ function ResizePage() {
         @mapHeight6: 315px;
         @mapHeight7: 440px;
         */
+        requestAnimationFrame(function() {
+            animating = false;
+        });
     });
 }
 
@@ -238,14 +267,16 @@ function UpdateFilters(source) {
             return 'translate('+tx+','+ty+')';
         })
         .on('mouseover', function(d) {
-            var source = 'gradeGs      mouseover '+d;
+            if (animating === true) { return; }
+            var source = 'gradeGs     mouseover '+d;
             ToggleGrades(false);
             visibleGrades[d] = true;
             mapObj.UpdateMap(source);
             UpdateFilters(source);
         })
         .on('mouseout', function(d) {
-            var source = 'gradeGs      mouseout  '+d;
+            if (animating === true) { return; }
+            var source = 'gradeGs     mouseout  '+d;
             ToggleGrades(true);
             mapObj.UpdateMap(source);
             UpdateFilters(source);
@@ -320,7 +351,7 @@ function UpdateInfobox(source) {
     statesSelect
         .attr('class', 'button-object')
         .on('change', function() {
-            var source = 'statesSelect change '+this.value;
+            var source = 'statesSelect  change '+this.value;
             stateSelected = this.value;
             if (this.value === 'National') {
                 hoverText.text('');
@@ -390,51 +421,60 @@ function MapClass() {
     var _csvData = null;
     var _jsonData = null;
     var _path = null;
-
-    this.category = function(category) {
-        if (!arguments.length) { return _category; }
-        _category = category;
-        return this;
-    };
-
+    //
+    hoverHeight = parseFloat(mainSVG.style('font-size'))+2*vs.hoverMargin;
+    hoverRect
+        .attr('height', hoverHeight)
+        .attr('y', -1*hoverHeight-5)
+        .style('filter', 'url(#drop-shadow)');
+    hoverText
+        .attr('x', 0)
+        .attr('y', -0.5*hoverHeight-5);
+    //
     this.width = function(width) {
         if (!arguments.length) { return _width; }
         _width = width;
         return this;
     };
-    
+    //
     this.height = function(height) {
         if (!arguments.length) { return _height; }
         _height = height;
         return this;
     };
-
+    //
     this.scale = function(scale) {
         if (!arguments.length) { return _scale; }
         _scale = scale;
         return this;
     };
-
-    this.path = function(path) {
-        if (!arguments.length) { return _path; }
-        _path = path;
+    //
+    this.category = function(category) {
+        if (!arguments.length) { return _category; }
+        _category = category;
         return this;
     };
-
+    //
     this.jsonData = function(jsonData) {
         if (!arguments.length) { return _jsonData; }
         _jsonData = jsonData;
         return this;
     };
-
+    //
     this.csvData = function(csvData) {
         if (!arguments.length) { return _csvData; }
         _csvData = csvData;
         return this;
     };
-
+    //
+    this.path = function(path) {
+        if (!arguments.length) { return _path; }
+        _path = path;
+        return this;
+    };
+    //
     this.UpdateMap = function(source) {
-        // console.log('UpdateMap    ', source);
+        console.log('UpdateMap    ', source);
         if (!_csvData) {
             return;
         } else if (!_jsonData) {
@@ -461,6 +501,7 @@ function MapClass() {
         //
         mainSVG
             .on('mousemove', function() {
+                if (animating === true) { return; }
                 UpdateHover('mouse');
             })
             .attr('width', _width)
@@ -472,7 +513,8 @@ function MapClass() {
             .attr('x', 0)
             .attr('y', 0)
             .on('mouseover', function() {
-                var source = 'mainBG     mouseover';
+                if (animating === true) { return; }
+                var source = 'mainBG      mouseover';
                 // if (isMobile === true) { return; }
                 stateSelected = 'National';
                 hoverText.text('');
@@ -487,7 +529,8 @@ function MapClass() {
         statePaths = statePaths.enter().append('path')
             .classed('state-path', true)
             .on('mouseover', function(d) {
-                var source = 'statePaths mouseover '+stateSelected;
+                if (animating === true) { return; }
+                var source = 'statePaths  mouseover '+stateSelected;
                 // if (isMobile === true) { return; }
                 if (visibleGrades[d.properties[_category]] === false) {
                     stateSelected = 'National';
@@ -531,22 +574,8 @@ function MapClass() {
         TestMemory();
         //
         if (window.debugMode === true) { DebugApp(); }
-
-        function DebugApp() {
-            body.selectAll('*').style('outline', '1px solid green');
-            var verticalGuid = mainSVG.selectAll('rect.vertical-guide')
-                .data([null]);
-            verticalGuid = verticalGuid
-                .enter().append('rect')
-                    .classed('vertical-guide', true)
-                    .merge(verticalGuid);
-            verticalGuid
-                .attr('x', _width/2-1)
-                .attr('y', 0)
-                .attr('width', 2)
-                .attr('height', _height)
-                .style('fill', 'darkorange');
-        }
+        //
+        return this;
     };
 }
 
@@ -558,39 +587,44 @@ function GraphClass() {
     var _simulation = d3.forceSimulation()
         .force('edge', d3.forceLink().distance(20).strength(0.5))
         .force('charge', d3.forceManyBody())
-        .force('center', d3.forceCenter(0, 0));
-
-    this.simulation = function(simulation) {
-        if (!arguments.length) { return _simulation; }
-        _simulation = simulation;
-        return this;
-    };
-
+        .force('center', d3.forceCenter(_width, _height));
+    //
     this.width = function(width) {
         if (!arguments.length) { return _width; }
         _width = width;
         return this;
     };
-    
+    //
     this.height = function(height) {
         if (!arguments.length) { return _height; }
         _height = height;
         return this;
     };
-
+    //
     this.jsonData = function(jsonData) {
         if (!arguments.length) { return _jsonData; }
         _jsonData = jsonData;
         return this;
     };
-
+    //
+    this.simulation = function(simulation) {
+        if (!arguments.length) { return _simulation; }
+        _simulation = simulation;
+        return this;
+    };
+    //
     this.UpdateGraph = function(source) {
-        console.log('UpdateGraph  ', source);
+        // console.log('UpdateGraph  ', source);
         if (!_jsonData) {
             return;
         }
         var that = this;
         //
+        _simulation
+            .force('center', d3.forceCenter(_width, _height));
+        //
+        // console.log('GraphClass', this);
+        /*
         var verticeCircles = verticesG.selectAll('circle.vertice-circle')
             .data(_jsonData.features, function(d) { return d.properties.name; });
         verticeCircles = verticeCircles.enter().append('circle')
@@ -639,11 +673,13 @@ function GraphClass() {
                 return 'lightgreen';
             });
         //
+        */
         TestMemory();
+        return this;
     };
 }
 
-
+/*
 function ResetGraph() {
     var vertices, edges, verticeById;
     var dollarsScale = d3.scaleLinear()
@@ -766,4 +802,4 @@ function ResetGraph() {
         d.fx = null;
         d.fy = null;
     }
-}
+}*/
