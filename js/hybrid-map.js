@@ -4,6 +4,7 @@
 'use strict';
 
 window.debugMode = false;
+var minMapWidth = 500;
 var mapRatio = 1.7;
 var animateDuration = 500;
 var animateEase = 'cubic-out';
@@ -170,9 +171,7 @@ function ToggleGrades(bool) {
 
 function UpdateFilters() {
     // console.log('UpdateFilters');
-    // var filtersWidth = Math.max(0, parseFloat(filtersContainer.style('width')));
-    // var filtersHeight = Math.max(0, parseFloat(filtersContainer.style('height')));
-    var filtersWidth = window.innerWidth || 400;
+    var filtersWidth = mapInstance.width();
     var filtersHeight = 40;
     filtersSVG
         .attr('width', filtersWidth)
@@ -313,7 +312,7 @@ function UpdateInfobox(source) {
 
 function ResizePage() {
     requestAnimationFrame(function() {
-        var width = window.innerWidth || 500;
+        var width = Math.max(minMapWidth, window.innerWidth || minMapWidth);
         var height = width/mapRatio;
         mapInstance
             .width(width)
@@ -484,17 +483,6 @@ function MapObject() {
             .data(function(d) { return [d]; }, function(d) { return d.properties.name; });
         statePaths = statePaths.enter().append('path')
             .classed('state-path', true)
-            .style('fill', function(d) {
-                var grade = d.properties[_category];
-                if (grade === undefined) { return '#ccc'; }
-                if (grade === '_') { return vs.inactiveColor; }
-                if (grade === 'Yes') { return vs.yesColor; }
-                if (grade === 'No') { return vs.noColor; }
-                return colorScale(gradeScale(grade));
-            })
-            .attr('d', _path)
-            .merge(statePaths);
-        statePaths
             .on('mouseover', function(d) {
                 if (isMobile === true) { return; }
                 if (visibleGrades[d.properties[_category]] === false) {
@@ -514,31 +502,24 @@ function MapObject() {
                 hoverText.text(d.properties.name+': '+d.properties[_category]);
                 UpdateHover('mouse');
                 UpdateInfobox('statePaths mouseover');
-                // console.log(projection.invert(d3.mouse(this)));
             })
-            .on('mouseup', function() {
-                return;
+            .attr('d', _path)
+            .style('fill', function(d) {
+                var grade = d.properties[_category];
+                if (grade === undefined) { return '#ccc'; }
+                if (grade === '_') { return vs.inactiveColor; }
+                if (grade === 'Yes') { return vs.yesColor; }
+                if (grade === 'No') { return vs.noColor; }
+                return colorScale(gradeScale(grade));
             })
-            .attr('d', _path);
-        // ---
-        stateGs
-            .attr('transform', 'scale(1)');
+            .merge(statePaths);
         statePaths
-            .attr('transform', 'scale(1)')
-            .each(function(d) {
-                if (stateHovered === d.properties.name) {
-                    this.parentNode.parentNode.appendChild(this.parentNode);
-                    hoverG.node().parentNode.appendChild(hoverG.node());
-                }
-            });
-        //---
-        statePaths
+            // .transition().duration(animateDuration).ease(animateEase)
+            .attr('d', _path)
             .style('opacity', function(d) {
-                // var oldOpacity = d3.select(this).style('opacity');
                 if (stateHovered === d.properties.name) { return vs.stateHoveredOpacity; }
                 return 1;
             })
-            // .transition().duration(animateDuration).ease(animateEase)
             .style('fill', function(d) {
                 var grade = d.properties[_category];
                 if (grade === false) { return vs.inactiveColor; }
@@ -546,15 +527,33 @@ function MapObject() {
                 if (grade === '_') { return vs.inactiveColor; }
                 if (grade === 'Yes') { return vs.yesColor; }
                 if (grade === 'No') { return vs.noColor; }
+                if (visibleGrades[grade] === false) { return vs.inactiveColor; }
                 return colorScale(gradeScale(grade));
             });
-        statePaths
-            .filter(function(d) { 
-                var gradeLetter = d.properties[_category];
-                return visibleGrades[gradeLetter] === false;
+        //
+        var stateCentroids = stateGs.selectAll('circle.state-centroid')
+            .data(function(d) { return [d]; }, function(d) { return d.properties.name; });
+        stateCentroids = stateCentroids.enter().append('circle')
+            .classed('state-centroid', true)
+            .on('mouseover', function(d) {
+                console.log('mouseover', d);
             })
+            .merge(stateCentroids);
+        stateCentroids
             // .transition().duration(animateDuration).ease(animateEase)
-            .style('fill', vs.inactiveColor);
+            .attr('cx', function(d) {
+                return _path.centroid(d)[0];
+            })
+            .attr('cy', function(d) {
+                return _path.centroid(d)[1];
+            })
+            .attr('r', 10)
+            .style('opacity', function(d) {
+                return 1;
+            })
+            .style('fill', function(d) {
+                return 'lightgreen';
+            });
         //
         // Update font size and dependent objects
         mapFontSize = parseFloat(mainSVG.style('font-size'));
@@ -663,7 +662,7 @@ function BostockTextWrap(text, width) {
 
 
 function GraphObject() {
-    var _width = window.innerWidth || 500;
+    var _width = Math.max(minMapWidth, window.innerWidth || minMapWidth);
     var _height = _width/mapRatio;
     this._simulation = d3.forceSimulation()
         .force('link', d3.forceLink().distance(20).strength(0.5))
