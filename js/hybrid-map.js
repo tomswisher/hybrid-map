@@ -27,67 +27,9 @@ var mapFontSize, infoboxFontSize;
 var sizeOfDom = 0;
 var usedJSHeapSize = 0;
 var stateSelected = 'National';
-var isMobile;
-
-// Visual Styles
-var vs = {};
-vs.popupDX = 2;
-vs.popupDY = 2;
-vs.gradeMargin = 2.5;
-//
-vs.c_salmon = '#ff5232';
-vs.c_peagreen = '#6eaa5e';
-vs.c_lightgainsboro = '#eeeeee';
-// arxiv
-// red   179  27  27  
-// gray  104    100 91  
-// lgray 192 192 192 
-// blue  0  0   238 
-
-// http://www.colourlovers.com/palette/593047/Bauhaus
-// gold   244    229 0   
-// orange 241   145 1   
-// blue   38 113 178 
-// green  38 113 178 
-// red    227    35  34  
-// purple 109   56  137 
-// black  34 34  34  
-
-// BH Paint
-// black  34 34  34  
-// blue  28 44  160 
-// gold  251    204 12  
-// red   240    6   55  
-// white 239    230 221 
-
-
-/*BH1*/ vs.gradeColorArray = ['rgb(50,50,50)','rgb(28,44,160)','rgb(240,6,55)','rgb(251,204,12)','rgb(239,230,221)'];
-// /*BH2*/ vs.gradeColorArray = ['rgb(240,243,247)','rgb(191,162,26)','rgb(20,65,132)','rgb(153,40,26)','rgb(34,34,34)'];
-// vs.gradeColorArray = ['rgb(40,40,40)','rgb(80,80,80)','rgb(120,120,120)','rgb(160,160,160)','rgb(180,180,180)']; // grayscale
-// vs.gradeColorArray = ['#c7e9b4','#7fcdbb','#41b6c4','#2c7fb8','#253494']; // blue - torquise
-// vs.gradeColorArray = ['#253494','#2c7fb8','#41b6c4','#7fcdbb','#c7e9b4']; // turqouise - blue
-// vs.gradeColorArray = ['#bd0026','#f03b20','#fd8d3c','#fecc5c','#ffffb2']; // tan - red
-// vs.gradeColorArray = ['#ffffcc','#c2e699','#78c679','#31a354','#006837']; // green - tan
-// vs.gradeColorArray = ['#dc143c', '#f39237', '#feea1b', '#b5d400', '#529c00']; // green - yellow - red
-// vs.gradeColorArray = ['darkgreen', 'lightgreen', 'yellow', 'orange', 'red'];
-// vs.gradeColorArray = [vs.c_salmon, 'gold', 'lightyellow', 'lightgreen', vs.c_peagreen];
-// vs.gradeColorArray = ['#b22222', 'lightgray', 'lightgray', 'lightgray', '#3cb371']; // green - gray - red
-// vs.gradeColorArray = ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a', '#1a9641']; // colorbrewer
-// vs.gradeColorArray = ['crimson', '#fdae61', '#ffffbf', '#a6d96a', '#1a9641'];
-// vs.gradeColorArray = ['#FF1800', '#FFDD6B', '#FFF696', '#9CCC49', '#00911A'];
-//
-vs.activeColor = '#D02626';
-vs.inactiveColor = 'white';
-vs.yesColor = '#D02626';
-vs.noColor = 'BDBBBB';
-//
-var colorScale = d3.scaleQuantize()
-    .domain([0, 5])
-    .range(vs.gradeColorArray);
-
-vs.stateSelectedOpacity = 0.3;
-vs.stateNotClickedOpacity = 0.2;
-vs.hoverMargin = 5;
+var isMobile = false;
+if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) { isMobile = true; }
+if (isMobile) { console.log('isMobile'); }
 
 window.onload = InitializePage;
 window.onresize = ResizePage;
@@ -110,30 +52,67 @@ var hoverRect = body.select('#hover-rect');
 var hoverText = body.select('#hover-text');
 var defs = filtersSVG.append('defs');
 
+// Visual Styles
+var vs = {};
+vs.popupDX = 2;
+vs.popupDY = 2;
+vs.gradeMargin = 2.5;
+vs.hoverMargin = 5;
+vs.stateSelectedOpacity = 0.3;
+vs.stateNotClickedOpacity = 0.2;
+vs.activeColor = '#D02626';
+vs.inactiveColor = 'white';
+vs.yesColor = '#D02626';
+vs.noColor = 'BDBBBB';
+vs.c_salmon = '#ff5232';
+vs.c_peagreen = '#6eaa5e';
+vs.c_lightgainsboro = '#eeeeee';
+// arxiv
+// red   179  27  27  
+// gray  104    100 91  
+// lgray 192 192 192 
+// blue  0  0   238 
+/*BH1*/ vs.gradeColorArray = ['rgb(50,50,50)','rgb(28,44,160)','rgb(240,6,55)','rgb(251,204,12)','rgb(239,230,221)'];
+// /*BH2*/ vs.gradeColorArray = ['rgb(240,243,247)','rgb(191,162,26)','rgb(20,65,132)','rgb(153,40,26)','rgb(34,34,34)'];
+// vs.gradeColorArray = ['rgb(40,40,40)','rgb(80,80,80)','rgb(120,120,120)','rgb(160,160,160)','rgb(180,180,180)']; // grayscale
+// vs.gradeColorArray = ['#c7e9b4','#7fcdbb','#41b6c4','#2c7fb8','#253494']; // blue - torquise
+// vs.gradeColorArray = ['#253494','#2c7fb8','#41b6c4','#7fcdbb','#c7e9b4']; // turqouise - blue
+// vs.gradeColorArray = ['#bd0026','#f03b20','#fd8d3c','#fecc5c','#ffffb2']; // tan - red
+// vs.gradeColorArray = ['#ffffcc','#c2e699','#78c679','#31a354','#006837']; // green - tan
+// vs.gradeColorArray = ['#dc143c', '#f39237', '#feea1b', '#b5d400', '#529c00']; // green - yellow - red
+// vs.gradeColorArray = ['darkgreen', 'lightgreen', 'yellow', 'orange', 'red'];
+// vs.gradeColorArray = [vs.c_salmon, 'gold', 'lightyellow', 'lightgreen', vs.c_peagreen];
+// vs.gradeColorArray = ['#b22222', 'lightgray', 'lightgray', 'lightgray', '#3cb371']; // green - gray - red
+// vs.gradeColorArray = ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a', '#1a9641']; // colorbrewer
+// vs.gradeColorArray = ['crimson', '#fdae61', '#ffffbf', '#a6d96a', '#1a9641'];
+// vs.gradeColorArray = ['#FF1800', '#FFDD6B', '#FFF696', '#9CCC49', '#00911A'];
+var gradeColorScale = d3.scaleQuantize()
+    .domain([0, 5])
+    .range(vs.gradeColorArray);
 // height=130% so that the shadow is not clipped
-var dropShadowFilter = defs.append('filter')
+vs.dropShadowFilter = defs.append('filter')
     .attr('id', 'drop-shadow')
     .attr('height', '130%')
     .attr('width', '120%');
-// SourceAlpha refers to opacity of graphic that this dropShadowFilter will be applied to
+// SourceAlpha refers to opacity of graphic that this vs.dropShadowFilter will be applied to
 // convolve that with a Gaussian with standard deviation 3 and store result in blur
-dropShadowFilter.append('feGaussianBlur')
+vs.dropShadowFilter.append('feGaussianBlur')
     .attr('in', 'SourceAlpha')
     .attr('stdDeviation', 2)
     .attr('result', 'blur');
 // translate output of Gaussian blur to the right and downwards with 2px
 // store result in offsetBlur
-dropShadowFilter.append('feOffset')
+vs.dropShadowFilter.append('feOffset')
     .attr('in', 'blur')
     .attr('dx', 3)
     .attr('dy', 3)
     .attr('result', 'offsetBlur');
 // overlay original SourceGraphic over translated blurred opacity by using
-// feMerge dropShadowFilter. Order of specifying inputs is important!
-var feMerge = dropShadowFilter.append('feMerge');
-feMerge.append('feMergeNode')
+// vs.feMerge vs.dropShadowFilter. Order of specifying inputs is important!
+vs.feMerge = vs.dropShadowFilter.append('feMerge');
+vs.feMerge.append('feMergeNode')
     .attr('in', 'offsetBlur');
-feMerge.append('feMergeNode')
+vs.feMerge.append('feMergeNode')
     .attr('in', 'SourceGraphic');
 
 
@@ -270,7 +249,7 @@ function UpdateFilters(source) {
                 .enter().append('rect')
                     .attr('class', 'grade-rect')
                     .style('fill', function(d) {
-                        return colorScale(gradeScale(d));
+                        return gradeColorScale(gradeScale(d));
                     })
                     .merge(gradeRect);
             gradeRect
@@ -287,7 +266,7 @@ function UpdateFilters(source) {
                 })
                 // .transition().duration(animateDuration).ease(animateEase)
                 .style('fill', function(d) {
-                    return visibleGrades[d] === true ? colorScale(gradeScale(d)) : vs.inactiveColor;
+                    return visibleGrades[d] === true ? gradeColorScale(gradeScale(d)) : vs.inactiveColor;
                 });
             //
             var gradeLabel = d3.select(this).selectAll('text.grade-label')
@@ -442,9 +421,6 @@ function MapClass() {
             return;
         }
         var that = this;
-        isMobile = false;
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) { isMobile = true; }
-        if (isMobile) { console.log('isMobile'); }
         var i, j, csvDataState, csvDataValue, jsonDataState;
         for (i = 0; i < _csvData.length; i++) {
             csvDataState = _csvData[i].State;
@@ -511,7 +487,7 @@ function MapClass() {
                 if (grade === '_') { return vs.inactiveColor; }
                 if (grade === 'Yes') { return vs.yesColor; }
                 if (grade === 'No') { return vs.noColor; }
-                return colorScale(gradeScale(grade));
+                return gradeColorScale(gradeScale(grade));
             })
             .merge(statePaths);
         statePaths
@@ -529,7 +505,7 @@ function MapClass() {
                 if (grade === 'Yes') { return vs.yesColor; }
                 if (grade === 'No') { return vs.noColor; }
                 if (visibleGrades[grade] === false) { return vs.inactiveColor; }
-                return colorScale(gradeScale(grade));
+                return gradeColorScale(gradeScale(grade));
             });
         //
         TestMemory();
@@ -588,9 +564,6 @@ function GraphClass() {
             return;
         }
         var that = this;
-        isMobile = false;
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) { isMobile = true; }
-        if (isMobile) { console.log('isMobile'); }
         //
         var verticeCircles = verticesG.selectAll('circle.vertice-circle')
             .data(_jsonData.features, function(d) { return d.properties.name; });
