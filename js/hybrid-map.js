@@ -178,8 +178,7 @@ function InitializePage() {
     //
     graphObj = (new GraphClass())
         .vertices(window.graphApril6JSON.nodes)
-        .edges(window.graphApril6JSON.links)
-        .UpdateGraph('InitializePage');
+        .edges(window.graphApril6JSON.links);
     //
     var csvDataURL = 'data/4_6_reduced_privatization_report_card.csv';
     // var csvDataURL = 'data/data-08-04-2017.csv';
@@ -270,7 +269,7 @@ function UpdateFilters(source) {
         })
         .on('mouseover', function(d) {
             if (animating === true) { return; }
-            var source = 'gradeGs     mouseover '+d;
+            var source = 'gradeGs      mouseover '+d;
             ToggleGrades(false);
             visibleGrades[d] = true;
             mapObj.UpdateMap(source);
@@ -278,7 +277,7 @@ function UpdateFilters(source) {
         })
         .on('mouseout', function(d) {
             if (animating === true) { return; }
-            var source = 'gradeGs     mouseout  '+d;
+            var source = 'gradeGs      mouseout  '+d;
             ToggleGrades(true);
             mapObj.UpdateMap(source);
             UpdateFilters(source);
@@ -353,7 +352,7 @@ function UpdateInfobox(source) {
     statesSelect
         .attr('class', 'button-object')
         .on('change', function() {
-            var source = 'statesSelect  change '+this.value;
+            var source = 'statesSelect   change '+this.value;
             stateSelected = this.value;
             if (this.value === 'National') {
                 hoverText.text('');
@@ -423,6 +422,7 @@ function MapClass() {
     var _csvData = null;
     var _jsonData = null;
     var _path = null;
+    var _centroidOfState = {};
     //
     hoverHeight = parseFloat(mainSVG.style('font-size'))+2*vs.hoverMargin;
     hoverRect
@@ -475,8 +475,14 @@ function MapClass() {
         return this;
     };
     //
+    this.centroidOfState = function(centroidOfState) {
+        if (!arguments.length) { return _centroidOfState; }
+        _centroidOfState = centroidOfState;
+        return this;
+    };
+    //
     this.UpdateMap = function(source) {
-        console.log('UpdateMap    ', source);
+        console.log('UpdateMap     ', source);
         if (!_csvData) {
             return;
         } else if (!_jsonData) {
@@ -515,7 +521,7 @@ function MapClass() {
             .attr('y', 0)
             .on('mouseover', function() {
                 if (animating === true) { return; }
-                var source = 'mainBG      mouseover';
+                var source = 'mainBG       mouseover';
                 // if (isMobile === true) { return; }
                 stateSelected = 'National';
                 hoverText.text('');
@@ -531,7 +537,7 @@ function MapClass() {
             .classed('state-path', true)
             .on('mouseover', function(d) {
                 if (animating === true) { return; }
-                var source = 'statePaths  mouseover '+stateSelected;
+                var source = 'statePaths   mouseover '+stateSelected;
                 // if (isMobile === true) { return; }
                 if (visibleGrades[d.properties[_category]] === false) {
                     stateSelected = 'National';
@@ -555,6 +561,11 @@ function MapClass() {
             })
             .merge(statePaths);
         statePaths
+            .each(function(d) {
+                // Redundant assignment in case either signifier is available
+                _centroidOfState[d.properties.name] = _path.centroid(d);
+                _centroidOfState[d.properties.ANSI] = _path.centroid(d);
+            })
             .classed('hovered', function(d) {
                 return (stateSelected === d.properties.name);
             })
@@ -621,40 +632,38 @@ function GraphClass() {
     };
     //
     this.UpdateGraph = function(source) {
-        console.log('UpdateGraph  ', source);
+        console.log('UpdateGraph   ', source);
         if (!_vertices || !_edges) { return; }
         //
         _simulation
             .force('center', d3.forceCenter(_width, _height));
         //
-        // var verticeCircles = verticesG.selectAll('circle.vertice-circle')
-        //     .data(_vertices, function(d) { return d.id; });
-        // verticeCircles = verticeCircles.enter().append('circle')
-        //     .classed('vertice-circle', true)
-        //     .on('mouseover', function(d) {
-        //         if (animating === true) { return; }
-        //         var source = 'verticeCircles mouseover '+d.id;
-        //         console.log(source);
-        //     })
-        //     .merge(verticeCircles);
-        // verticeCircles
-        //     // .transition().duration(animateDuration).ease(animateEase)
-        //     .attr('cx', function(d) {
-        //         return Math.random()*_width;
-        //         // return _path.centroid(d)[0];
-        //     })
-        //     .attr('cy', function(d) {
-        //         return Math.random()*_height;
-        //         // return _path.centroid(d)[1];
-        //     })
-        //     .attr('r', 10)
-        //     .style('opacity', function(d) {
-        //         return 1;
-        //     })
-        //     .style('fill', function(d) {
-        //         return 'lightgreen';
-        //     });
-        // //
+        var verticeCircles = verticesG.selectAll('circle.vertice-circle')
+            .data(_vertices, function(d) { return d.id; });
+        verticeCircles = verticeCircles.enter().append('circle')
+            .classed('vertice-circle', true)
+            .on('mouseover', function(d) {
+                if (animating === true) { return; }
+                var source = 'verticeCircles mouseover '+d.id;
+                console.log(source);
+            })
+            .merge(verticeCircles);
+        verticeCircles
+            // .transition().duration(animateDuration).ease(animateEase)
+            .attr('cx', function(d) {
+                return mapObj.centroidOfState()[d.state][0];
+            })
+            .attr('cy', function(d) {
+                return mapObj.centroidOfState()[d.state][1];
+            })
+            .attr('r', 5)
+            .style('opacity', function(d) {
+                return 1;
+            })
+            .style('fill', function(d) {
+                return 'lightgreen';
+            });
+        //
         // var edgeLines = edgesG.selectAll('line.edge-line')
         //     .data(_jsonData.features, function(d) { return d.properties.name; });
         // edgeLines = edgeLines.enter().append('line')

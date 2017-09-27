@@ -2,555 +2,693 @@ window.graphApril6JSON = {
   "nodes": [
     {
       "id": "Michael Bloomberg",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Newark First",
-      "state": "NJ"
+      "state": "NJ",
+      "city": ""
     },
     {
       "id": "Jeffries Team for Newark ",
-      "state": "NJ"
+      "state": "NJ",
+      "city": ""
     },
     {
       "id": "Doris Fisher",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "John Fisher",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Eli Broad",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Yes on 1240: Washington Coalition for Public Charter Schools",
-      "state": "WA"
+      "state": "WA",
+      "city": ""
     },
     {
       "id": "Reed Hastings",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Alice Walton",
-      "state": "TX"
+      "state": "TX",
+      "city": ""
     },
     {
       "id": "John Arnold",
-      "state": "TX"
+      "state": "TX",
+      "city": ""
     },
     {
       "id": "California Charter Schools Association IEC",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Laurene Powell Jobs",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Stacey Schusterman",
-      "state": "OK"
+      "state": "OK",
+      "city": ""
     },
     {
       "id": "Carrie Walton Penner",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Jim Walton",
-      "state": "AR"
+      "state": "AR",
+      "city": ""
     },
     {
       "id": "Greg Penner",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Ortiz, Ortega, Iglesia &amp; [Damaris] Gonzalez Better Schools Now for Perth Amboy",
-      "state": "NJ"
+      "state": "NJ",
+      "city": ""
     },
     {
       "id": "Action Now Initiative",
-      "state": "TX"
+      "state": "TX",
+      "city": ""
     },
     {
       "id": "Empower Louisiana",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Stand for Children",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Laura Arnold",
-      "state": "TX"
+      "state": "TX",
+      "city": ""
     },
     {
       "id": "Alliance for Better Classrooms, ABC Inc.",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Kira Orange-Jones",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Chas Roemer ",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Jada Lewis",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Kira Orange-Jones ",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Glenny Lee Buquet",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "John Allen (Jay) Guillot",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Holly Boffy",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Future PAC",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Ed Reform Now Advocacy",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Louisiana Federation for Children PAC",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "DFER-LA",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Rhode Island Democratic State Committee Contributions",
-      "state": "RI"
+      "state": "RI",
+      "city": ""
     },
     {
       "id": "Gina Raimondo",
-      "state": "RI"
+      "state": "RI",
+      "city": ""
     },
     {
       "id": "American LeadHERship PAC ",
-      "state": "RI"
+      "state": "RI",
+      "city": ""
     },
     {
       "id": "Emma Bloomberg",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Jonathan Sackler",
-      "state": "CT"
+      "state": "CT",
+      "city": ""
     },
     {
       "id": "Minnesota Progressive Education Fund",
-      "state": "MN"
+      "state": "MN",
+      "city": ""
     },
     {
       "id": "Andrew Cuomo 2018, Inc.",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Public Charter School PAC",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Happy Hanes",
-      "state": "CO"
+      "state": "CO",
+      "city": ""
     },
     {
       "id": "Education Reform Now",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "John Mack",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Christy Mack ",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Jenna Mack ",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Stephen Mack",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Ravenel Curry",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Elizabeth Curry",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Karen Ackman",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "William Ackman",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Lee Ainslee",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Elizabeth Ainslee",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Neil Gagnon",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Louis Gagnon",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Kiernan Goodwin ",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Catherine Goodwin Rocco ",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Paul Jones II",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Sonia Jones",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Raymond Chambers",
-      "state": "NJ"
+      "state": "NJ",
+      "city": ""
     },
     {
       "id": "Patricia Chambers",
-      "state": "NJ"
+      "state": "NJ",
+      "city": ""
     },
     {
       "id": "Christine Chambers Gil llan ",
-      "state": "NJ"
+      "state": "NJ",
+      "city": ""
     },
     {
       "id": "Jennifer Chambers-Myers ",
-      "state": "NJ"
+      "state": "NJ",
+      "city": ""
     },
     {
       "id": "Samuel Cole",
-      "state": "NJ"
+      "state": "NJ",
+      "city": ""
     },
     {
       "id": "Lewis Katz ",
-      "state": "NJ"
+      "state": "NJ",
+      "city": ""
     },
     {
       "id": "Arthur Samberg ",
-      "state": "NJ"
+      "state": "NJ",
+      "city": ""
     },
     {
       "id": "Thomas and Susan Dunn",
-      "state": "NJ"
+      "state": "NJ",
+      "city": ""
     },
     {
       "id": "Ann Dinning",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Michael Wolf",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "DFER",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Bill Gates",
-      "state": "WA"
+      "state": "WA",
+      "city": ""
     },
     {
       "id": "Melinda Gates",
-      "state": "WA"
+      "state": "WA",
+      "city": ""
     },
     {
       "id": "Paul Allen",
-      "state": "WA"
+      "state": "WA",
+      "city": ""
     },
     {
       "id": "Vulcan",
-      "state": "WA"
+      "state": "WA",
+      "city": ""
     },
     {
       "id": "Jackie Bezos",
-      "state": "WA"
+      "state": "WA",
+      "city": ""
     },
     {
       "id": "Mike Bezos",
-      "state": "WA"
+      "state": "WA",
+      "city": ""
     },
     {
       "id": "Nicolas Hanauer ",
-      "state": "WA"
+      "state": "WA",
+      "city": ""
     },
     {
       "id": "William Bloomfield",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Improve Our Schools",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Empower Louisiana PAC",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "John and Laura Arnold Foundation",
-      "state": "TX"
+      "state": "TX",
+      "city": ""
     },
     {
       "id": "Students First",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "James Garvey",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Barbara Grigsby ",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Todd Grigsby",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Cajun Industries",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Lane Grigsby",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Leslie Jacobs",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Stephen Rosenthal ",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Sandra Rosenthal",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Scott Jacobs",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Bobbie Jindal Campaign Committee ",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "ISC Constructors, LLC",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Carolyn Hill",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Gray Parker",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Betsy DeVos",
-      "state": "MI"
+      "state": "MI",
+      "city": ""
     },
     {
       "id": "Richard DeVos",
-      "state": "MI"
+      "state": "MI",
+      "city": ""
     },
     {
       "id": "McKinley Associates",
-      "state": "MI"
+      "state": "MI",
+      "city": ""
     },
     {
       "id": "Kojaian Management ",
-      "state": "MI"
+      "state": "MI",
+      "city": ""
     },
     {
       "id": "Better Schools, Better Futures",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Sandra LeBlanc Holloway",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Tony Davis",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Jason Engen",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Leree Taylor",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Eddie Rispone",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Linda Rispone",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Stand for Children Louisiana PAC",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Gary Jones",
-      "state": "LA"
+      "state": "CA",
+      "city": "Los Angeles"
     },
     {
       "id": "Daniel Loeb",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Margaret Loeb",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "New Yorkers for Putting Students First",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "DFER New York State",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Winston Fisher",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Jessica Fisher",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Steve Fisher",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Kenneth Fisher",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Joel Greenblatt",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Julia Greenblatt",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Great Public Schools PAC",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Bruce Kovner",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Coalition for Public Charter Schools PAC",
-      "state": "NY"
+      "state": "NY",
+      "city": ""
     },
     {
       "id": "Paul Tudor Jones",
-      "state": "CT"
+      "state": "CT",
+      "city": ""
     },
     {
       "id": "John Scully",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Brian Olson ",
-      "state": "CT"
+      "state": "CT",
+      "city": ""
     },
     {
       "id": "Steven Galbraith ",
-      "state": "CT"
+      "state": "CT",
+      "city": ""
     },
     {
       "id": "Raising Colorado",
-      "state": "CO"
+      "state": "CO",
+      "city": ""
     },
     {
       "id": "Reid Hoffman ",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Lisa Flores",
-      "state": "CO"
+      "state": "CO",
+      "city": ""
     },
     {
       "id": "Michelle Yee",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Reid Hoffman",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Happy Haynes",
-      "state": "CO"
+      "state": "CO",
+      "city": ""
     },
     {
       "id": "Philip Reyes ",
-      "state": "CA"
+      "state": "CA",
+      "city": ""
     },
     {
       "id": "Kent Thiry",
-      "state": "CO"
+      "state": "CO",
+      "city": ""
     },
     {
       "id": "Ann Rowe",
-      "state": "CO"
+      "state": "CO",
+      "city": ""
     },
     {
       "id": "Daniel Ritchie",
-      "state": "CO"
+      "state": "CO",
+      "city": ""
     },
     {
       "id": "David Scanavina",
-      "state": "CO"
+      "state": "CO",
+      "city": ""
     },
     {
       "id": "Pat Stryker",
-      "state": "CO"
+      "state": "CO",
+      "city": ""
     },
     {
       "id": "Samuel Gary",
-      "state": "CO"
+      "state": "CO",
+      "city": ""
     }
   ],
   "links": [
