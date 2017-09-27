@@ -24,7 +24,8 @@ var gradeScale = function(letter) {
 };
 var mapObj;
 var mapFontSize, infoboxFontSize;
-var sizeOfDOM = 0;
+var sizeOfDom = 0;
+var usedJSHeapSize = 0;
 var stateSelected = 'National';
 var isMobile;
 
@@ -537,13 +538,11 @@ function MapClass() {
                 return 'lightgreen';
             });
         //
-        var oldSizeOfDom = sizeOfDOM;
-        sizeOfDOM = d3.selectAll('*').size();
-        if (sizeOfDOM !== oldSizeOfDom) {
-            console.log('sizeOfDOM='+String(sizeOfDOM)+' changed by '+String(sizeOfDOM-oldSizeOfDom));
-        }
-        // DEBUG
-        if (window.debugMode === true) {
+        TestMemory();
+        //
+        if (window.debugMode === true) { DebugApp(); }
+
+        function DebugApp() {
             body.selectAll('*').style('outline', '1px solid green');
             var verticalGuid = mainSVG.selectAll('rect.vertical-guide')
                 .data([null]);
@@ -559,6 +558,21 @@ function MapClass() {
                 .style('fill', 'darkorange');
         }
     };
+}
+
+
+function TestMemory() {
+    var sizeOfDomOld = sizeOfDom;
+    sizeOfDom = d3.selectAll('*').size();
+    if (sizeOfDom !== sizeOfDomOld) {
+        console.log('sizeOfDom =\t'+String(sizeOfDom)+'\tchanged by '+String(sizeOfDom-sizeOfDomOld));
+    }
+    if (!window.performance) { return; }
+    var usedJSHeapSizeOld = usedJSHeapSize;
+    usedJSHeapSize = performance.memory.usedJSHeapSize;
+    if (usedJSHeapSize !== usedJSHeapSizeOld) {
+        console.log('usedJSHeapSize =\t'+String(usedJSHeapSize)+'\tchanged by '+String(usedJSHeapSize-usedJSHeapSizeOld));
+    }
 }
 
 
