@@ -34,11 +34,6 @@ var vs = {};
 vs.popupDX = 2;
 vs.popupDY = 2;
 vs.gradeMargin = 2.5;
-vs.gradeRounded = false;
-vs.categoryRounded = false;
-vs.categoryGradeWidth = 30;
-vs.categoryMarginX = 4;
-vs.categoryMarginY = 2;
 //
 vs.c_salmon = '#ff5232';
 vs.c_peagreen = '#6eaa5e';
@@ -85,8 +80,6 @@ vs.activeColor = '#D02626';
 vs.inactiveColor = 'white';
 vs.yesColor = '#D02626';
 vs.noColor = 'BDBBBB';
-vs.categoryTextColor = 'black';
-vs.categoryTextColorHigh = 'whitesmoke';
 //
 var colorScale = d3.scaleQuantize()
     .domain([0, 5])
@@ -144,6 +137,21 @@ feMerge.append('feMergeNode')
     .attr('in', 'SourceGraphic');
 
 
+function TestMemory() {
+    var sizeOfDomOld = sizeOfDom;
+    sizeOfDom = d3.selectAll('*').size();
+    if (sizeOfDom !== sizeOfDomOld) {
+        console.log(String(sizeOfDom)+'\tsizeOfDom changed by '+String(sizeOfDom-sizeOfDomOld));
+    }
+    if (!window.performance) { return; }
+    var usedJSHeapSizeOld = usedJSHeapSize;
+    usedJSHeapSize = performance.memory.usedJSHeapSize;
+    if (usedJSHeapSize !== usedJSHeapSizeOld) {
+        console.log(String(usedJSHeapSize)+'\tusedJSHeapSize changed by '+String(usedJSHeapSize-usedJSHeapSizeOld));
+    }
+}
+
+
 function InitializePage() {
     mapFontSize = parseFloat(mainSVG.style('font-size'));
     hoverHeight = mapFontSize+2*vs.hoverMargin;
@@ -154,15 +162,50 @@ function InitializePage() {
     hoverText
         .attr('x', 0)
         .attr('y', -0.5*hoverHeight-5);
+    mapObj = new MapClass();
     var csvDataURL = 'data/4_6_reduced_privatization_report_card.csv';
     // var csvDataURL = 'data/data-08-04-2017.csv';
-    mapObj = new MapClass();
     mapObj.jsonData(window.usStatesJSON);
-    mapObj.csvData(csvDataURL, function() {
+    d3.csv(csvDataURL, function(error, csvData) {
+        if (error) { return console.error(error); }
+        mapObj.csvData(csvData);
         ResizePage();
         requestAnimationFrame(function() {
             body.style('opacity', 1);
         });
+    });
+}
+
+
+function ResizePage() {
+    requestAnimationFrame(function() {
+        var width = Math.max(minMapWidth, window.innerWidth || minMapWidth);
+        var height = width/mapRatio;
+        mapObj
+            .width(width)
+            .height(height)
+            .scale(width*1.2)
+            .UpdateMap('ResizePage');
+        UpdateFilters();
+        UpdateInfobox('CheckSize');
+        UpdateHover('resize');
+        // ResetGraph();
+        /*
+        1   320     568     P iPhone 5
+        2   375     627     P iPhone 6
+        3   414     736     P iPhone 6+
+        4   667     375     
+        5   736     414
+        6   768     1024    P iPad
+        7   1024    768
+        @mapHeight1: 205px;
+        @mapHeight2: 240px;
+        @mapHeight3: 270px;
+        @mapHeight4: 315px;
+        @mapHeight5: 315px;
+        @mapHeight6: 315px;
+        @mapHeight7: 440px;
+        */
     });
 }
 
@@ -174,16 +217,12 @@ function ToggleGrades(bool) {
 
 
 function UpdateFilters(source) {
-    console.log('UpdateFilters '+source);
+    // console.log('UpdateFilters '+source);
     var filtersWidth = mapObj.width();
     var filtersHeight = 40;
     filtersSVG
         .attr('width', filtersWidth)
-        .attr('height', filtersHeight+3)
-        // .transition().duration(animateDuration).ease(animateEase)
-        .style('opacity', function() {
-            return mapObj.category() !== 'Overall Grade' ? 0 : 1;
-        });
+        .attr('height', filtersHeight+3);
     var gradeDataArray = gradeArray.slice();
     // var gradeRectSize = (1/2)*(1/gradeDataArray.length)*filtersWidth;
     var gradeRectSize = filtersHeight - 2*vs.gradeMargin;
@@ -269,8 +308,8 @@ function UpdateFilters(source) {
 
 
 function UpdateInfobox(source) {
-    console.log('UpdateInfobox '+source);
-    if (!mapObj.categoryNames() || !mapObj.csvData()) { return; }
+    // console.log('UpdateInfobox '+source);
+    if (mapObj.csvData() === null) { return; }
     var stateDataRow;
     if (stateSelected === 'National') {
         stateDataRow = {};
@@ -279,7 +318,6 @@ function UpdateInfobox(source) {
             return row.State === stateSelected;
         })[0];
     }
-    var categoryRowsData = mapObj.categoryNames().slice();
     statesSelect
         .attr('class', 'button-object')
         .on('change', function() {
@@ -313,36 +351,35 @@ function UpdateInfobox(source) {
 }
 
 
-function ResizePage() {
-    requestAnimationFrame(function() {
-        var width = Math.max(minMapWidth, window.innerWidth || minMapWidth);
-        var height = width/mapRatio;
-        mapObj
-            .width(width)
-            .height(height)
-            .scale(width*1.2)
-            .UpdateMap('ResizePage');
-        UpdateFilters();
-        UpdateInfobox('CheckSize');
-        UpdateHover('resize');
-        // ResetGraph();
-        /*
-        1   320     568     P iPhone 5
-        2   375     627     P iPhone 6
-        3   414     736     P iPhone 6+
-        4   667     375     
-        5   736     414
-        6   768     1024    P iPad
-        7   1024    768
-        @mapHeight1: 205px;
-        @mapHeight2: 240px;
-        @mapHeight3: 270px;
-        @mapHeight4: 315px;
-        @mapHeight5: 315px;
-        @mapHeight6: 315px;
-        @mapHeight7: 440px;
-        */
-    });
+function UpdateHover(source) {
+    // console.log('UpdateHover', source);
+    var hoverWidth = 0;
+    if (hoverText.text() !== '') {
+        hoverWidth = hoverText.node().getBBox().width+2*vs.hoverMargin;
+    }
+    hoverRect
+        .attr('width', hoverWidth)
+        .attr('x', -0.5*hoverWidth);
+    hoverG
+        .attr('transform', function() {
+            var mouseX, mouseY;
+            if (source === 'mouse') {
+                mouseX = d3.mouse(mainSVG.node())[0];
+                mouseY = d3.mouse(mainSVG.node())[1];
+            } else {
+                mouseX = mapObj.width()/2;
+                mouseY = mapObj.height()/2;
+            }
+            if (mouseX < hoverWidth/2 + 1) {
+                mouseX = hoverWidth/2 + 1;
+            } else if (mouseX > parseInt(mainSVG.style('width')) - hoverWidth/2 - 1) {
+                mouseX = parseInt(mainSVG.style('width')) - hoverWidth/2 - 1;
+            }
+            if (mouseY < hoverHeight + 5 + 1) {
+                mouseY = hoverHeight + 5 + 1;
+            }
+            return 'translate('+mouseX+','+mouseY+')';
+        });
 }
 
 
@@ -353,14 +390,7 @@ function MapClass() {
     var _category = 'Overall Grade';
     var _csvData = null;
     var _jsonData = null;
-    var _categoryNames = null;
     var _path = null;
-
-    this.categoryNames = function(categoryNames) {
-        if (!arguments.length) { return _categoryNames; }
-        _categoryNames = categoryNames;
-        return this;
-    };
 
     this.category = function(category) {
         if (!arguments.length) { return _category; }
@@ -398,26 +428,14 @@ function MapClass() {
         return this;
     };
 
-    this.csvData = function(csvDataURL, callback) {
+    this.csvData = function(csvData) {
         if (!arguments.length) { return _csvData; }
-        var that = this;
-        d3.csv(csvDataURL, function(csvData) {
-            _csvData = csvData;
-            // Get all category names
-            _categoryNames = [];
-            for (var name in _csvData[0]) {
-                // if (name !== 'State' && name !== 'Overall Grade') {
-                if (name !== 'State') {
-                // if (name !== 'State') {
-                    _categoryNames.push(name);
-                }
-            }
-            return callback.call(that);
-        });
+        _csvData = csvData;
+        return this;
     };
 
     this.UpdateMap = function(source) {
-        console.log('UpdateMap    ', source);
+        // console.log('UpdateMap    ', source);
         if (!_csvData) {
             return;
         } else if (!_jsonData) {
@@ -514,30 +532,6 @@ function MapClass() {
                 return colorScale(gradeScale(grade));
             });
         //
-        var vertexCircles = verticesG.selectAll('circle.vertex-circle')
-            .data(_jsonData.features, function(d) { return d.properties.name; });
-        vertexCircles = vertexCircles.enter().append('circle')
-            .classed('vertex-circle', true)
-            .on('mouseover', function(d) {
-                // console.log('mouseover', d);
-            })
-            .merge(vertexCircles);
-        vertexCircles
-            // .transition().duration(animateDuration).ease(animateEase)
-            .attr('cx', function(d) {
-                return _path.centroid(d)[0];
-            })
-            .attr('cy', function(d) {
-                return _path.centroid(d)[1];
-            })
-            .attr('r', 10)
-            .style('opacity', function(d) {
-                return 1;
-            })
-            .style('fill', function(d) {
-                return 'lightgreen';
-            });
-        //
         TestMemory();
         //
         if (window.debugMode === true) { DebugApp(); }
@@ -561,81 +555,102 @@ function MapClass() {
 }
 
 
-function TestMemory() {
-    var sizeOfDomOld = sizeOfDom;
-    sizeOfDom = d3.selectAll('*').size();
-    if (sizeOfDom !== sizeOfDomOld) {
-        console.log('sizeOfDom =\t'+String(sizeOfDom)+'\tchanged by '+String(sizeOfDom-sizeOfDomOld));
-    }
-    if (!window.performance) { return; }
-    var usedJSHeapSizeOld = usedJSHeapSize;
-    usedJSHeapSize = performance.memory.usedJSHeapSize;
-    if (usedJSHeapSize !== usedJSHeapSizeOld) {
-        console.log('usedJSHeapSize =\t'+String(usedJSHeapSize)+'\tchanged by '+String(usedJSHeapSize-usedJSHeapSizeOld));
-    }
+
+
+
+
+function GraphClass() {
+    var _width = 0;
+    var _height = 0;
+    var _jsonData = null;
+
+    this.width = function(width) {
+        if (!arguments.length) { return _width; }
+        _width = width;
+        return this;
+    };
+    
+    this.height = function(height) {
+        if (!arguments.length) { return _height; }
+        _height = height;
+        return this;
+    };
+
+    this.jsonData = function(jsonData) {
+        if (!arguments.length) { return _jsonData; }
+        _jsonData = jsonData;
+        return this;
+    };
+
+    this.UpdateGraph = function(source) {
+        console.log('UpdateGraph  ', source);
+        if (!_jsonData) {
+            return;
+        }
+        var that = this;
+        isMobile = false;
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) { isMobile = true; }
+        if (isMobile) { console.log('isMobile'); }
+        //
+        var verticeCircles = verticesG.selectAll('circle.vertice-circle')
+            .data(_jsonData.features, function(d) { return d.properties.name; });
+        verticeCircles = verticeCircles.enter().append('circle')
+            .classed('vertice-circle', true)
+            .on('mouseover', function(d) {
+                // console.log('mouseover', d);
+            })
+            .merge(verticeCircles);
+        verticeCircles
+            // .transition().duration(animateDuration).ease(animateEase)
+            .attr('cx', function(d) {
+                return _path.centroid(d)[0];
+            })
+            .attr('cy', function(d) {
+                return _path.centroid(d)[1];
+            })
+            .attr('r', 10)
+            .style('opacity', function(d) {
+                return 1;
+            })
+            .style('fill', function(d) {
+                return 'lightgreen';
+            });
+        //
+        var edgeLines = edgesG.selectAll('line.edge-line')
+            .data(_jsonData.features, function(d) { return d.properties.name; });
+        edgeLines = edgeLines.enter().append('line')
+            .classed('edge-line', true)
+            .on('mouseover', function(d) {
+                // console.log('mouseover', d);
+            })
+            .merge(edgeLines);
+        edgeLines
+            // .transition().duration(animateDuration).ease(animateEase)
+            .attr('cx', function(d) {
+                return _path.centroid(d)[0];
+            })
+            .attr('cy', function(d) {
+                return _path.centroid(d)[1];
+            })
+            .attr('r', 10)
+            .style('opacity', function(d) {
+                return 1;
+            })
+            .style('fill', function(d) {
+                return 'lightgreen';
+            });
+        //
+        TestMemory();
+    };
 }
 
 
-function UpdateHover(source) {
-    // console.log('UpdateHover', source);
-    var hoverWidth = 0;
-    if (hoverText.text() !== '') {
-        hoverWidth = hoverText.node().getBBox().width+2*vs.hoverMargin;
-    }
-    hoverRect
-        .attr('width', hoverWidth)
-        .attr('x', -0.5*hoverWidth);
-    hoverG
-        .attr('transform', function() {
-            var mouseX, mouseY;
-            if (source === 'mouse') {
-                mouseX = d3.mouse(mainSVG.node())[0];
-                mouseY = d3.mouse(mainSVG.node())[1];
-            } else {
-                mouseX = mapObj.width()/2;
-                mouseY = mapObj.height()/2;
-            }
-            if (mouseX < hoverWidth/2 + 1) {
-                mouseX = hoverWidth/2 + 1;
-            } else if (mouseX > parseInt(mainSVG.style('width')) - hoverWidth/2 - 1) {
-                mouseX = parseInt(mainSVG.style('width')) - hoverWidth/2 - 1;
-            }
-            if (mouseY < hoverHeight + 5 + 1) {
-                mouseY = hoverHeight + 5 + 1;
-            }
-            return 'translate('+mouseX+','+mouseY+')';
-        });
-}
 
 
-function BostockTextWrap(text, width) {
-  text.each(function() {
-    var text = d3.select(this);
-    var x = text.attr('x');
-    var numRows = 1;
-    var words = text.text().split(/\s+/).reverse(),
-        word,
-        line = [],
-        lineNumber = 0,
-        lineHeight = 1.1, // ems
-        y = text.attr('y'),
-        dy = text.attr('dy') === null ? 0 : parseFloat(text.attr('dy')),
-        tspan = text.text(null).append('tspan').attr('x', x).attr('y', y).attr('dy', dy + 'em');
-    while (word = words.pop()) { /* jshint ignore:line */
-      line.push(word);
-      tspan.text(line.join(' '));
-      if (tspan.node().getComputedTextLength() > width) {
-        line.pop();
-        tspan.text(line.join(' '));
-        line = [word];
-        tspan = text.append('tspan').attr('x', x).attr('y', y).attr('dy', ++lineNumber * lineHeight + dy + 'em').text(word);
-        numRows += 1;
-      }
-    }
-    var fontSize = parseFloat(getComputedStyle(this)['font-size']);
-    text.attr('transform', 'translate(0,'+String(-1/2*(numRows-1)*fontSize)+')');
-  });
-}
+
+
+
+
 
 
 
@@ -654,7 +669,7 @@ function GraphObject() {
 
 
 function ResetGraph() {
-    var vertices, edges, vertexById;
+    var vertices, edges, verticeById;
     var dollarsScale = d3.scaleLinear()
         .range([0.5, 10]);
     var dollarsGivenScale = d3.scaleLinear()
@@ -665,17 +680,17 @@ function ResetGraph() {
     hybridMap();
 
     function hybridMap() {
-        vertices = graphApril6JSON.nodes;
-        edges = graphApril6JSON.links;
-        vertexById = d3.map(vertices, function(d) { return d.id; });
-        vertices.forEach(function(vertex) {
-            vertex.dollarsGiven = 0;
-            vertex.dollarsReceived = 0;
+        vertices = window.graphApril6JSON.nodes;
+        edges = window.graphApril6JSON.links;
+        verticeById = d3.map(vertices, function(d) { return d.id; });
+        vertices.forEach(function(vertice) {
+            vertice.dollarsGiven = 0;
+            vertice.dollarsReceived = 0;
         });
 
         edges.forEach(function(edge) {
-            edge.source = vertexById.get(edge.source);
-            edge.target = vertexById.get(edge.target);
+            edge.source = verticeById.get(edge.source);
+            edge.target = verticeById.get(edge.target);
             edge.source.dollarsGiven += edge.dollars;
             edge.target.dollarsReceived += edge.dollars;
         });
@@ -694,12 +709,12 @@ function ResetGraph() {
             d3.max(edges, function(edge) { return edge.dollars; })
         ]);
         dollarsGivenScale.domain([
-            d3.min(vertices, function(vertex) { return vertex.dollarsGiven; }),
-            d3.max(vertices, function(vertex) { return vertex.dollarsGiven; })
+            d3.min(vertices, function(vertice) { return vertice.dollarsGiven; }),
+            d3.max(vertices, function(vertice) { return vertice.dollarsGiven; })
         ]);
         dollarsReceivedScale.domain([
-            d3.min(vertices, function(vertex) { return vertex.dollarsReceived; }),
-            d3.max(vertices, function(vertex) { return vertex.dollarsReceived; })
+            d3.min(vertices, function(vertice) { return vertice.dollarsReceived; }),
+            d3.max(vertices, function(vertice) { return vertice.dollarsReceived; })
         ]);
 
         var edgeElements = edgesG.selectAll('line.link')
@@ -733,7 +748,7 @@ function ResetGraph() {
 
         // function ticked() {
         //     edgeElements.attr('d', positionLink);
-        //     vertex.attr('transform', positionNode);
+        //     vertice.attr('transform', positionNode);
         // }
 
         function ticked() {
