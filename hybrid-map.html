@@ -10,33 +10,27 @@
 
 <body>
     <div id="visualization-container">
-        <div class="column column1">
-            <div id="main-container" class="row unselectable" attr="unselectable">
-                <svg id="main-svg">
-                    <rect id="main-bg"></rect>
-                    <g id="states-g"></g>
-                    <g id="vertices-g"></g>
-                    <g id="edges-g"></g>
-                    <g id="hover-g">
-                        <rect id="hover-rect"></rect>
-                        <text id="hover-text"></text>
-                    </g>
-                </svg>
-            </div><!--
-         --><div id="filters-container" class="row unselectable" attr="unselectable">
-                <svg id="filters-svg"></svg>
-            </div>
-        </div>
-        <div class="column column2">
-            <div class="row" id="select-container">
-                <select id="states-select"></select>
-            </div><!--
-         --><div class="row" id="infobox-container">
-                <svg id="infobox-svg"></svg>
-            </div>
+        <div id="main-container" class="row unselectable" attr="unselectable">
+            <svg id="main-svg">
+                <rect id="main-bg"></rect>
+                <g id="states-g"></g>
+                <g id="vertices-g"></g>
+                <g id="edges-g"></g>
+                <g id="hover-g">
+                    <rect id="hover-rect"></rect>
+                    <text id="hover-text"></text>
+                </g>
+            </svg>
+        </div><!--
+     --><div id="filters-container" class="row unselectable" attr="unselectable">
+            <svg id="filters-svg">
+                <defs id="filters-defs"></defs>
+            </svg>
+        </div><!--
+     --><div id="infobox-container" class="row">
+            <select id="states-select"></select>
         </div>
     </div>
-    <svg id="" width="960" height="600"></svg>
     <script src="js/d3.v4.10.2.js"></script>
     <script src="data/usStatesJSON.js"></script>
     <script src="data/graphApril6JSON.js"></script>

@@ -8,13 +8,15 @@
 7   1024    768
 */
 @font1Size: 14px;
-@bodyMargin: 5px;
+@bodyMargin: 0px;
+@rowMargin: 10px;
 @backgroundColor:    white;
-@statesStrokeColor:  white;
+@statesStrokeColor:  black;
 @statesStrokeWidth:  0;
 @gradesStrokeColor:  black;
 @gradesStrokeWidth:  0;
-@hoverStrokeColor:   white;
+@hoverStrokeColor:   black;
+@hoverStrokeWidth:   0;
 @hoverFillColor:     white;
 @infoboxStrokeColor: black;
 
@@ -25,49 +27,57 @@ body {
     font-weight: 400;
 }
 
+.row {
+    display: block;
+    // outline: 1px solid orange;
+    margin-top: @rowMargin;
+    margin-bottom: @rowMargin;
+}
+
 #visualization-container {
     background-color: @backgroundColor;
     font-size: 0px;
-    /* Filters */
-    #filters-svg {
-        font-size: @font1Size;
+    #main-container {
+        #main-svg { 
+            font-size: @font1Size;
+        }
+        path.state-path {
+            stroke: @statesStrokeColor;
+            stroke-width: @statesStrokeWidth;
+        }
+        #hover-g {
+            pointer-events: none;
+        }
+        #hover-text {
+            dominant-baseline: middle;
+            text-anchor: middle;
+        }
+        #hover-rect {
+            stroke: @hoverStrokeColor;
+            stroke-width: @hoverStrokeWidth;
+            fill: @hoverFillColor;
+        }
     }
-    rect.grade-rect {
-        stroke: @gradesStrokeColor;
-        stroke-width: @gradesStrokeWidth;
-        pointer-events: none;
+    #filters-container {
+        #filters-svg {
+            font-size: @font1Size;
+        }
+        rect.grade-rect {
+            stroke: @gradesStrokeColor;
+            stroke-width: @gradesStrokeWidth;
+            pointer-events: none;
+        }
+        text.grade-label {
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+        }
     }
-    text.grade-label {
-        text-anchor: middle;
-        dominant-baseline: middle;
-        pointer-events: none;
-    }
-    #main-svg { 
-        font-size: @font1Size;
-    }
-    path.state-path {
-        stroke: @statesStrokeColor;
-        stroke-width: @statesStrokeWidth;
-    }
-    #hover-g {
-        pointer-events: none;
-    }
-    #hover-text {
-        dominant-baseline: middle;
-        text-anchor: middle;
-    }
-    #hover-rect {
-        stroke: @hoverStrokeColor;
-        stroke-width: 1px;
-        fill: @hoverFillColor;
-    }
-    /* Infobox */
-    #infobox-svg {
-        display: block;
-        font-size: @font1Size;
-    }
-    #states-select {
-        font-size: @font1Size;
+    #infobox-container {
+        text-align: center;
+        #states-select {
+            font-size: @font1Size;
+        }
     }
     /* General Styles */
     .button-object {
@@ -89,7 +99,6 @@ body {
         user-select: none;
     }
 }
-
 
 .node {
   stroke: #fff;

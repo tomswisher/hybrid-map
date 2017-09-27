@@ -13,7 +13,7 @@ window.onresize = ResizePage;
 
 var debugMode = false;
 var minMapWidth = 300;
-var mapRatio = 1.7;
+var mapRatio = 1.8;
 var animateDuration = 500;
 var animateEase = 'cubic-out';
 var hoverHeight = 0;
@@ -43,6 +43,7 @@ if (isMobile) { console.log('isMobile'); }
 var body = d3.select('body');
 var filtersContainer = body.select('#filters-container');
 var filtersSVG = body.select('#filters-svg');
+var filtersDefs = body.select('#filters-defs');
 var statesSelect = body.select('#states-select');
 var infoboxContainer = body.select('#infobox-container');
 var visualizationContainer = body.select('#visualization-container');
@@ -55,11 +56,44 @@ var edgesG = body.select('#edges-g');
 var hoverG = body.select('#hover-g');
 var hoverRect = body.select('#hover-rect');
 var hoverText = body.select('#hover-text');
-var defs = filtersSVG.append('defs');
 
 
 // Visual Styles
 var vs = {};
+filtersDefs
+    .append('filter')
+        .attr('id', 'drop-shadow')
+        .attr('height', '130%') // height=130% so that the shadow is not clipped
+        .attr('width', '120%')
+        .each(function() {
+            // SourceAlpha refers to opacity of graphic that this drop-shadow filter will be applied to
+            // convolve that with a Gaussian with standard deviation 3 and store result in blur
+            d3.select(this)
+                .append('feGaussianBlur')
+                    .attr('in', 'SourceAlpha')
+                    .attr('stdDeviation', 3)
+                    .attr('result', 'blur');
+            // Translate the output of the Gaussian blur to the right and downwards
+            // Store result in offsetBlur
+            d3.select(this)
+                .append('feOffset')
+                    .attr('in', 'blur')
+                    .attr('dx', 3)
+                    .attr('dy', 3)
+                    .attr('result', 'offsetBlur');
+            // Overlay original SourceGraphic over translated blurred opacity by using
+            // feMerge drop-shadow. Order of specifying inputs is important!
+            d3.select(this)
+                .append('feMerge')
+                    .each(function() {
+                        d3.select(this)
+                            .append('feMergeNode')
+                                .attr('in', 'offsetBlur');
+                        d3.select(this)
+                            .append('feMergeNode')
+                                .attr('in', 'SourceGraphic');
+                    });
+        });
 vs.popupDX = 2;
 vs.popupDY = 2;
 vs.gradeMargin = 2.5;
@@ -95,41 +129,6 @@ vs.c_lightgainsboro = '#eeeeee';
 vs.gradeColorScale = d3.scaleQuantize()
     .domain([0, 5])
     .range(vs.gradeColorArray);
-defs
-    .append('filter')
-        .attr('id', 'drop-shadow')
-        .attr('height', '130%') // height=130% so that the shadow is not clipped
-        .attr('width', '120%')
-        .each(function() {
-            // SourceAlpha refers to opacity of graphic that this drop-shadow filter will be applied to
-            // convolve that with a Gaussian with standard deviation 3 and store result in blur
-            d3.select(this)
-                .append('feGaussianBlur')
-                    .attr('in', 'SourceAlpha')
-                    .attr('stdDeviation', 3)
-                    .attr('result', 'blur');
-            // Translate the output of the Gaussian blur to the right and downwards
-            // Store result in offsetBlur
-            d3.select(this)
-                .append('feOffset')
-                    .attr('in', 'blur')
-                    .attr('dx', 3)
-                    .attr('dy', 3)
-                    .attr('result', 'offsetBlur');
-            // Overlay original SourceGraphic over translated blurred opacity by using
-            // feMerge drop-shadow. Order of specifying inputs is important!
-            d3.select(this)
-                .append('feMerge')
-                    .each(function() {
-                        d3.select(this)
-                            .append('feMergeNode')
-                                .attr('in', 'offsetBlur');
-                        d3.select(this)
-                            .append('feMergeNode')
-                                .attr('in', 'SourceGraphic');
-                    });
-        });
-
 
 
 function TestMemory() {
