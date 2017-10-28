@@ -40,22 +40,28 @@ body {
     #main-container {
         #main-svg { 
             font-size: @font1Size;
-        }
-        path.state-path {
-            stroke: @statesStrokeColor;
-            stroke-width: @statesStrokeWidth;
-        }
-        #hover-g {
-            pointer-events: none;
-        }
-        #hover-text {
-            dominant-baseline: middle;
-            text-anchor: middle;
-        }
-        #hover-rect {
-            stroke: @hoverStrokeColor;
-            stroke-width: @hoverStrokeWidth;
-            fill: @hoverFillColor;
+            path.state-path {
+                stroke: @statesStrokeColor;
+                stroke-width: @statesStrokeWidth;
+            }
+            circle.vertice-circle {
+                fill: white;
+            }
+            line.edge-line {
+                /**/
+            }
+            #hover-g {
+                pointer-events: none;
+            }
+            #hover-text {
+                dominant-baseline: middle;
+                text-anchor: middle;
+            }
+            #hover-rect {
+                stroke: @hoverStrokeColor;
+                stroke-width: @hoverStrokeWidth;
+                fill: @hoverFillColor;
+            }
         }
     }
     #filters-container {

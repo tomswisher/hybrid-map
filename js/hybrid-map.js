@@ -422,7 +422,7 @@ function MapClass() {
     var _csvData = null;
     var _jsonData = null;
     var _path = null;
-    var _centroidOfState = {};
+    var _centroidByState = {};
     //
     hoverHeight = parseFloat(mainSVG.style('font-size'))+2*vs.hoverMargin;
     hoverRect
@@ -475,14 +475,14 @@ function MapClass() {
         return this;
     };
     //
-    this.centroidOfState = function(centroidOfState) {
-        if (!arguments.length) { return _centroidOfState; }
-        _centroidOfState = centroidOfState;
+    this.centroidByState = function(centroidByState) {
+        if (!arguments.length) { return _centroidByState; }
+        _centroidByState = centroidByState;
         return this;
     };
     //
     this.UpdateMap = function(source) {
-        console.log('UpdateMap     ', source);
+        // console.log('UpdateMap     ', source);
         if (!_csvData) {
             return;
         } else if (!_jsonData) {
@@ -563,8 +563,8 @@ function MapClass() {
         statePaths
             .each(function(d) {
                 // Redundant assignment in case either signifier is available
-                _centroidOfState[d.properties.name] = _path.centroid(d);
-                _centroidOfState[d.properties.ANSI] = _path.centroid(d);
+                _centroidByState[d.properties.name] = _path.centroid(d);
+                _centroidByState[d.properties.ANSI] = _path.centroid(d);
             })
             .classed('hovered', function(d) {
                 return (stateSelected === d.properties.name);
@@ -595,6 +595,7 @@ function GraphClass() {
     var _width = 0;
     var _height = 0;
     var _vertices = null;
+    var _verticeById = null;
     var _edges = null;
     var _simulation = d3.forceSimulation()
         .force('edge', d3.forceLink().distance(20).strength(0.5))
@@ -616,12 +617,24 @@ function GraphClass() {
     this.vertices = function(vertices) {
         if (!arguments.length) { return _vertices; }
         _vertices = vertices;
+        _verticeById = d3.map(_vertices, function(d) { return d.id; });
+        return this;
+    };
+    //
+    this.verticeById = function(verticeById) {
+        if (!arguments.length) { return _verticeById; }
+        _verticeById = verticeById;
         return this;
     };
     //
     this.edges = function(edges) {
         if (!arguments.length) { return _edges; }
         _edges = edges;
+        _edges.forEach(function(d) {
+            d.source = _verticeById.get(d.source);
+            d.target = _verticeById.get(d.target);
+        });
+        console.log(_edges);
         return this;
     };
     //
@@ -632,7 +645,7 @@ function GraphClass() {
     };
     //
     this.UpdateGraph = function(source) {
-        console.log('UpdateGraph   ', source);
+        // console.log('UpdateGraph   ', source);
         if (!_vertices || !_edges) { return; }
         //
         _simulation
@@ -649,45 +662,47 @@ function GraphClass() {
             })
             .merge(verticeCircles);
         verticeCircles
+            .each(function(d) {
+                d.x = mapObj.centroidByState()[d.state][0];
+                d.y = mapObj.centroidByState()[d.state][1];
+            })
             // .transition().duration(animateDuration).ease(animateEase)
             .attr('cx', function(d) {
-                return mapObj.centroidOfState()[d.state][0];
+                return d.x;
             })
             .attr('cy', function(d) {
-                return mapObj.centroidOfState()[d.state][1];
+                return d.y;
             })
-            .attr('r', 5)
-            .style('opacity', function(d) {
-                return 1;
-            })
-            .style('fill', function(d) {
-                return 'lightgreen';
-            });
+            .attr('r', 5);
         //
-        // var edgeLines = edgesG.selectAll('line.edge-line')
-        //     .data(_jsonData.features, function(d) { return d.properties.name; });
-        // edgeLines = edgeLines.enter().append('line')
-        //     .classed('edge-line', true)
-        //     .on('mouseover', function(d) {
-        //         // console.log('mouseover', d);
-        //     })
-        //     .merge(edgeLines);
+        var edgeLines = edgesG.selectAll('line.edge-line')
+            .data(_edges, function(d) { return d.source.id+'/'+d.target.id; });
+        edgeLines = edgeLines.enter().append('line')
+            .classed('edge-line', true)
+            .on('mouseover', function(d) {
+                if (animating === true) { return; }
+                var source = 'edgeLines      mouseover '+d.source.id+'/'+d.target.id;
+                console.log(source);
+            })
+            // .merge(edgeLines);
         // edgeLines
         //     // .transition().duration(animateDuration).ease(animateEase)
-        //     .attr('cx', function(d) {
-        //         return _path.centroid(d)[0];
+        //     .attr('x1', function(d) {
+        //         return d.source.x;
         //     })
-        //     .attr('cy', function(d) {
-        //         return _path.centroid(d)[1];
+        //     .attr('y1', function(d) {
+        //         return d.source.y;
         //     })
-        //     .attr('r', 10)
-        //     .style('opacity', function(d) {
-        //         return 1;
+        //     .attr('x2', function(d) {
+        //         return d.target.x;
         //     })
-        //     .style('fill', function(d) {
-        //         return 'lightgreen';
+        //     .attr('y2', function(d) {
+        //         return d.target.y;
+        //     })
+        //     .style('stroke', function(d) {
+        //         return 'white';
         //     });
-        // //
+        //
         TestMemory();
         return this;
     };

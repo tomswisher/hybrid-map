@@ -26,18 +26,24 @@ body {
 #visualization-container #main-container #main-svg {
   font-size: 14px;
 }
-#visualization-container #main-container path.state-path {
+#visualization-container #main-container #main-svg path.state-path {
   stroke: black;
   stroke-width: 0;
 }
-#visualization-container #main-container #hover-g {
+#visualization-container #main-container #main-svg circle.vertice-circle {
+  fill: white;
+}
+#visualization-container #main-container #main-svg line.edge-line {
+  /**/
+}
+#visualization-container #main-container #main-svg #hover-g {
   pointer-events: none;
 }
-#visualization-container #main-container #hover-text {
+#visualization-container #main-container #main-svg #hover-text {
   dominant-baseline: middle;
   text-anchor: middle;
 }
-#visualization-container #main-container #hover-rect {
+#visualization-container #main-container #main-svg #hover-rect {
   stroke: black;
   stroke-width: 0;
   fill: white;
