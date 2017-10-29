@@ -9,29 +9,21 @@
 </head>
 
 <body>
-    <div id="visualization-container">
-        <div id="main-container" class="row unselectable" attr="unselectable">
-            <svg id="main-svg">
-                <rect id="main-bg"></rect>
-                <g id="states-g"></g>
-                <g id="vertices-g"></g>
-                <g id="edges-g"></g>
-                <g id="hover-g">
-                    <rect id="hover-rect"></rect>
-                    <text id="hover-text"></text>
-                </g>
-            </svg>
-        </div><!--
-     --><div id="filters-container" class="row unselectable" attr="unselectable">
-            <svg id="filters-svg">
-                <defs id="filters-defs"></defs>
-            </svg>
-        </div><!--
-     --><div id="infobox-container" class="row">
-            <select id="states-select"></select>
-        </div>
-    </div>
-    <script src="js/d3.v4.10.2.js"></script>
+    <svg id="main-svg">
+        <rect id="main-bg-rect"></rect>
+        <g id="states-g"></g>
+        <g id="vertices-g"></g>
+        <g id="edges-g"></g>
+        <g id="hover-g" class="unselectable" attr="unselectable">
+            <rect id="hover-rect"></rect>
+            <text id="hover-text"></text>
+        </g>
+    </svg><!--
+ --><svg id="filters-svg" class="unselectable" attr="unselectable"></svg><!--
+ --><select id="states-select"></select><!--
+ <svg id="info-svg"></svg>-->
+    <script src="js/d3.v4.11.0.js"></script>
+    <!-- <script src="js/d3.v4.11.0.min.js"></script> -->
     <script src="data/usStatesJSON.js"></script>
     <script src="data/graphApril6JSON.js"></script>
     <script src="js/hybrid-map.js"></script>

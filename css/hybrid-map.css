@@ -8,72 +8,67 @@
 7   1024    768
 */
 body {
-  opacity: 0;
   margin: 0px;
   font-family: 'Lato', sans-serif;
   font-weight: 400;
-}
-.row {
-  display: block;
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-#visualization-container {
-  background-color: white;
   font-size: 0px;
+  background-color: white;
   /* General Styles */
 }
-#visualization-container #main-container #main-svg {
+body > * {
   font-size: 14px;
 }
-#visualization-container #main-container #main-svg path.state-path {
+body #main-svg #main-bg-rect {
+  opacity: 0;
+}
+body #main-svg path.state-path {
   stroke: black;
   stroke-width: 0;
 }
-#visualization-container #main-container #main-svg circle.vertice-circle {
-  fill: white;
+body #main-svg circle.vertice-circle {
+  fill: purple;
+  stroke: black;
+  stroke-width: 1.5px;
 }
-#visualization-container #main-container #main-svg line.edge-line {
-  /**/
+body #main-svg line.edge-line {
+  stroke: black;
 }
-#visualization-container #main-container #main-svg #hover-g {
+body #main-svg #hover-g {
   pointer-events: none;
 }
-#visualization-container #main-container #main-svg #hover-text {
+body #main-svg #hover-text {
   dominant-baseline: middle;
   text-anchor: middle;
 }
-#visualization-container #main-container #main-svg #hover-rect {
+body #main-svg #hover-rect {
   stroke: black;
   stroke-width: 0;
   fill: white;
 }
-#visualization-container #filters-container #filters-svg {
-  font-size: 14px;
-}
-#visualization-container #filters-container rect.grade-rect {
+body #filters-svg rect.grade-rect {
   stroke: black;
   stroke-width: 0;
   pointer-events: none;
 }
-#visualization-container #filters-container text.grade-label {
+body #filters-svg text.grade-label {
   text-anchor: middle;
   dominant-baseline: middle;
   pointer-events: none;
 }
-#visualization-container #infobox-container {
+body #states-select {
+  height: 25px;
+  margin-top: 15px;
+}
+body #info-svg {
   text-align: center;
 }
-#visualization-container #infobox-container #states-select {
-  font-size: 14px;
-}
-#visualization-container .hovered {
+body .hovered {
   opacity: 0.3;
 }
-#visualization-container .button-object {
+body .button-object {
   cursor: pointer;
 }
-#visualization-container .unselectable {
+body .unselectable {
   -webkit-touch-callout: none;
   -moz-user-select: -moz-none;
   -khtml-user-select: none;
@@ -84,12 +79,4 @@ body {
         */
   -ms-user-select: none;
   user-select: none;
-}
-.node {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
-.link {
-  fill: none;
-  stroke: #bbb;
 }

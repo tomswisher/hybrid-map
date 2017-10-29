@@ -18,56 +18,48 @@
 @hoverStrokeColor:   black;
 @hoverStrokeWidth:   0;
 @hoverFillColor:     white;
-@infoboxStrokeColor: black;
 
 body {
-    opacity: 0;
+    // opacity: 0;
     margin: @bodyMargin;
     font-family: 'Lato', sans-serif;
     font-weight: 400;
-}
-
-.row {
-    display: block;
-    // outline: 1px solid orange;
-    margin-top: @rowMargin;
-    margin-bottom: @rowMargin;
-}
-
-#visualization-container {
-    background-color: @backgroundColor;
     font-size: 0px;
-    #main-container {
-        #main-svg { 
-            font-size: @font1Size;
-            path.state-path {
-                stroke: @statesStrokeColor;
-                stroke-width: @statesStrokeWidth;
-            }
-            circle.vertice-circle {
-                fill: white;
-            }
-            line.edge-line {
-                /**/
-            }
-            #hover-g {
-                pointer-events: none;
-            }
-            #hover-text {
-                dominant-baseline: middle;
-                text-anchor: middle;
-            }
-            #hover-rect {
-                stroke: @hoverStrokeColor;
-                stroke-width: @hoverStrokeWidth;
-                fill: @hoverFillColor;
-            }
+    background-color: @backgroundColor;
+    > * {
+        font-size: @font1Size;
+        // outline: 1px solid green;
+    }
+    #main-svg { 
+        #main-bg-rect {
+            opacity: 0;
+        }
+        path.state-path {
+            stroke: @statesStrokeColor;
+            stroke-width: @statesStrokeWidth;
+        }
+        circle.vertice-circle {
+            fill: purple;
+            stroke: black;
+            stroke-width: 1.5px;
+        }
+        line.edge-line {
+            stroke: black;
+        }
+        #hover-g {
+            pointer-events: none;
+        }
+        #hover-text {
+            dominant-baseline: middle;
+            text-anchor: middle;
+        }
+        #hover-rect {
+            stroke: @hoverStrokeColor;
+            stroke-width: @hoverStrokeWidth;
+            fill: @hoverFillColor;
         }
     }
-    #filters-container {
-        #filters-svg {
-            font-size: @font1Size;
-        }
+    #filters-svg {
         rect.grade-rect {
             stroke: @gradesStrokeColor;
             stroke-width: @gradesStrokeWidth;
@@ -79,11 +71,12 @@ body {
             pointer-events: none;
         }
     }
-    #infobox-container {
+    #states-select {
+        height: 25px;
+        margin-top: 15px;
+    }
+    #info-svg {
         text-align: center;
-        #states-select {
-            font-size: @font1Size;
-        }
     }
     /* General Styles */
     .hovered {
@@ -107,14 +100,4 @@ body {
         -ms-user-select: none;
         user-select: none;
     }
-}
-
-.node {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
-
-.link {
-  fill: none;
-  stroke: #bbb;
 }
