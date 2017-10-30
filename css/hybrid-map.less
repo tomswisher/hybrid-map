@@ -11,12 +11,12 @@
 @bodyMargin: 0px;
 @rowMargin: 10px;
 @backgroundColor:    white;
-@statesStrokeColor:  black;
-@statesStrokeWidth:  0;
+@statesStrokeColor:  white;
+@statesStrokeWidth:  1px;
 @gradesStrokeColor:  black;
-@gradesStrokeWidth:  0;
+@gradesStrokeWidth:  0px;
 @hoverStrokeColor:   black;
-@hoverStrokeWidth:   0;
+@hoverStrokeWidth:   0px;
 @hoverFillColor:     white;
 
 body {
@@ -60,6 +60,9 @@ body {
         }
     }
     #filters-svg {
+        rect.grade-bg {
+            opacity: 0;
+        }
         rect.grade-rect {
             stroke: @gradesStrokeColor;
             stroke-width: @gradesStrokeWidth;

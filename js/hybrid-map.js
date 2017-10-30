@@ -155,7 +155,7 @@ function UpdateFilters(source) {
         UpdateFilters(source);
     }).each(function (grade) {
         var gradeBG = d3.select(this).selectAll('rect.grade-bg').data([grade]);
-        gradeBG = gradeBG.enter().append('rect').attr('class', 'grade-bg').style('fill', 'white').merge(gradeBG);
+        gradeBG = gradeBG.enter().append('rect').attr('class', 'grade-bg').merge(gradeBG);
         gradeBG.attr('x', -1 / 2 * filtersHeight).attr('y', -1 / 2 * filtersHeight).attr('width', filtersHeight).attr('height', filtersHeight - 2);
         //
         var gradeRect = d3.select(this).selectAll('rect.grade-rect').data([grade]);
@@ -172,8 +172,6 @@ function UpdateFilters(source) {
         // .transition().duration(animateDuration).ease(animateEase)
         .style('fill', function (d) {
             return visibleGrades[d] ? vs.colorScale(gradeScale(d)) : vs.inactiveColor;
-        }).style('stroke-width', function (d) {
-            return visibleGrades[d] ? '0px' : '1px';
         });
         //
         var gradeLabel = d3.select(this).selectAll('text.grade-label').data([grade]);

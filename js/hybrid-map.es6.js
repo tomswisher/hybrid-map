@@ -176,7 +176,6 @@ function UpdateFilters(source) {
                 .data([grade]);
             gradeBG = gradeBG.enter().append('rect')
                 .attr('class', 'grade-bg')
-                .style('fill', 'white')
                 .merge(gradeBG);
             gradeBG
                 .attr('x', (-1/2)*filtersHeight)
@@ -208,9 +207,6 @@ function UpdateFilters(source) {
                 // .transition().duration(animateDuration).ease(animateEase)
                 .style('fill', function(d) {
                     return visibleGrades[d] ? vs.colorScale(gradeScale(d)) : vs.inactiveColor;
-                })
-                .style('stroke-width', function(d) {
-                    return visibleGrades[d] ? '0px' : '1px';
                 });
             //
             var gradeLabel = d3.select(this).selectAll('text.grade-label')

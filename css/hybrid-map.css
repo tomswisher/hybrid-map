@@ -22,8 +22,8 @@ body #main-svg #main-bg-rect {
   opacity: 0;
 }
 body #main-svg path.state-path {
-  stroke: black;
-  stroke-width: 0;
+  stroke: white;
+  stroke-width: 1px;
 }
 body #main-svg circle.vertice-circle {
   fill: purple;
@@ -42,12 +42,15 @@ body #main-svg #hover-text {
 }
 body #main-svg #hover-rect {
   stroke: black;
-  stroke-width: 0;
+  stroke-width: 0px;
   fill: white;
+}
+body #filters-svg rect.grade-bg {
+  opacity: 0;
 }
 body #filters-svg rect.grade-rect {
   stroke: black;
-  stroke-width: 0;
+  stroke-width: 0px;
   pointer-events: none;
 }
 body #filters-svg text.grade-label {
