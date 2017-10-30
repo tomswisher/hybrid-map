@@ -11,7 +11,7 @@
 // Event Listeners
 
 window.onload = function () {
-    d3.queue().defer(d3.json, 'data/us-states-features.json').defer(d3.json, 'data/nodes-edges-04-06-2017.json').defer(d3.csv, 'data/4_6_reduced_privatization_report_card.csv').awaitAll(InitializePage);
+    d3.queue().defer(d3.json, 'data/us-states-features.json').defer(d3.json, 'data/nodes-edges-04-06-2017.json').awaitAll(InitializePage);
 };
 window.onresize = ResizePage;
 
@@ -76,21 +76,16 @@ var defs = filtersSVG.append('defs');
 // Visual Styles
 
 var vs = {};
+vs.filtersHeight = 40;
 vs.stateSelectedOpacity = 0.3;
 vs.stateNotClickedOpacity = 0.2;
 vs.hoverMargin = 5;
-vs.popupDX = 2;
-vs.popupDY = 2;
 vs.gradeMargin = 2.5;
 vs.gradeRounded = false;
 // /*BH1*/ vs.gradeColorArray = ['rgb(50,50,50)','rgb(28,44,160)','rgb(240,6,55)','rgb(251,204,12)','rgb(239,230,221)'];
 // /*BH2*/ vs.gradeColorArray = ['rgb(240,243,247)','rgb(191,162,26)','rgb(20,65,132)','rgb(153,40,26)','rgb(34,34,34)'];
 /*red*/vs.gradeColorArray = ['#de2d26', '#fb6a4a', '#fc9272', '#fcbba1', '#fee5d9'];
 vs.colorScale = d3.scaleQuantize().domain([0, 5]).range(vs.gradeColorArray);
-vs.activeColor = '#D02626';
-vs.inactiveColor = 'gainsboro';
-vs.yesColor = '#D02626';
-vs.noColor = 'BDBBBB';
 
 defs.append('filter').attr('id', 'drop-shadow').attr('height', '130%') // so the shadow is not clipped
 .attr('width', '120%').each(function () {
@@ -111,7 +106,6 @@ function InitializePage(error, results) {
     body.classed('loading', false);
     var usStatesFeaturesJSON = results[0];
     var nodesEdgesJSON = results[1];
-    var csvData = results[2];
     vs.hoverHeight = parseFloat(mainSVG.style('font-size')) + 2 * vs.hoverMargin;
     hoverRect.attr('height', vs.hoverHeight).attr('y', -1 * vs.hoverHeight - vs.hoverMargin).style('filter', 'url(#drop-shadow)');
     hoverText.attr('x', 0).attr('y', -0.5 * vs.hoverHeight - vs.hoverMargin);
@@ -129,7 +123,6 @@ function InitializePage(error, results) {
     mapObj.mapFeatures(usStatesFeaturesJSON.features);
     mapObj.vertices(nodesEdgesJSON.nodes);
     mapObj.edges(nodesEdgesJSON.links);
-    mapObj.csvData(csvData);
     ResizePage();
 }
 
@@ -212,50 +205,9 @@ function MapClass() {
             _$GivenByState[edge.source.state] += edge.dollars;
             _$ReceivedByState[edge.target.state] += edge.dollars;
         });
-
         return this;
     };
-    var _categoryNames = null;
-    this.categoryNames = function (_) {
-        return arguments.length ? (_categoryNames = _, this) : _categoryNames;
-    };
-    var _category = 'Overall Grade';
-    this.category = function (_) {
-        return arguments.length ? (_category = _, this) : _category;
-    };
-    var _csvData = null;
-    this.csvData = function (_) {
-        if (!arguments.length) {
-            return _csvData;
-        }
-        _csvData = _;
-        _categoryNames = [];
-        for (var name in _csvData[0]) {
-            // if (name !== 'State' && name !== 'Overall Grade') {
-            if (name !== 'State') {
-                // if (name !== 'State') {
-                _categoryNames.push(name);
-            }
-        }
-    };
     this.UpdateMap = function (source) {
-        //
-        if (!_csvData || !_mapFeatures) {
-            return;
-        }
-        var i, j, csvDataState, csvDataValue, mapState;
-        for (i = 0; i < _csvData.length; i++) {
-            csvDataState = _csvData[i].State;
-            csvDataValue = _csvData[i][_category];
-            for (j = 0; j < _mapFeatures.length; j++) {
-                mapState = _mapFeatures[j].properties.name;
-                if (csvDataState == mapState) {
-                    _mapFeatures[j].properties[_category] = csvDataValue;
-                    break;
-                }
-            }
-        }
-        //
         var $GivenByStatesArray = Object.keys(_$GivenByState).map(function (d) {
             return _$GivenByState[d];
         });
@@ -287,23 +239,13 @@ function MapClass() {
             return d.properties.name;
         });
         statePaths = statePaths.enter().append('path').classed('state-path', true).each(function (d) {
-            var given = parseInt(_$GivenByState[d.properties.ansi]);
-            var received = parseInt(_$ReceivedByState[d.properties.ansi]);
-            if (isNaN(given)) {
-                // console.log(d.properties.ansi);
-            } else {
-                console.log(d.properties.ansi + ' ' + String(given).padStart(10) + vs.colorScale(given).padStart(10));
-            }
+            d.$Given = parseInt(_$GivenByState[d.properties.ansi]);
+            d.$Received = parseInt(_$ReceivedByState[d.properties.ansi]);
         }).on('mouseover', function (d) {
             // if (isMobile === true) { return; }
-            if (visibleGrades[d.properties[_category]] === false) {
-                stateSelected = 'National';
-                hoverText.text('');
-            } else {
-                stateSelected = d.properties.name;
-                hoverText.text(d.properties.name + ': ' + d.properties[_category]);
-            }
+            stateSelected = d.properties.name;
             var source = 'statePaths mouseover ' + stateSelected;
+            hoverText.text(d.properties.name + ': ' + d.$Given + ' ' + d.$Received);
             mapObj.UpdateMap(source);
             UpdateStatesDropdown(source);
             UpdateHover('mouse');
@@ -313,28 +255,15 @@ function MapClass() {
         statePaths.each(function (d) {
             _centroidByState[d.properties.name] = _path.centroid(d);
             _centroidByState[d.properties.ansi] = _path.centroid(d);
-        })
-        // .transition().duration(animateDuration).ease(animateEase)
-        .attr('d', _path).style('opacity', function (d) {
+        }).classed('inactive', function (d) {
+            return isNaN(d.$Given) && isNaN(d.$Received);
+        }).attr('d', _path).style('opacity', function (d) {
             if (stateSelected === d.properties.name) {
                 return vs.stateSelectedOpacity;
             }
             return 1;
         }).style('fill', function (d) {
-            // var grade = d.properties[_category];
-            // if (grade === false) { return vs.inactiveColor; }
-            // if (grade === undefined) { return '#ccc'; }
-            // if (grade === '_') { return vs.inactiveColor; }
-            // if (grade === 'Yes') { return vs.yesColor; }
-            // if (grade === 'No') { return vs.noColor; }
-            // if (visibleGrades[grade] === false) { return vs.inactiveColor; }
-            // return vs.colorScale(gradeScale(grade));
-            var value = _$GivenByState[d.properties.ansi];
-            if (value === undefined) {
-                return vs.inactiveColor;
-            }
-            // console.log(d.properties.ansi, value, _$GivenByStateScale(value));
-            return vs.colorScale(_$GivenByStateScale(value));
+            return vs.colorScale(d.$Given);
         });
         //
         var verticeCircles = verticesG.selectAll('circle.vertice-circle').data(_vertices);
@@ -344,14 +273,11 @@ function MapClass() {
         verticeCircles.each(function (d) {
             d.x = _centroidByState[d.state][0];
             d.y = _centroidByState[d.state][1];
-        })
-        // .transition().duration(animateDuration).ease(animateEase)
-        .attr('cx', function (d) {
+        }).attr('cx', function (d) {
             return d.x;
         }).attr('cy', function (d) {
             return d.y;
         }).attr('r', function (d) {
-            // return 10;
             return _$GivenByVerticeScale(d.$Given);
         });
         //
@@ -359,9 +285,7 @@ function MapClass() {
         edgeLines = edgeLines.enter().append('line').classed('edge-line', true).on('mouseover', function (d) {
             // console.log('mouseover', d);
         }).merge(edgeLines);
-        edgeLines
-        // .transition().duration(animateDuration).ease(animateEase)
-        .attr('x1', function (d) {
+        edgeLines.attr('x1', function (d) {
             return d.source.x;
         }).attr('y1', function (d) {
             return d.source.y;
@@ -423,20 +347,15 @@ function ToggleGrades(bool) {
 function UpdateFilters(source) {
     console.log('UpdateFilters   ' + source);
     var filtersWidth = mapObj.width();
-    var filtersHeight = 40;
-    filtersSVG.attr('width', filtersWidth).attr('height', filtersHeight + 3)
-    // .transition().duration(animateDuration).ease(animateEase)
-    .style('opacity', function () {
-        return mapObj.category() !== 'Overall Grade' ? 0 : 1;
-    });
+    filtersSVG.attr('width', filtersWidth).attr('height', vs.filtersHeight + 3);
     var gradeDataArray = gradeArray.slice();
-    var rectSize = filtersHeight - 2 * vs.gradeMargin;
+    var rectSize = vs.filtersHeight - 2 * vs.gradeMargin;
     //
     var gradeGs = filtersSVG.selectAll('g.grade-g').data(gradeDataArray);
     gradeGs = gradeGs.enter().append('g').attr('class', 'grade-g').merge(gradeGs);
     gradeGs.attr('transform', function (d, i) {
-        var tx = 1 / 2 * filtersWidth + (1 / 2 - 1 / 2 * gradeDataArray.length + i) * filtersHeight;
-        var ty = 1 / 2 * filtersHeight + 1;
+        var tx = 1 / 2 * filtersWidth + (1 / 2 - 1 / 2 * gradeDataArray.length + i) * vs.filtersHeight;
+        var ty = 1 / 2 * vs.filtersHeight + 1;
         return 'translate(' + tx + ',' + ty + ')';
     }).on('mouseover', function (d) {
         var source = 'gradeGs    mouseover ' + d;
@@ -452,77 +371,47 @@ function UpdateFilters(source) {
     }).each(function (grade) {
         var gradeBG = d3.select(this).selectAll('rect.grade-bg').data([grade]);
         gradeBG = gradeBG.enter().append('rect').attr('class', 'grade-bg').merge(gradeBG);
-        gradeBG.attr('x', -1 / 2 * filtersHeight).attr('y', -1 / 2 * filtersHeight).attr('width', filtersHeight).attr('height', filtersHeight - 2);
+        gradeBG.attr('x', -1 / 2 * vs.filtersHeight).attr('y', -1 / 2 * vs.filtersHeight).attr('width', vs.filtersHeight).attr('height', vs.filtersHeight - 2);
         //
         var gradeRect = d3.select(this).selectAll('rect.grade-rect').data([grade]);
-        gradeRect = gradeRect.enter().append('rect').attr('class', 'grade-rect').style('fill', function (d) {
-            return vs.colorScale(gradeScale(d));
-        }).merge(gradeRect);
-        gradeRect.attr('x', function (d) {
-            return visibleGrades[d] ? -0.5 * rectSize - vs.popupDX : -0.5 * rectSize;
-        }).attr('y', function (d) {
-            return visibleGrades[d] ? -0.5 * rectSize - vs.popupDY : -0.5 * rectSize;
-        }).attr('width', rectSize).attr('height', rectSize).style('filter', function (d) {
+        gradeRect = gradeRect.enter().append('rect').attr('class', 'grade-rect').merge(gradeRect).classed('inactive', function (d) {
+            return !visibleGrades[d];
+        }).attr('x', -0.5 * rectSize).attr('y', -0.5 * rectSize).attr('width', rectSize).attr('height', rectSize).style('filter', function (d) {
             return visibleGrades[d] ? 'url(#drop-shadow)' : null;
-        })
-        // .transition().duration(animateDuration).ease(animateEase)
-        .style('fill', function (d) {
-            return visibleGrades[d] ? vs.colorScale(gradeScale(d)) : vs.inactiveColor;
+        }).style('fill', function (d) {
+            return vs.colorScale(gradeScale(d));
         });
         //
         var gradeLabel = d3.select(this).selectAll('text.grade-label').data([grade]);
         gradeLabel = gradeLabel.enter().append('text').attr('class', 'grade-label button-text').text(function (d) {
             return d;
-        }).merge(gradeLabel);
-        gradeLabel.attr('x', function (d) {
-            return visibleGrades[d] ? -1 * vs.popupDX : 0;
-        }).attr('y', function (d) {
-            return visibleGrades[d] ? -1 * vs.popupDY : 0;
+        }).merge(gradeLabel).classed('inactive', function (d) {
+            return !visibleGrades[d];
         });
     });
 }
 
 function UpdateStatesDropdown(source) {
     // console.log('UpdateStatesDropdown '+source);
-    if (!mapObj.categoryNames() || !mapObj.csvData()) {
-        return;
-    }
-    var stateDataRow;
-    if (stateSelected === 'National') {
-        stateDataRow = {};
-    } else {
-        stateDataRow = mapObj.csvData().filter(function (row) {
-            return row.State === stateSelected;
-        })[0];
-    }
-    var categoryRowsData = mapObj.categoryNames().slice();
+    var statesSelectOptionsData = Object.keys(mapObj.$GivenByState());
+    statesSelectOptionsData.unshift('National');
     statesSelect.attr('class', 'button-object').on('change', function () {
         var source = 'statesSelect change ' + this.value;
         stateSelected = this.value;
-        if (this.value === 'National') {
+        if (stateSelected === 'National') {
             hoverText.text('');
         } else {
             var d = mainSVG.selectAll('path.state-path').filter(function (d) {
                 return d.properties.name === stateSelected;
             }).datum();
-            hoverText.text(stateSelected + ': ' + d.properties[mapObj.category()]);
+            hoverText.text(stateSelected + ': ' + d.$Given + ' ' + d.$Received);
         }
         mapObj.UpdateMap(source);
         UpdateStatesDropdown(source);
         UpdateHover('event');
-    });
-    var statesSelectOptionsData = mapObj.csvData().slice();
-    statesSelectOptionsData = statesSelectOptionsData.map(function (row) {
-        return row.State;
-    }).filter(function (state) {
-        return state !== 'DC';
-    });
-    statesSelectOptionsData.unshift('National');
-    //
-    var statesSelectOptions = statesSelect.selectAll('option.states-select-option').data(statesSelectOptionsData);
-    statesSelectOptions = statesSelectOptions.enter().append('option').classed('states-select-option', true).text(function (d) {
+    }).selectAll('option.states-select-option').data(statesSelectOptionsData).enter().append('option').classed('states-select-option', true).text(function (d) {
         return d;
-    }).merge(statesSelectOptions);
+    });
     statesSelect.node().value = stateSelected;
 }
 

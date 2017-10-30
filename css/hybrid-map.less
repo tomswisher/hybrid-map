@@ -8,26 +8,21 @@
 7   1024    768
 */
 @font1Size: 14px;
-@bodyMargin: 0px;
-@rowMargin: 10px;
-@backgroundColor:    white;
-@statesStrokeColor:  white;
-@statesStrokeWidth:  1px;
-@gradesStrokeColor:  black;
-@gradesStrokeWidth:  0px;
-@hoverStrokeColor:   black;
-@hoverStrokeWidth:   0px;
-@hoverFillColor:     white;
+@statesStrokeColor:   white;
+@statesStrokeWidth:   1px;
+@gradesStrokeColor:   black;
+@gradesStrokeWidth:   0px;
+@hoverStrokeColor:    black;
+@hoverStrokeWidth:    0px;
+@hoverFillColor:      white;
 
 body {
-    margin: @bodyMargin;
+    margin: 0px;
     font-family: 'Lato', sans-serif;
     font-weight: 400;
     font-size: 0px;
-    background-color: @backgroundColor;
     > * {
         font-size: @font1Size;
-        // outline: 1px solid green;
     }
 }
 #main-svg { 
@@ -102,4 +97,13 @@ body {
 }
 .loading {
     opacity: 0;
+}
+.inactive {
+    rect&, path& {
+        fill: gainsboro !important;
+        pointer-events: none !important;
+    }
+    rect&, text& {
+        transform: translate(2px,2px) !important;
+    }
 }

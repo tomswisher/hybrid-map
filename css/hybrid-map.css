@@ -12,7 +12,6 @@ body {
   font-family: 'Lato', sans-serif;
   font-weight: 400;
   font-size: 0px;
-  background-color: white;
 }
 body > * {
   font-size: 14px;
@@ -85,4 +84,13 @@ body > * {
 }
 .loading {
   opacity: 0;
+}
+rect.inactive,
+path.inactive {
+  fill: gainsboro !important;
+  pointer-events: none !important;
+}
+rect.inactive,
+text.inactive {
+  transform: translate(2px, 2px) !important;
 }
