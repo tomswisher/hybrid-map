@@ -21,7 +21,7 @@ body > * {
 }
 #main-svg path.state-path {
   stroke: white;
-  stroke-width: 1px;
+  stroke-width: 2px;
 }
 #main-svg circle.vertice-circle {
   fill: purple;
@@ -58,10 +58,13 @@ body > * {
 }
 #states-select {
   height: 25px;
-  margin-top: 15px;
 }
 #info-svg {
   text-align: center;
+}
+.vspacer-15 {
+  display: block;
+  height: 15px;
 }
 /* General Styles */
 .hovered {
@@ -87,8 +90,9 @@ body > * {
 }
 rect.inactive,
 path.inactive {
-  fill: gainsboro !important;
   pointer-events: none !important;
+  fill: gainsboro !important;
+  opacity: 0.5 !important;
 }
 rect.inactive,
 text.inactive {

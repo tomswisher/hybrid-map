@@ -9,7 +9,7 @@
 */
 @font1Size: 14px;
 @statesStrokeColor:   white;
-@statesStrokeWidth:   1px;
+@statesStrokeWidth:   2px;
 @gradesStrokeColor:   black;
 @gradesStrokeWidth:   0px;
 @hoverStrokeColor:    black;
@@ -71,10 +71,13 @@ body {
 }
 #states-select {
     height: 25px;
-    margin-top: 15px;
 }
 #info-svg {
     text-align: center;
+}
+.vspacer-15 {
+    display: block;
+    height: 15px;
 }
 /* General Styles */
 .hovered {
@@ -100,8 +103,9 @@ body {
 }
 .inactive {
     rect&, path& {
-        fill: gainsboro !important;
         pointer-events: none !important;
+        fill: gainsboro !important;
+        opacity: 0.5 !important;
     }
     rect&, text& {
         transform: translate(2px,2px) !important;

@@ -30,12 +30,6 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(naviga
 // Global Variables
 
 var debugLayoutEnabled = false;
-var mapWidthHeightRatio = 1.7;
-var mapProjectionScale = 1.2;
-var totalWidthMin = 400;
-var statesSelectWidth = 100;
-var infoSVGWidth = 0;
-var infoSVGHeight = 0;
 var mapObj = null;
 var sizeOfDOM = 0;
 var stateSelected = 'National';
@@ -72,6 +66,12 @@ var defs = filtersSVG.append('defs');
 // Visual Styles
 
 var vs = {};
+vs.mapWidthHeightRatio = 1.7;
+vs.mapProjectionScale = 1.3;
+vs.totalWidthMin = 400;
+vs.statesSelectWidth = 100;
+vs.infoSVGWidth = 0;
+vs.infoSVGHeight = 0;
 vs.filtersHeight = 40;
 vs.stateSelectedOpacity = 0.3;
 vs.stateNotClickedOpacity = 0.2;
@@ -138,7 +138,7 @@ function InitializePage(error, results) {
         .attr('width', 0)
         .attr('height', 0);
     statesSelect
-        .style('width', statesSelectWidth+'px');
+        .style('width', vs.statesSelectWidth+'px');
     mapObj = new MapClass();
     mapObj.mapFeatures(usStatesFeaturesJSON.features);
     mapObj.vertices(nodesEdgesJSON.nodes);
@@ -248,7 +248,7 @@ function MapClass() {
         ]);
         //
         _projection
-            .scale(_width*mapProjectionScale)
+            .scale(_width*vs.mapProjectionScale)
             .translate([_width/2, _height/2]);
         _path
             .projection(_projection);
@@ -447,7 +447,7 @@ function UpdateFilters(source) {
                     .attr('class', 'grade-rect')
                 .merge(gradeRect)
                     .classed('inactive', function(d) {
-                        return !visibleGrades[d]
+                        return !visibleGrades[d];
                     })
                     .attr('x', -0.5*rectSize)
                     .attr('y', -0.5*rectSize)
@@ -468,7 +468,7 @@ function UpdateFilters(source) {
                     .text(function(d) { return d; })
                 .merge(gradeLabel)
                     .classed('inactive', function(d) {
-                        return !visibleGrades[d]
+                        return !visibleGrades[d];
                     });
         });
 }
@@ -508,24 +508,24 @@ function UpdateInfoSVG() {
 
 function ResizePage() {
     requestAnimationFrame(function() {
-        var totalWidth = Math.max(totalWidthMin, body.node().clientWidth);
-        var totalHeight = totalWidth/mapWidthHeightRatio;
+        var totalWidth = Math.max(vs.totalWidthMin, body.node().clientWidth);
+        var totalHeight = totalWidth/vs.mapWidthHeightRatio;
         mainSVG
-            .attr('width', totalWidth - infoSVGWidth)
+            .attr('width', totalWidth - vs.infoSVGWidth)
             .attr('height', totalHeight);
         mainBGRect
-            .attr('width', totalWidth - infoSVGWidth)
+            .attr('width', totalWidth - vs.infoSVGWidth)
             .attr('height', totalHeight);
         mapObj
-            .width(totalWidth - infoSVGWidth)
+            .width(totalWidth - vs.infoSVGWidth)
             .height(totalHeight)
             .UpdateMap('ResizePage');
         statesSelect
-            .style('margin-left', (totalWidth - infoSVGWidth - statesSelectWidth)/2+'px')
-            .style('margin-right', (totalWidth - infoSVGWidth - statesSelectWidth)/2+'px');
+            .style('margin-left', (totalWidth - vs.infoSVGWidth - vs.statesSelectWidth)/2+'px')
+            .style('margin-right', (totalWidth - vs.infoSVGWidth - vs.statesSelectWidth)/2+'px');
         infoSVG
-            .attr('width', infoSVGWidth)
-            .attr('height', infoSVGHeight);
+            .attr('width', vs.infoSVGWidth)
+            .attr('height', vs.infoSVGHeight);
         UpdateFilters('ResizePage');
         UpdateStatesDropdown('CheckSize');
         UpdateHover('event');
@@ -547,8 +547,8 @@ function GetDOMSize() {
 }
 
 // function GraphObject() {
-//     var _width = Math.max(totalWidthMin, window.innerWidth || totalWidthMin);
-//     var _height = _width/mapWidthHeightRatio;
+//     var _width = Math.max(vs.totalWidthMin, window.innerWidth || vs.totalWidthMin);
+//     var _height = _width/vs.mapWidthHeightRatio;
 //     this._simulation = d3.forceSimulation()
 //         .force('edge', d3.forceLink().distance(20).strength(0.5))
 //         .force('charge', d3.forceManyBody())
