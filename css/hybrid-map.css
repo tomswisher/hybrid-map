@@ -13,7 +13,18 @@ body {
   font-weight: 400;
   font-size: 0px;
 }
-body > * {
+#box0 {
+  display: inline-block;
+  text-align: center;
+}
+#box0 > * {
+  font-size: 14px;
+}
+#box1 {
+  display: inline-block;
+  vertical-align: top;
+}
+#box1 > * {
   font-size: 14px;
 }
 #main-svg #main-bg-rect {

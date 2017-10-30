@@ -23,16 +23,18 @@ window.onresize = ResizePage;
 
 var isMobile = false;
 if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-    console.log('isMobile', isMobile = true);
+    if (logs0) console.log('isMobile', isMobile = true);
 }
 
 // -------------------------------------------------------------------------------------------------
 // Global Variables
 
+var logs0 = false;
+var logs1 = false;
 var debugLayoutEnabled = false;
 var mapObj = null;
 var sizeOfDOM = 0;
-var stateSelected = 'National';
+var stateSelected = '';
 var visibleGrades = {'A':true,'B':true,'C':true,'D':true,'F':true};
 var gradeScale = function(letter) {
     switch (letter) {
@@ -49,6 +51,8 @@ var gradeScale = function(letter) {
 // Global Selectors
 
 var body = d3.select('body');
+var box0 = d3.select('#box0');
+var box1 = d3.select('#box1');
 var mainSVG = body.select('#main-svg');
 var mainBGRect = body.select('#main-bg-rect');
 var statesG = body.select('#states-g');
@@ -60,18 +64,22 @@ var hoverText = body.select('#hover-text');
 var filtersSVG = body.select('#filters-svg');
 var statesSelect = body.select('#states-select');
 var infoSVG = body.select('#info-svg');
+var infoImage = body.select('#info-image');
 var defs = filtersSVG.append('defs');
 
 // -------------------------------------------------------------------------------------------------
 // Visual Styles
 
 var vs = {};
+vs.box0Width = null;
+vs.box0WidthMin = 400;
+vs.box1Width = null;
+vs.box1WidthMin = 150;
+vs.box1Height = null;
+vs.box1HeightMin = 250;
 vs.mapWidthHeightRatio = 1.7;
 vs.mapProjectionScale = 1.3;
-vs.totalWidthMin = 400;
 vs.statesSelectWidth = 100;
-vs.infoSVGWidth = 0;
-vs.infoSVGHeight = 0;
 vs.filtersHeight = 40;
 vs.stateSelectedOpacity = 0.3;
 vs.stateNotClickedOpacity = 0.2;
@@ -112,7 +120,6 @@ defs.append('filter')
 // Functions
 
 function InitializePage(error, results) {
-    body.classed('loading', false);
     var usStatesFeaturesJSON = results[0];
     var nodesEdgesJSON = results[1];
     vs.hoverHeight = parseFloat(mainSVG.style('font-size'))+2*vs.hoverMargin;
@@ -126,7 +133,7 @@ function InitializePage(error, results) {
     mainBGRect
         .on('mouseover', function() {
             var source = 'mainBGRect mouseover';
-            stateSelected = 'National';
+            stateSelected = '';
             hoverText.text('');
             mapObj.UpdateMap(source);
             UpdateStatesDropdown(source);
@@ -144,6 +151,10 @@ function InitializePage(error, results) {
     mapObj.vertices(nodesEdgesJSON.nodes);
     mapObj.edges(nodesEdgesJSON.links);
     ResizePage();
+    setTimeout(function() {
+        ResizePage();
+        body.classed('loading', false);
+    }, 0);
 }
 
 function MapClass() {
@@ -296,7 +307,7 @@ function MapClass() {
         verticeCircles = verticeCircles.enter().append('circle')
             .classed('vertice-circle', true)
             .on('mouseover', function(d) {
-                // console.log('mouseover', d);
+                if (logs0) console.log('mouseover', d);
             })
             .merge(verticeCircles);
         verticeCircles
@@ -319,7 +330,7 @@ function MapClass() {
         edgeLines = edgeLines.enter().append('line')
             .classed('edge-line', true)
             .on('mouseover', function(d) {
-                // console.log('mouseover', d);
+                if (logs1) console.log('mouseover', d);
             })
             .merge(edgeLines);
         edgeLines
@@ -337,12 +348,12 @@ function MapClass() {
             });
         //
         if (debugLayoutEnabled === true) { DebugMap(); }
-        console.log('UpdateMap       '+(source.padEnd(35))+GetJSHeapSize()+GetDOMSize());
+        if (logs0) console.log('UpdateMap       '+(source.padEnd(35))+GetJSHeapSize()+GetDOMSize());
     };
 }
 
 function UpdateHover(source) {
-    // console.log('UpdateHover', source);
+    if (logs1) console.log('UpdateHover', source);
     var hoverWidth = 0;
     if (hoverText.text() !== '') {
         hoverWidth = hoverText.node().getBBox().width+2*vs.hoverMargin;
@@ -396,7 +407,7 @@ function ToggleGrades(bool) {
 }
 
 function UpdateFilters(source) {
-    console.log('UpdateFilters   '+source);
+    if (logs1) console.log('UpdateFilters   '+source);
     var filtersWidth = mapObj.width();
     filtersSVG
         .attr('width', filtersWidth)
@@ -474,15 +485,15 @@ function UpdateFilters(source) {
 }
 
 function UpdateStatesDropdown(source) {
-    // console.log('UpdateStatesDropdown '+source);
+    if (logs1) console.log('UpdateStatesDropdown '+source);
     var statesSelectOptionsData = Object.keys(mapObj.$GivenByState());
-    statesSelectOptionsData.unshift('National');
+    statesSelectOptionsData.unshift('');
     statesSelect
         .attr('class', 'button-object')
         .on('change', function() {
             var source = 'statesSelect change '+this.value;
             stateSelected = this.value;
-            if (stateSelected === 'National') {
+            if (stateSelected === '') {
                 hoverText.text('');
             } else {
                 var d = mainSVG.selectAll('path.state-path')
@@ -492,7 +503,7 @@ function UpdateStatesDropdown(source) {
             }
             mapObj.UpdateMap(source);
             UpdateStatesDropdown(source);
-            UpdateHover('event');
+            UpdateHover(source);
         })
         .selectAll('option.states-select-option')
             .data(statesSelectOptionsData)
@@ -502,33 +513,51 @@ function UpdateStatesDropdown(source) {
     statesSelect.node().value = stateSelected;
 }
 
-function UpdateInfoSVG() {
-    //    
+function UpdateInfoSVG(source) {
+    if (logs0) console.log('UpdateInfoSVG   '+(source.padEnd(35)));
 }
 
 function ResizePage() {
+    var source = 'ResizePage';
     requestAnimationFrame(function() {
-        var totalWidth = Math.max(vs.totalWidthMin, body.node().clientWidth);
-        var totalHeight = totalWidth/vs.mapWidthHeightRatio;
+        var clientWidth = body.node().clientWidth;
+        console.log(clientWidth, vs.box0WidthMin, vs.box1WidthMin);
+        if (vs.box0WidthMin < clientWidth-vs.box1WidthMin) {
+            vs.box0Width = clientWidth-vs.box1WidthMin;
+            vs.box1Width = vs.box1WidthMin;
+            vs.box1Height = vs.box1HeightMin;
+        } else {
+            vs.box0Width = vs.box0WidthMin;
+            vs.box1Width = vs.box0WidthMin;
+            vs.box1Height = vs.box1HeightMin;
+        }
+        box0
+            .style('width', vs.box0Width+'px');
+        box1
+            .style('width', vs.box1Width+'px');
         mainSVG
-            .attr('width', totalWidth - vs.infoSVGWidth)
-            .attr('height', totalHeight);
+            .attr('width', vs.box0Width)
+            .attr('height', vs.box0Width/vs.mapWidthHeightRatio);
         mainBGRect
-            .attr('width', totalWidth - vs.infoSVGWidth)
-            .attr('height', totalHeight);
+            .attr('width', vs.box0Width)
+            .attr('height', vs.box0Width/vs.mapWidthHeightRatio);
         mapObj
-            .width(totalWidth - vs.infoSVGWidth)
-            .height(totalHeight)
+            .width(vs.box0Width)
+            .height(vs.box0Width/vs.mapWidthHeightRatio)
             .UpdateMap('ResizePage');
         statesSelect
-            .style('margin-left', (totalWidth - vs.infoSVGWidth - vs.statesSelectWidth)/2+'px')
-            .style('margin-right', (totalWidth - vs.infoSVGWidth - vs.statesSelectWidth)/2+'px');
+            .style('margin-left', (vs.box0Width - vs.statesSelectWidth)/2+'px')
+            .style('margin-right', (vs.box0Width - vs.statesSelectWidth)/2+'px');
         infoSVG
-            .attr('width', vs.infoSVGWidth)
-            .attr('height', vs.infoSVGHeight);
-        UpdateFilters('ResizePage');
-        UpdateStatesDropdown('CheckSize');
+            .attr('width', vs.box1Width)
+            .attr('height', vs.box1Height);
+        infoImage
+            .attr('width', vs.box1Width)
+            .attr('height', vs.box1Height);
+        UpdateFilters(source);
+        UpdateStatesDropdown(source);
         UpdateHover('event');
+        UpdateInfoSVG(source);
     });
 }
 
@@ -547,7 +576,7 @@ function GetDOMSize() {
 }
 
 // function GraphObject() {
-//     var _width = Math.max(vs.totalWidthMin, window.innerWidth || vs.totalWidthMin);
+//     var _width = Math.max(vs.box0WidthMin, window.innerWidth || vs.box0WidthMin);
 //     var _height = _width/vs.mapWidthHeightRatio;
 //     this._simulation = d3.forceSimulation()
 //         .force('edge', d3.forceLink().distance(20).strength(0.5))
