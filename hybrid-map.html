@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width" />
     <title>Hybrid Map</title>
     <link rel="stylesheet" type="text/css" href="css/hybrid-map.css">
+    <script src="js/d3.v4.11.0.js"></script>
+    <!-- <script src="js/d3.v4.11.0.min.js"></script> -->
 </head>
 
-<body>
+<body class="loading">
     <svg id="main-svg">
         <rect id="main-bg-rect"></rect>
         <g id="states-g"></g>
@@ -20,13 +22,9 @@
         </g>
     </svg><!--
  --><svg id="filters-svg" class="unselectable" attr="unselectable"></svg><!--
- --><select id="states-select"></select><!--
-    <svg id="info-svg"></svg>-->
-    <script src="js/d3.v4.11.0.js"></script>
-    <!-- <script src="js/d3.v4.11.0.min.js"></script> -->
-    <script src="data/usStatesJSON.js"></script>
-    <script src="data/graphApril6JSON.js"></script>
-    <script src="js/hybrid-map.js"></script>
+ --><select id="states-select"></select>
+    <svg id="info-svg"></svg>
+    <script src=js/hybrid-map.js></script>
 </body>
 
 </html>

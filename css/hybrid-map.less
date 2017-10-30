@@ -20,7 +20,6 @@
 @hoverFillColor:     white;
 
 body {
-    // opacity: 0;
     margin: @bodyMargin;
     font-family: 'Lato', sans-serif;
     font-weight: 400;
@@ -30,77 +29,77 @@ body {
         font-size: @font1Size;
         // outline: 1px solid green;
     }
-    #main-svg { 
-        #main-bg-rect {
-            opacity: 0;
-        }
-        path.state-path {
-            stroke: @statesStrokeColor;
-            stroke-width: @statesStrokeWidth;
-        }
-        circle.vertice-circle {
-            fill: purple;
-            stroke: black;
-            stroke-width: 1.5px;
-        }
-        line.edge-line {
-            stroke: black;
-        }
-        #hover-g {
-            pointer-events: none;
-        }
-        #hover-text {
-            dominant-baseline: middle;
-            text-anchor: middle;
-        }
-        #hover-rect {
-            stroke: @hoverStrokeColor;
-            stroke-width: @hoverStrokeWidth;
-            fill: @hoverFillColor;
-        }
+}
+#main-svg { 
+    #main-bg-rect {
+        opacity: 0;
     }
-    #filters-svg {
-        rect.grade-bg {
-            opacity: 0;
-        }
-        rect.grade-rect {
-            stroke: @gradesStrokeColor;
-            stroke-width: @gradesStrokeWidth;
-            pointer-events: none;
-        }
-        text.grade-label {
-            text-anchor: middle;
-            dominant-baseline: middle;
-            pointer-events: none;
-        }
+    path.state-path {
+        stroke: @statesStrokeColor;
+        stroke-width: @statesStrokeWidth;
     }
-    #states-select {
-        height: 25px;
-        margin-top: 15px;
+    circle.vertice-circle {
+        fill: purple;
+        stroke: black;
+        stroke-width: 1.5px;
     }
-    #info-svg {
-        text-align: center;
+    line.edge-line {
+        stroke: black;
     }
-    /* General Styles */
-    .hovered {
-        opacity: 0.3;
+    #hover-g {
+        pointer-events: none;
     }
-    .button-object {
-        cursor: pointer;
+    #hover-text {
+        dominant-baseline: middle;
+        text-anchor: middle;
     }
-    .button-text {
-        // pointer-events: none;
+    #hover-rect {
+        stroke: @hoverStrokeColor;
+        stroke-width: @hoverStrokeWidth;
+        fill: @hoverFillColor;
     }
-    .unselectable { 
-        -webkit-touch-callout: none;
-        -moz-user-select: -moz-none;
-        -khtml-user-select: none;
-        -webkit-user-select: none;
-        /*
-         Introduced in IE 10.
-         See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
-        */
-        -ms-user-select: none;
-        user-select: none;
+}
+#filters-svg {
+    rect.grade-bg {
+        opacity: 0;
     }
+    rect.grade-rect {
+        stroke: @gradesStrokeColor;
+        stroke-width: @gradesStrokeWidth;
+        pointer-events: none;
+    }
+    text.grade-label {
+        text-anchor: middle;
+        dominant-baseline: middle;
+        pointer-events: none;
+    }
+}
+#states-select {
+    height: 25px;
+    margin-top: 15px;
+}
+#info-svg {
+    text-align: center;
+}
+/* General Styles */
+.hovered {
+    opacity: 0.3;
+}
+.button-object {
+    cursor: pointer;
+}
+.unselectable {
+    -webkit-touch-callout: none;
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    /*
+     Introduced in IE 10.
+     See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+}
+.loading {
+    opacity: 0;
 }

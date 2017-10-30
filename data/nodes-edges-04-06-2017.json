@@ -1,6 +1,3 @@
-/* globals console */
-'use strict';
-var graphApril6JSON =
 {
   "nodes": [
     {"id": "Michael Bloomberg", "state": "NY"},
@@ -697,5 +694,3 @@ var graphApril6JSON =
     {"report": 9,"dollars": 5000,"month": "October", "year": 2015,"source": "Samuel Gary", "target": "Happy Haynes"}
   ]
 }
-;
-console.log('graphApril6JSON', graphApril6JSON);

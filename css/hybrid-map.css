@@ -13,73 +13,76 @@ body {
   font-weight: 400;
   font-size: 0px;
   background-color: white;
-  /* General Styles */
 }
 body > * {
   font-size: 14px;
 }
-body #main-svg #main-bg-rect {
+#main-svg #main-bg-rect {
   opacity: 0;
 }
-body #main-svg path.state-path {
+#main-svg path.state-path {
   stroke: white;
   stroke-width: 1px;
 }
-body #main-svg circle.vertice-circle {
+#main-svg circle.vertice-circle {
   fill: purple;
   stroke: black;
   stroke-width: 1.5px;
 }
-body #main-svg line.edge-line {
+#main-svg line.edge-line {
   stroke: black;
 }
-body #main-svg #hover-g {
+#main-svg #hover-g {
   pointer-events: none;
 }
-body #main-svg #hover-text {
+#main-svg #hover-text {
   dominant-baseline: middle;
   text-anchor: middle;
 }
-body #main-svg #hover-rect {
+#main-svg #hover-rect {
   stroke: black;
   stroke-width: 0px;
   fill: white;
 }
-body #filters-svg rect.grade-bg {
+#filters-svg rect.grade-bg {
   opacity: 0;
 }
-body #filters-svg rect.grade-rect {
+#filters-svg rect.grade-rect {
   stroke: black;
   stroke-width: 0px;
   pointer-events: none;
 }
-body #filters-svg text.grade-label {
+#filters-svg text.grade-label {
   text-anchor: middle;
   dominant-baseline: middle;
   pointer-events: none;
 }
-body #states-select {
+#states-select {
   height: 25px;
   margin-top: 15px;
 }
-body #info-svg {
+#info-svg {
   text-align: center;
 }
-body .hovered {
+/* General Styles */
+.hovered {
   opacity: 0.3;
 }
-body .button-object {
+.button-object {
   cursor: pointer;
 }
-body .unselectable {
+.unselectable {
   -webkit-touch-callout: none;
   -moz-user-select: -moz-none;
   -khtml-user-select: none;
   -webkit-user-select: none;
   /*
-         Introduced in IE 10.
-         See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
-        */
+     Introduced in IE 10.
+     See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
   -ms-user-select: none;
   user-select: none;
+}
+.loading {
+  opacity: 0;
 }
