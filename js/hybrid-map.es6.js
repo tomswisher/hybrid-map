@@ -39,7 +39,6 @@ var infoSVGHeight = 0;
 var mapObj = null;
 var sizeOfDOM = 0;
 var stateSelected = 'National';
-var gradeArray = ['A','B','C','D','F'];
 var visibleGrades = {'A':true,'B':true,'C':true,'D':true,'F':true};
 var gradeScale = function(letter) {
     switch (letter) {
@@ -226,8 +225,8 @@ function MapClass() {
         var $GivenByStatesArray = Object.keys(_$GivenByState)
             .map(function(d) { return _$GivenByState[d]; });
         _$GivenByStateScale.domain([
-            d3.min($GivenByStatesArray),
-            d3.max($GivenByStatesArray)
+            d3.max($GivenByStatesArray),
+            d3.min($GivenByStatesArray)
         ]);
         var $ReceivedByStatesArray = Object.keys(_$ReceivedByState)
             .map(function(d) { return _$ReceivedByState[d]; });
@@ -255,7 +254,7 @@ function MapClass() {
             .projection(_projection);
         //
         var statePaths = statesG.selectAll('path.state-path')
-            .data(_mapFeatures, function(d) { return d.properties.name; });
+            .data(_mapFeatures, function(d) { return d.properties.ansi; });
         statePaths = statePaths.enter().append('path')
             .classed('state-path', true)
             .each(function(d) {
@@ -264,9 +263,9 @@ function MapClass() {
             })
             .on('mouseover', function(d) {
                 // if (isMobile === true) { return; }
-                stateSelected = d.properties.name;
+                stateSelected = d.properties.ansi;
                 var source = 'statePaths mouseover '+stateSelected;
-                hoverText.text(d.properties.name+': '+d.$Given+' '+d.$Received);
+                hoverText.text(d.properties.ansi+': '+d.$Given+' '+d.$Received);
                 mapObj.UpdateMap(source);
                 UpdateStatesDropdown(source);
                 UpdateHover('mouse');
@@ -278,7 +277,6 @@ function MapClass() {
             .merge(statePaths);
         statePaths
             .each(function(d) {
-                _centroidByState[d.properties.name] = _path.centroid(d);
                 _centroidByState[d.properties.ansi] = _path.centroid(d);
             })
             .classed('inactive', function(d) {
@@ -286,11 +284,11 @@ function MapClass() {
             })
             .attr('d', _path)
             .style('opacity', function(d) {
-                if (stateSelected === d.properties.name) { return vs.stateSelectedOpacity; }
+                if (stateSelected === d.properties.ansi) { return vs.stateSelectedOpacity; }
                 return 1;
             })
             .style('fill', function(d) {
-                return vs.colorScale(d.$Given);
+                return vs.colorScale(_$GivenByStateScale(d.$Given));
             });
         //
         var verticeCircles = verticesG.selectAll('circle.vertice-circle')
@@ -403,17 +401,17 @@ function UpdateFilters(source) {
     filtersSVG
         .attr('width', filtersWidth)
         .attr('height', vs.filtersHeight+3);
-    var gradeDataArray = gradeArray.slice();
     var rectSize = vs.filtersHeight - 2*vs.gradeMargin;
     //
+    var gradeArray = ['A','B','C','D','F'];
     var gradeGs = filtersSVG.selectAll('g.grade-g')
-        .data(gradeDataArray);
+        .data(gradeArray);
     gradeGs = gradeGs.enter().append('g')
         .attr('class', 'grade-g')
         .merge(gradeGs);
     gradeGs
         .attr('transform', function(d,i) {
-            var tx = (1/2)*filtersWidth + (1/2-1/2*gradeDataArray.length+i)*vs.filtersHeight;
+            var tx = (1/2)*filtersWidth + (1/2-1/2*gradeArray.length+i)*vs.filtersHeight;
             var ty = (1/2)*vs.filtersHeight + 1;
             return 'translate('+tx+','+ty+')';
         })
@@ -488,7 +486,7 @@ function UpdateStatesDropdown(source) {
                 hoverText.text('');
             } else {
                 var d = mainSVG.selectAll('path.state-path')
-                    .filter(function(d) { return d.properties.name === stateSelected; })
+                    .filter(function(d) { return d.properties.ansi === stateSelected; })
                     .datum();
                 hoverText.text(stateSelected+': '+d.$Given+' '+d.$Received);
             }
