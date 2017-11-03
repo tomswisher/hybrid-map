@@ -120,8 +120,6 @@ function InitializePage(error, results) {
     mapObj.vertices(nodesEdgesJSON.nodes);
     mapObj.edges(nodesEdgesJSON.links);
     //
-    graphObj = new GraphClass();
-    //
     vs.hoverHeight = parseFloat(mainSVG.style('font-size')) + 2 * vs.hoverMargin;
     hoverRect.attr('height', vs.hoverHeight).attr('y', -1 * vs.hoverHeight - vs.hoverMargin).style('filter', 'url(#drop-shadow)');
     hoverText.attr('x', 0).attr('y', -0.5 * vs.hoverHeight - vs.hoverMargin);
@@ -136,8 +134,9 @@ function InitializePage(error, results) {
     filtersSVG.attr('width', 0).attr('height', 0);
     statesSelect.style('width', vs.statesSelectWidth + 'px');
     //
+    ResizePage();
     setTimeout(function () {
-        ResizePage();
+        graphObj = new GraphClass();
         body.classed('loading', false);
     }, 0);
 }
@@ -284,8 +283,10 @@ function MapClass() {
         var verticeCircles = verticesG.selectAll('circle.vertice-circle').data(_vertices);
         verticeCircles = verticeCircles.enter().append('circle').classed('vertice-circle', true).on('mouseover', function (d) {
             if (logs0) console.log('mouseover', d);
-        }).merge(verticeCircles);
-        verticeCircles.each(function (d) {
+        })
+        //     .merge(verticeCircles);
+        // verticeCircles
+        .each(function (d) {
             d.x = _centroidByState[d.state][0];
             d.y = _centroidByState[d.state][1];
         }).attr('cx', function (d) {
@@ -294,13 +295,17 @@ function MapClass() {
             return d.y;
         }).attr('r', function (d) {
             return _$GivenByVerticeScale(d.$Given);
+        }).style('fill', function (d) {
+            return vs.colorScale(_$GivenByStateScale(_$GivenByState[d.state]));
         });
         //
         var edgeLines = edgesG.selectAll('line.edge-line').data(_edges);
         edgeLines = edgeLines.enter().append('line').classed('edge-line', true).on('mouseover', function (d) {
             if (logs1) console.log('mouseover', d);
-        }).merge(edgeLines);
-        edgeLines.attr('x1', function (d) {
+        })
+        //     .merge(edgeLines);
+        // edgeLines
+        .attr('x1', function (d) {
             return d.source.x;
         }).attr('y1', function (d) {
             return d.source.y;
@@ -308,6 +313,10 @@ function MapClass() {
             return d.target.x;
         }).attr('y2', function (d) {
             return d.target.y;
+        }).style('opacity', function (d) {
+            var opacity = 1 - 1 / 5 * _$GivenByStateScale(d.source.$Given);
+            console.log(opacity);
+            return opacity;
         });
         //
         if (debugLayoutEnabled === true) {
@@ -451,7 +460,9 @@ function ResizePage() {
     mainSVG.attr('width', vs.box0Width).attr('height', vs.box0Width / vs.mapWidthHeightRatio);
     mainBGRect.attr('width', vs.box0Width).attr('height', vs.box0Width / vs.mapWidthHeightRatio);
     mapObj.width(vs.box0Width).height(vs.box0Width / vs.mapWidthHeightRatio).UpdateMap('ResizePage');
-    graphObj.UpdateGraph();
+    if (graphObj !== null) {
+        graphObj.UpdateGraph();
+    }
     statesSelect.style('margin-left', (vs.box0Width - vs.statesSelectWidth) / 2 + 'px').style('margin-right', (vs.box0Width - vs.statesSelectWidth) / 2 + 'px');
     infoSVG.attr('width', vs.box1Width).attr('height', vs.box1Height);
     infoImage.attr('width', vs.box1Width).attr('height', vs.box1Height);
@@ -497,138 +508,39 @@ function GraphClass() {
         }).attr('cy', function (d) {
             return d.y;
         });
+        edgesG.selectAll('line.edge-line').attr('x1', function (d) {
+            return mapObj.centroidByState()[d.source.state][0];
+            // return d.source.x;
+        }).attr('y1', function (d) {
+            return mapObj.centroidByState()[d.source.state][1];
+            // return d.source.y;
+        }).attr('x2', function (d) {
+            return mapObj.centroidByState()[d.target.state][0];
+            // return d.target.x;
+        }).attr('y2', function (d) {
+            return mapObj.centroidByState()[d.target.state][1];
+            // return d.target.y;
+        });
     };
     //
-    this.simulation = d3.forceSimulation(mapObj.vertices()).force('charge', d3.forceManyBody().strength(-3)).on('tick', this.ticked);
+    this.simulation = d3.forceSimulation(mapObj.vertices()).force('charge', d3.forceManyBody().strength(-0.3)).on('tick', this.ticked);
+    Object.keys(mapObj.$GivenByState()).forEach(function (state) {
+        var cX = mapObj.centroidByState()[state][0];
+        var cY = mapObj.centroidByState()[state][1];
+        that.simulation.force(state, isolate(d3.forceCenter(cX, cY), function (d) {
+            return d.state === state;
+        }));
+    });
     //
     this.UpdateGraph = function () {
         console.log('UpdateGraph');
         Object.keys(mapObj.$GivenByState()).forEach(function (state) {
-            var forceX = d3.forceX(mapObj.centroidByState()[state][0]);
-            var forceY = d3.forceY(mapObj.centroidByState()[state][1]);
-            that.simulation.force(state + 'X', isolate(forceX, function (d) {
-                return d.state === state;
-            })).force(state + 'Y', isolate(forceY, function (d) {
-                return d.state === state;
-            }));
+            var cX = mapObj.centroidByState()[state][0];
+            var cY = mapObj.centroidByState()[state][1];
+            that.simulation.force(state).x(cX).y(cY);
         });
-        that.simulation.tick();
+        that.simulation
+        // .alpha(0.1)
+        .restart();
     };
 }
-
-// function ResetGraph() {
-//     var vertices, edges, verticeById;
-//     var $EdgeScale = d3.scaleLinear()
-//         .range([0.5, 10]);
-//     var $GivenByVerticeScale = d3.scaleLinear()
-//         .range([3, 20]);
-//     var $ReceivedByVerticeScale = d3.scaleLinear()
-//         .range([1, 10]);
-
-//     hybridMap();
-
-//     function hybridMap() {
-//         vertices = graphApril6JSON.nodes;
-//         edges    = graphApril6JSON.links;
-
-//         verticeById = d3.map(vertices, function(d) { return d.id; });
-
-//         vertices.forEach(function(vertice) {
-//             vertice.$Given = 0;
-//             vertice.$Received = 0;
-//         });
-
-//         edges.forEach(function(edge) {
-//             edge.source = verticeById.get(edge.source);
-//             edge.target = verticeById.get(edge.target);
-//             edge.source.$Given += edge.dollars;
-//             edge.target.$Received += edge.dollars;
-//         });
-
-//         $EdgeScale.domain([
-//             d3.min(edges, function(edge) { return edge.dollars; }),
-//             d3.max(edges, function(edge) { return edge.dollars; })
-//         ]);
-//         $GivenByVerticeScale.domain([
-//             d3.min(vertices, function(vertice) { return vertice.$Given; }),
-//             d3.max(vertices, function(vertice) { return vertice.$Given; })
-//         ]);
-//         $ReceivedByVerticeScale.domain([
-//             d3.min(vertices, function(vertice) { return vertice.$Received; }),
-//             d3.max(vertices, function(vertice) { return vertice.$Received; })
-//         ]);
-
-//         var edgeElements = edgesG.selectAll('line.link')
-//             .data(edges)
-//             .enter().append('line')
-//             // .enter().append('path')
-//             .style('stroke', 'black')
-//             .style('stroke-width', function(d) { return $EdgeScale(d.$); })
-//             .attr('class', function(d) { return 'edge-path report' + d.report; });
-
-//         var nodeElements = verticesG.selectAll('circle.node')
-//             .data(vertices.filter(function(d) { return d.id; }))
-//             .enter().append('circle')
-//             .attr('class', function(d) { return 'node ' + d.state; })
-//             .attr('r', function(d) { return $GivenByVerticeScale(d.$Given); })
-//             .attr('fill', function() { return 'green'; })
-//             .call(d3.drag()
-//                 .on('start', dragstarted)
-//                 .on('drag', dragged)
-//                 .on('end', dragended));
-
-//         nodeElements.append('title')
-//             .text(function(d) { return d.id; });
-
-//         simulation
-//             .nodes(vertices)
-//             .on('tick', ticked);
-
-//         simulation.force('edge')
-//             .links(edges);
-
-//         // function ticked() {
-//         //     edgeElements.attr('d', positionLink);
-//         //     vertice.attr('transform', positionNode);
-//         // }
-
-//         function ticked() {
-//             edgeElements
-//                 .attr('x1', function(d) { return d.source.x; })
-//                 .attr('y1', function(d) { return d.source.y; })
-//                 .attr('x2', function(d) { return d.target.x; })
-//                 .attr('y2', function(d) { return d.target.y; });
-
-//             nodeElements
-//                 .attr('cx', function(d) { return d.x; })
-//                 .attr('cy', function(d) { return d.y; });
-//         }
-//     }
-
-//     // function positionLink(d) {
-//     //     return 'M' + d[0].x + ',' + d[0].y +
-//     //         'S' + d[1].x + ',' + d[1].y +
-//     //         ' ' + d[2].x + ',' + d[2].y;
-//     // }
-
-//     // function positionNode(d) {
-//     //     return 'translate(' + d.x + ',' + d.y + ')';
-//     // }
-
-//     function dragstarted(d) {
-//         if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-//         d.fx = d.x;
-//         d.fy = d.y;
-//     }
-
-//     function dragged(d) {
-//         d.fx = d3.event.x;
-//         d.fy = d3.event.y;
-//     }
-
-//     function dragended(d) {
-//         if (!d3.event.active) simulation.alphaTarget(0);
-//         d.fx = null;
-//         d.fy = null;
-//     }
-// }

@@ -35,12 +35,12 @@ body {
   stroke-width: 2px;
 }
 #main-svg circle.vertice-circle {
-  fill: purple;
   stroke: black;
   stroke-width: 1.5px;
 }
 #main-svg line.edge-line {
   stroke: black;
+  stroke-width: 2px;
 }
 #main-svg #hover-g {
   pointer-events: none;
