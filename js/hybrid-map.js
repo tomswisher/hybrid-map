@@ -2,7 +2,7 @@
 // tomswisherlabs@gmail.com
 // https://github.com/tomswisher
 
-/* globals d3, console */
+/* globals d3, console, nodes */
 /* jshint -W069, unused:false */
 
 'use strict';
@@ -13,7 +13,9 @@
 window.onload = function () {
     d3.queue().defer(d3.json, 'data/us-states-features.json').defer(d3.json, 'data/nodes-edges-04-06-2017.json').awaitAll(InitializePage);
 };
-window.onresize = ResizePage;
+window.onresize = function () {
+    requestAnimationFrame(ResizePage);
+};
 
 // -------------------------------------------------------------------------------------------------
 // Detected Settings
@@ -26,10 +28,11 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(naviga
 // -------------------------------------------------------------------------------------------------
 // Global Variables
 
-var logs0 = false;
+var logs0 = true;
 var logs1 = false;
 var debugLayoutEnabled = false;
 var mapObj = null;
+var graphObj = null;
 var sizeOfDOM = 0;
 var stateSelected = '';
 var visibleGrades = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
@@ -112,6 +115,13 @@ defs.append('filter').attr('id', 'drop-shadow').attr('height', '130%') // so the
 function InitializePage(error, results) {
     var usStatesFeaturesJSON = results[0];
     var nodesEdgesJSON = results[1];
+    mapObj = new MapClass();
+    mapObj.mapFeatures(usStatesFeaturesJSON.features);
+    mapObj.vertices(nodesEdgesJSON.nodes);
+    mapObj.edges(nodesEdgesJSON.links);
+    //
+    graphObj = new GraphClass();
+    //
     vs.hoverHeight = parseFloat(mainSVG.style('font-size')) + 2 * vs.hoverMargin;
     hoverRect.attr('height', vs.hoverHeight).attr('y', -1 * vs.hoverHeight - vs.hoverMargin).style('filter', 'url(#drop-shadow)');
     hoverText.attr('x', 0).attr('y', -0.5 * vs.hoverHeight - vs.hoverMargin);
@@ -125,11 +135,7 @@ function InitializePage(error, results) {
     }).attr('x', 0).attr('y', 0);
     filtersSVG.attr('width', 0).attr('height', 0);
     statesSelect.style('width', vs.statesSelectWidth + 'px');
-    mapObj = new MapClass();
-    mapObj.mapFeatures(usStatesFeaturesJSON.features);
-    mapObj.vertices(nodesEdgesJSON.nodes);
-    mapObj.edges(nodesEdgesJSON.links);
-    ResizePage();
+    //
     setTimeout(function () {
         ResizePage();
         body.classed('loading', false);
@@ -425,36 +431,34 @@ function UpdateStatesDropdown(source) {
 }
 
 function UpdateInfoSVG(source) {
-    if (logs0) console.log('UpdateInfoSVG   ' + source.padEnd(35));
+    if (logs1) console.log('UpdateInfoSVG   ' + source.padEnd(35));
 }
 
 function ResizePage() {
     var source = 'ResizePage';
-    requestAnimationFrame(function () {
-        var clientWidth = body.node().clientWidth;
-        console.log(clientWidth, vs.box0WidthMin, vs.box1WidthMin);
-        if (vs.box0WidthMin < clientWidth - vs.box1WidthMin) {
-            vs.box0Width = clientWidth - vs.box1WidthMin;
-            vs.box1Width = vs.box1WidthMin;
-            vs.box1Height = vs.box1HeightMin;
-        } else {
-            vs.box0Width = vs.box0WidthMin;
-            vs.box1Width = vs.box0WidthMin;
-            vs.box1Height = vs.box1HeightMin;
-        }
-        box0.style('width', vs.box0Width + 'px');
-        box1.style('width', vs.box1Width + 'px');
-        mainSVG.attr('width', vs.box0Width).attr('height', vs.box0Width / vs.mapWidthHeightRatio);
-        mainBGRect.attr('width', vs.box0Width).attr('height', vs.box0Width / vs.mapWidthHeightRatio);
-        mapObj.width(vs.box0Width).height(vs.box0Width / vs.mapWidthHeightRatio).UpdateMap('ResizePage');
-        statesSelect.style('margin-left', (vs.box0Width - vs.statesSelectWidth) / 2 + 'px').style('margin-right', (vs.box0Width - vs.statesSelectWidth) / 2 + 'px');
-        infoSVG.attr('width', vs.box1Width).attr('height', vs.box1Height);
-        infoImage.attr('width', vs.box1Width).attr('height', vs.box1Height);
-        UpdateFilters(source);
-        UpdateStatesDropdown(source);
-        UpdateHover('event');
-        UpdateInfoSVG(source);
-    });
+    var clientWidth = body.node().clientWidth;
+    if (vs.box0WidthMin < clientWidth - vs.box1WidthMin) {
+        vs.box0Width = clientWidth - vs.box1WidthMin;
+        vs.box1Width = vs.box1WidthMin;
+        vs.box1Height = vs.box1HeightMin;
+    } else {
+        vs.box0Width = vs.box0WidthMin;
+        vs.box1Width = vs.box0WidthMin;
+        vs.box1Height = vs.box1HeightMin;
+    }
+    box0.style('width', vs.box0Width + 'px');
+    box1.style('width', vs.box1Width + 'px');
+    mainSVG.attr('width', vs.box0Width).attr('height', vs.box0Width / vs.mapWidthHeightRatio);
+    mainBGRect.attr('width', vs.box0Width).attr('height', vs.box0Width / vs.mapWidthHeightRatio);
+    mapObj.width(vs.box0Width).height(vs.box0Width / vs.mapWidthHeightRatio).UpdateMap('ResizePage');
+    graphObj.UpdateGraph();
+    statesSelect.style('margin-left', (vs.box0Width - vs.statesSelectWidth) / 2 + 'px').style('margin-right', (vs.box0Width - vs.statesSelectWidth) / 2 + 'px');
+    infoSVG.attr('width', vs.box1Width).attr('height', vs.box1Height);
+    infoImage.attr('width', vs.box1Width).attr('height', vs.box1Height);
+    UpdateFilters(source);
+    UpdateStatesDropdown(source);
+    UpdateHover('event');
+    UpdateInfoSVG(source);
 }
 
 function GetJSHeapSize() {
@@ -473,15 +477,44 @@ function GetDOMSize() {
     }
 }
 
-// function GraphObject() {
-//     var _width = Math.max(vs.box0WidthMin, window.innerWidth || vs.box0WidthMin);
-//     var _height = _width/vs.mapWidthHeightRatio;
-//     this._simulation = d3.forceSimulation()
-//         .force('edge', d3.forceLink().distance(20).strength(0.5))
-//         .force('charge', d3.forceManyBody())
-//         .force('center', d3.forceCenter(_width/2, _height/2));
-//     return this;
-// }
+function isolate(force, filter) {
+    var initialize = force.initialize;
+    force.initialize = function () {
+        initialize.call(force, mapObj.vertices().filter(filter));
+    };
+    return force;
+}
+
+function GraphClass() {
+    var that = this;
+    // https://bl.ocks.org/mbostock/1095795
+    // Modifying a Force Layout
+    // https://bl.ocks.org/mbostock/b1f0ee970299756bc12d60aedf53c13b
+    // Isolating Forces
+    this.ticked = function () {
+        verticesG.selectAll('circle.vertice-circle').attr('cx', function (d) {
+            return d.x;
+        }).attr('cy', function (d) {
+            return d.y;
+        });
+    };
+    //
+    this.simulation = d3.forceSimulation(mapObj.vertices()).force('charge', d3.forceManyBody().strength(-3)).on('tick', this.ticked);
+    //
+    this.UpdateGraph = function () {
+        console.log('UpdateGraph');
+        Object.keys(mapObj.$GivenByState()).forEach(function (state) {
+            var forceX = d3.forceX(mapObj.centroidByState()[state][0]);
+            var forceY = d3.forceY(mapObj.centroidByState()[state][1]);
+            that.simulation.force(state + 'X', isolate(forceX, function (d) {
+                return d.state === state;
+            })).force(state + 'Y', isolate(forceY, function (d) {
+                return d.state === state;
+            }));
+        });
+        that.simulation.tick();
+    };
+}
 
 // function ResetGraph() {
 //     var vertices, edges, verticeById;
