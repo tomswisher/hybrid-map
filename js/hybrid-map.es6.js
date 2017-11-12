@@ -2,7 +2,7 @@
 // tomswisherlabs@gmail.com
 // https://github.com/tomswisher
 
-/* globals d3, console, nodes */
+/* globals d3, console, nodes, count */
 /* jshint -W069, unused:false */
 
 'use strict';
@@ -66,6 +66,7 @@ var hoverRect = body.select('#hover-rect');
 var hoverText = body.select('#hover-text');
 var filtersSVG = body.select('#filters-svg');
 var statesSelect = body.select('#states-select');
+var forcesDiv = body.select('#forces-div');
 var infoSVG = body.select('#info-svg');
 var infoImage = body.select('#info-image');
 var defs = filtersSVG.append('defs');
@@ -156,10 +157,10 @@ function InitializePage(error, results) {
         .style('width', vs.statesSelectWidth+'px');
     //
     ResizePage();
-    setTimeout(function() {
+    requestAnimationFrame(function() {
         graphObj = new GraphClass();
         body.classed('loading', false);
-    }, 0);
+    });
 }
 
 function MapClass() {
@@ -319,6 +320,8 @@ function MapClass() {
             .each(function(d) {
                 d.x = _centroidByState[d.state][0];
                 d.y = _centroidByState[d.state][1];
+                // d.r = _$GivenByVerticeScale(d.$Given);
+                d.r = 5;
             })
             .attr('cx', function(d) {
                 return d.x;
@@ -327,7 +330,7 @@ function MapClass() {
                 return d.y;
             })
             .attr('r', function(d) {
-                return _$GivenByVerticeScale(d.$Given);
+                return d.r;
             })
             .style('fill', function(d) {
                 return vs.colorScale(_$GivenByStateScale(_$GivenByState[d.state]));
@@ -356,7 +359,6 @@ function MapClass() {
             })
             .style('opacity', function(d) {
                 var opacity = 1 - (1/5)*_$GivenByStateScale(d.source.$Given);
-                console.log(opacity);
                 return opacity;
             });
         //
@@ -598,61 +600,279 @@ function isolate(force, filter) {
 
 function GraphClass() {
     var that = this;
-    // https://bl.ocks.org/mbostock/1095795
-    // Modifying a Force Layout
-    // https://bl.ocks.org/mbostock/b1f0ee970299756bc12d60aedf53c13b
-    // Isolating Forces
-    this.ticked = function() {
-        verticesG.selectAll('circle.vertice-circle')
-            .attr('cx', function(d) {
-                return d.x;
-            })
-            .attr('cy', function(d) {
-                return d.y;
-            });
-        edgesG.selectAll('line.edge-line')
-            .attr('x1', function(d) {
-                return mapObj.centroidByState()[d.source.state][0];
-                // return d.source.x;
-            })
-            .attr('y1', function(d) {
-                return mapObj.centroidByState()[d.source.state][1];
-                // return d.source.y;
-            })
-            .attr('x2', function(d) {
-                return mapObj.centroidByState()[d.target.state][0];
-                // return d.target.x;
-            })
-            .attr('y2', function(d) {
-                return mapObj.centroidByState()[d.target.state][1];
-                // return d.target.y;
-            });
+    //
+    var _bundle = {};
+    that.bundle = function(_) {
+        return arguments.length ? (_bundle = _, that) : _bundle;
     };
+    var _simulation = d3.forceSimulation()
+        .nodes(mapObj.vertices()) // initialize(), Nodes(), forces.each(initializeForce)
+        .alpha(1)
+        .alphaMin(0.001)
+        .alphaDecay(1-Math.pow(0.001,1/300))
+        .alphaTarget(0)
+        .velocityDecay(0.6)
+        .on('tick', _Tick);
+    that.simulation = _simulation;
+    that.UpdateForces = UpdateForces;
+    that.UpdateGraph = UpdateGraph;
     //
-    this.simulation = d3.forceSimulation(mapObj.vertices())
-        .force('charge', d3.forceManyBody().strength(-0.3))
-        .on('tick', this.ticked);
-    Object.keys(mapObj.$GivenByState()).forEach(function(state) {
-        var cX = mapObj.centroidByState()[state][0];
-        var cY = mapObj.centroidByState()[state][1];
-        that.simulation
-            .force(state, isolate(d3.forceCenter(cX, cY), function(d) {
-                return d.state === state;
-            }));
-    });
+    var forcesObjDefault = {
+      // forceCenter: {
+      //   x: 'cX', // 0
+      //   y: 'cY', // 0
+      // },
+      // forceCollide: {
+      //   iterations: 1,
+      //   strength: 1,
+      //   radius: function (node, i, nodes) { // initialize()
+      //       return node.r;
+      //   },
+      // },
+      // forceLink: {
+      //   links: [], // initialize()
+      //   id: function(node) {
+      //       return node.index;
+      //   },
+      //   iterations: 1,
+      //   strength: function(link, i, links) { // initialize()Strength()
+      //       return 1 / Math.min(count[link.source.index], count[link.target.index]);
+      //   },
+      //   distance: function(link, i, links) { // initialize()Distance()
+      //       return 30;
+      //   },
+      // },
+      // forceManyBody: {
+      //   strength: function(node, i, nodes) { // initialize()
+      //       return -30;
+      //   },
+      //   distanceMin: 1,
+      //   distanceMax: 10,
+      //   theta: 0.81,
+      // },
+      // forceRadial: {
+      //   strength: function(node, i, nodes) { // initialize()
+      //       return 0.1;
+      //   },
+      //   radius: function(node, i, nodes) { // initialize()
+      //       return node.r;
+      //   },
+      //   x: 'cX', // 0
+      //   y: 'cY', // 0
+      // },
+      // forceX: {
+      //   strength: function(node, i, nodes) { // initialize()
+      //       return 0.1;
+      //   },
+      //   x: function(node, i, nodes) { // initialize()
+      //       return node.x;
+      //   },
+      // },
+      // forceY: {
+      //   strength: function(node, i, nodes) { // initialize()
+      //       return 0.1;
+      //   },
+      //   y: function(node, i, nodes) { // initialize()
+      //       return node.y;
+      //   },
+      // }
+    };
+    that.UpdateForces(forcesObjDefault);
     //
-    this.UpdateGraph = function() {
+    function UpdateForces(forcesObj) {
+        Object.keys(mapObj.$GivenByState()).forEach(function(state) {
+            var cX = mapObj.centroidByState()[state][0];
+            var cY = mapObj.centroidByState()[state][1];
+            Object.keys(forcesObj).forEach(function(forceType) {
+                var forceNew = isolate(d3[forceType](), function(d) {
+                    return d.state === state;
+                });
+                _simulation
+                    .force(forceType+state, forceNew);
+                var forceOptions = forcesObj[forceType];
+                Object.keys(forceOptions).forEach(function(optionName) {
+                    var optionValue = forceOptions[optionName];
+                    switch (optionValue) {
+                        case 'cX':
+                            optionValue = cX;
+                            break;
+                        case 'cY':
+                            optionValue = cY;
+                            break;
+                    }
+                    forceNew[optionName](optionValue);
+                    console.log(state, forceType, optionName, (optionValue.toString) ? optionValue.toString().split('\n')[0] : optionValue);
+                });
+            });
+        });
+
+    }
+    //
+    function UpdateGraph() {
         console.log('UpdateGraph');
         Object.keys(mapObj.$GivenByState()).forEach(function(state) {
             var cX = mapObj.centroidByState()[state][0];
             var cY = mapObj.centroidByState()[state][1];
-            that.simulation
-                .force(state)
+            if (_simulation.force('forceCenter'+state)) {
+                _simulation.force('forceCenter'+state)
                     .x(cX)
                     .y(cY);
+            }
         });
-        that.simulation
+        _simulation
             // .alpha(0.1)
             .restart();
-    };
+    }
+    //
+    function _Tick() {
+        verticesG
+            .selectAll('circle.vertice-circle')
+                .attr('cx', function(d) {
+                    return d.x;
+                })
+                .attr('cy', function(d) {
+                    return d.y;
+                });
+        edgesG
+            .selectAll('line.edge-line')
+                .attr('x1', function(d) {
+                    if (_bundle.source) {
+                        return mapObj.centroidByState()[d.source.state][0];
+                    } else {
+                        return d.source.x;
+                    }
+                })
+                .attr('y1', function(d) {
+                    if (_bundle.source) {
+                        return mapObj.centroidByState()[d.source.state][1];
+                    } else {
+                        return d.source.y;
+                    }
+                })
+                .attr('x2', function(d) {
+                    if (_bundle.target) {
+                        return mapObj.centroidByState()[d.target.state][0];
+                    } else {
+                        return d.target.x;
+                    }
+                })
+                .attr('y2', function(d) {
+                    if (_bundle.target) {
+                        return mapObj.centroidByState()[d.target.state][1];
+                    } else {
+                        return d.target.y;
+                    }
+                });
+    }
+    //
+    function _AddSliders() {
+        /*
+        <div>
+            <label>linkDistance</label>
+            <label class="label-medium linkDistance-readout">120</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="1000" step="10" value="120">
+            <label class="label-small">1000</label>
+        </div>
+        <div>
+            <label>linkStrength</label>
+            <label class="label-medium linkStrength-readout">0.9</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="1" step="0.01" value="0.9">
+            <label class="label-small">1</label>
+        </div>
+        <div>
+            <label>friction</label>
+            <label class="label-medium friction-readout">0.8</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="1" step="0.01" value="0.8">
+            <label class="label-small">1</label>
+        </div>
+        <div>
+            <label>charge</label>
+            <label class="label-medium charge-readout">-1000</label>
+            <label class="label-small">-2000</label>
+            <input type="range" min="-2000" max="0" step="20" value="-1000">
+            <label class="label-small">0</label>
+        </div>
+        <div>
+            <label>chargeDistance</label>
+            <label class="label-medium chargeDistance-readout">500</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="2000" step="20" value="500">
+            <label class="label-small">2000</label>
+        </div>
+        <div>
+            <label>theta</label>
+            <label class="label-medium theta-readout">0.8</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="10" step="0.1" value="0.8">
+            <label class="label-small">10</label>
+        </div>
+        <div>
+            <label>gravity</label>
+            <label class="label-medium gravity-readout">0.1</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="1" step="0.01" value="0.1">
+            <label class="label-small">1</label>
+        </div>
+        <div>
+            <label>node_r</label>
+            <label class="label-medium node_r-readout">13</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="100" step="1" value="13">
+            <label class="label-small">100</label>
+        </div>
+        <div>
+            <label>duration</label>
+            <label class="label-medium duration-readout">800</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="5000" step="50" value="800">
+            <label class="label-small">5000</label>
+        </div>
+        */
+    }
+    //
+    function UpdateSliders(property, value) {
+        // forcesDiv
+        //     .select('.'+property+'-readout')
+        //         .text(value);
+        // switch(property) {
+        //     case 'linkDistance':
+        //         force['linkDistance'](value);
+        //         force.start();
+        //         break;
+        //     case 'linkStrength':
+        //         force['linkStrength'](value);
+        //         force.start();
+        //         break;
+        //     case 'friction':
+        //         force['friction'](value);
+        //         force.start();
+        //         break;
+        //     case 'charge':
+        //         force['charge'](value);
+        //         force.start();
+        //         break;
+        //     case 'chargeDistance':
+        //         force['chargeDistance'](value);
+        //         force.start();
+        //         break;
+        //     case 'theta':
+        //         force['theta'](value);
+        //         force.start();
+        //         break;
+        //     case 'gravity':
+        //         force['gravity'](value);
+        //         force.start();
+        //         break;
+        //     case 'node_r':
+        //         g['node_r'] = value;
+        //         d3.selectAll('.nodecircles').attr('r', g['node_r']);
+        //         break;
+        //     case 'duration':
+        //         g['duration'] = value;
+        //         UpdateDurations();
+        //         break;
+    }
 }

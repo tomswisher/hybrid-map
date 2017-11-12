@@ -70,6 +70,34 @@ body {
 #states-select {
   height: 25px;
 }
+.force-div {
+  display: inline-block;
+  width: 620px;
+  font-size: 0px !important;
+}
+.force-div > * {
+  font-size: 14px;
+}
+.force-div div {
+  display: inline-block;
+}
+.force-div label {
+  display: inline-block;
+  text-align: center;
+  font-family: Helvetica;
+  font-size: 18px;
+  color: black;
+}
+.force-div label.label-small {
+  width: 80px;
+}
+.force-div label.label-medium {
+  width: 180px;
+}
+.force-div input[type='Range'] {
+  width: 200px;
+  margin: 0px;
+}
 #info-svg {
   text-align: center;
 }

@@ -11,7 +11,7 @@
 </head>
 
 <body class="loading">
-    <div class="vspacer-15"></div>
+    <!-- <div class="vspacer-15"></div> -->
     <div id="box0">
         <svg id="main-svg">
             <rect id="main-bg-rect"></rect>
@@ -27,6 +27,85 @@
         <svg id="filters-svg" class="unselectable" attr="unselectable"></svg>
         <div class="vspacer-15"></div>
         <select id="states-select"></select>
+        <div class="vspacer-15"></div>
+        <div class="force-div">
+            <label class="label-medium">linkDistance</label>
+            <label class="label-small linkDistance-readout">120</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="1000" step="10" value="120">
+            <label class="label-small">1000</label>
+        </div>
+        <div class="force-div">
+            <label class="label-medium">linkStrength</label>
+            <label class="label-small linkStrength-readout">0.9</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="1" step="0.01" value="0.9">
+            <label class="label-small">1</label>
+        </div>
+        <div class="force-div">
+            <label class="label-medium">friction</label>
+            <label class="label-small friction-readout">0.8</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="1" step="0.01" value="0.8">
+            <label class="label-small">1</label>
+        </div>
+        <div class="force-div">
+            <label class="label-medium">charge</label>
+            <label class="label-small charge-readout">-1000</label>
+            <label class="label-small">-2000</label>
+            <input type="range" min="-2000" max="0" step="20" value="-1000">
+            <label class="label-small">0</label>
+        </div>
+        <div class="force-div">
+            <label class="label-medium">chargeDistance</label>
+            <label class="label-small chargeDistance-readout">500</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="2000" step="20" value="500">
+            <label class="label-small">2000</label>
+        </div>
+        <div class="force-div">
+            <label class="label-medium">theta</label>
+            <label class="label-small theta-readout">0.8</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="10" step="0.1" value="0.8">
+            <label class="label-small">10</label>
+        </div>
+        <div class="force-div">
+            <label class="label-medium">gravity</label>
+            <label class="label-small gravity-readout">0.1</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="1" step="0.01" value="0.1">
+            <label class="label-small">1</label>
+        </div>
+        <div class="force-div">
+            <label class="label-medium">node_r</label>
+            <label class="label-small node_r-readout">13</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="100" step="1" value="13">
+            <label class="label-small">100</label>
+        </div>
+        <div class="force-div">
+            <label class="label-medium">duration</label>
+            <label class="label-small duration-readout">800</label>
+            <label class="label-small">0</label>
+            <input type="range" min="0" max="5000" step="50" value="800">
+            <label class="label-small">5000</label>
+        </div>
+        <!-- <label for="bundle-source-select">Edge Sources:</label>
+        <select id="bundle-source-select">
+            <option>Individual</option>
+            <option>Bundle by $ Given</option>
+        </select>
+        <label for="bundle-source-select">Edge Sources:</label>
+        <select id="bundle-source-select">
+            <option>Individual</option>
+            <option>Bundle by $ Given</option>
+        </select>
+        <label for="bundle-source-select">Edge Sources:</label>
+        <select id="bundle-source-select">
+            <option>Individual</option>
+            <option>Bundle by $ Given</option>
+        </select> -->        
         <div class="vspacer-15"></div>
     </div>
     <div id="box1">
