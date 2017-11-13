@@ -32,6 +32,8 @@ var usedJSHeapSize = 0;
 var totalJSHeapSize = 0;
 var stateSelected = '';
 var personSelected = '';
+var verticesSelected = [];
+var edgesSelected = [];
 var visibleGrades = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
 var gradeScale = function gradeScale(letter) {
     switch (letter) {
@@ -73,7 +75,6 @@ var simulationDiv = body.select('#simulation-div');
 var alphaLabel = simulationDiv.selectAll('label.slider-value');
 var alphaSlider = simulationDiv.selectAll('input[type="range"');
 var infoSVG = body.select('#info-svg');
-var infoImage = body.select('#info-image');
 var defs = filtersSVG.append('defs');
 
 // -------------------------------------------------------------------------------------------------
@@ -93,7 +94,7 @@ vs.box0WidthMin = 400;
 vs.box1Width = null;
 vs.box1WidthMin = 150;
 vs.box1Height = null;
-vs.box1HeightMin = 250;
+vs.box1HeightMin = 300;
 vs.mapWidthHeightRatio = 1.7;
 vs.mapProjectionScale = 1.3;
 vs.statesSelectWidth = 100;
@@ -134,6 +135,7 @@ function InitializePage(error, results) {
     vs.hoverHeight = parseFloat(mainSVG.style('font-size')) + 2 * vs.hoverMargin;
     hoverRect.attr('height', vs.hoverHeight).attr('y', -1 * vs.hoverHeight - vs.hoverMargin).style('filter', 'url(#drop-shadow)');
     hoverText.attr('x', 0).attr('y', -0.5 * vs.hoverHeight - vs.hoverMargin);
+    //
     mainBGRect.on('mouseover', function () {
         var source = 'mainBGRect mouseover';
         stateSelected = '';
@@ -145,8 +147,16 @@ function InitializePage(error, results) {
         UpdateHover('mouse');
         graphObj.UpdateNodesEdges();
     }).attr('x', 0).attr('y', 0);
+    //
     filtersSVG.attr('width', 0).attr('height', 0);
+    //
     statesSelect.style('width', vs.statesSelectWidth + 'px');
+    //
+    // var infoDefault = {
+    //     imageSrc: 'Mike_Bloomberg_Headshot.jpg',
+    //     textRows: ['Michael Bloomberg', 'Row 2', 'Row 3'],
+    // };
+    // UpdateInfo(infoDefault);
     //
     ResizePage();
     requestAnimationFrame(function () {
@@ -416,8 +426,40 @@ function UpdateStatesDropdown(source) {
     statesSelect.node().value = stateSelected;
 }
 
-function UpdateInfoSVG(source) {
-    if (logs1) console.log('UpdateInfoSVG   ' + String(source).padEnd(35));
+function UpdateInfo(datum) {
+    console.log(datum, infoSVG.data()[0]);
+    if (datum === undefined && !infoSVG.data()[0]) {
+        return;
+    }
+    if (datum !== undefined) {
+        infoSVG.data([datum]);
+    }
+    var infoText = infoSVG.selectAll('text').data(function (d) {
+        return [d.id, d.state, '...'];
+    });
+    infoText = infoText.enter().append('text').attr('x', 10).attr('y', function (d, i) {
+        return +infoSVG.attr('height') - (3 - i) * 15;
+    }).merge(infoText).text(function (d) {
+        return d;
+    });
+    //
+    var infoImage = infoSVG.selectAll('image').data(function (d) {
+        return [d.id];
+    });
+    infoImage = infoImage.enter().append('image').merge(infoImage).attr('xlink:href', function (d) {
+        return 'img/' + d + '.jpg';
+    });
+    var imageInterval = setInterval(function () {
+        var bbox = infoImage.node().getBBox();
+        var heightWidthRatio = bbox.height / bbox.width;
+        if (isNaN(heightWidthRatio)) {
+            return;
+        }
+        infoImage.attr('width', +infoSVG.attr('width')).attr('height', +infoSVG.attr('width') * heightWidthRatio);
+        clearInterval(imageInterval);
+    }, 10);
+    //
+    if (logsTest) TestApp('UpdateInfo');
 }
 
 function ResizePage() {
@@ -434,6 +476,7 @@ function ResizePage() {
     }
     box0.style('width', vs.box0Width + 'px');
     box1.style('width', vs.box1Width + 'px');
+    //
     mainSVG.attr('width', vs.box0Width).attr('height', vs.box0Width / vs.mapWidthHeightRatio);
     mainBGRect.attr('width', vs.box0Width).attr('height', vs.box0Width / vs.mapWidthHeightRatio);
     //
@@ -442,12 +485,13 @@ function ResizePage() {
     graphObj.UpdateNodesEdges().UpdateSimulation().UpdateForceSliders();
     //
     statesSelect.style('margin-left', (vs.box0Width - vs.statesSelectWidth) / 2 + 'px').style('margin-right', (vs.box0Width - vs.statesSelectWidth) / 2 + 'px');
+    //
     infoSVG.attr('width', vs.box1Width).attr('height', vs.box1Height);
-    infoImage.attr('width', vs.box1Width).attr('height', vs.box1Height);
+    //
     UpdateFilters(source);
     UpdateStatesDropdown(source);
     UpdateHover('event');
-    UpdateInfoSVG(source);
+    UpdateInfo();
     if (logsTest) TestApp('ResizePage');
 }
 
@@ -473,164 +517,170 @@ function GraphClass() {
         that.simulation.alpha(this.value).restart();
     });
     //
-    that.forcesObj = {};
-    // that.forcesObj.forceCenter = { // visual centering based on mass
-    //     x: {
-    //         name: 'x',
-    //         value: 'cx',
-    //         // min: 0,
-    //         // max: 1,
-    //         // step: 0.1,
-    //     },
-    //     y: {
-    //         name: 'y',
-    //         value: 'cy',
-    //         // min: 0,
-    //         // max: 1,
-    //         // step: 0.1,
-    //     },
-    // };
-    that.forcesObj.forceCollide = {
-        iterations: {
-            name: 'iterations',
-            value: 5,
-            min: 0,
-            max: 10,
-            step: 1
-        },
-        strength: {
-            name: 'strength',
-            value: 1,
-            min: 0,
-            max: 10,
-            step: 0.5
-        },
-        radius: {
-            name: 'radius',
-            value: function value(node, i, nodes) {
-                return node.r;
-            }
-            // min: 0,
-            // max: 1,
-            // step: 0.1,
-        }
-    };
-    // that.forcesObj.forceLink = {
-    //     // links: {
-    //     //     name: 'links',
-    //     //     value: [],
-    //     // },
-    //     // id: {
-    //     //     name: 'id',
-    //     //     value: function(node) { return node.index; },
-    //     // },
-    //     iterations: {
-    //         name: 'iterations',
-    //         value: 1,
-    //         min: 0,
-    //         max: 10,
-    //         step: 1,
-    //     },
-    //     // strength: {
-    //     //     name: 'strength',
-    //     //     value: function(link, i, links) { return 1/Math.min(count[link.source.index],count[link.target.index]); },
-    //     // },
-    //     distance: {
-    //         name: 'distance',
-    //         value: 30, // function(link, i, links) { return 30; },
-    //         min: 0,
-    //         max: 100,
-    //         step: 1,
-    //     },
-    // };
-    that.forcesObj.forceManyBody = {
-        strength: {
-            name: 'strength',
-            value: -30, // function(node, i, nodes) { return -30; },
-            min: -100,
-            max: 0,
-            step: 1
-        },
-        // distanceMin: {
-        //     name: 'distanceMin',
-        //     value: 1,
-        //     min: 0,
-        //     max: 10000,
-        //     step: 1,
+    that.forcesObj = {
+
+        // forceCenter: { // visual centering based on mass
+        //     x: {
+        //         name: 'x',
+        //         value: 'cx',
+        //         // min: 0,
+        //         // max: 1,
+        //         // step: 0.1,
+        //     },
+        //     y: {
+        //         name: 'y',
+        //         value: 'cy',
+        //         // min: 0,
+        //         // max: 1,
+        //         // step: 0.1,
+        //     },
         // },
-        // distanceMax: {
-        //     name: 'distanceMax',
-        //     value: 100, // Infinity
-        //     min: 0,
-        //     max: 200,
-        //     step: 1,
-        // },
-        theta: {
-            name: 'theta',
-            value: 0.81,
-            min: 0,
-            max: 1,
-            step: 0.1
-        }
-    };
-    that.forcesObj.forceRadial = {
-        strength: {
-            name: 'strength',
-            value: 0.1, // function(node, i, nodes) { return 0.1; },
-            min: 0,
-            max: 1,
-            step: 0.01
-        },
-        radius: {
-            name: 'radius',
-            value: function value(node, i, nodes) {
-                return node.r;
+
+        forceCollide: {
+            iterations: {
+                name: 'iterations',
+                value: 5,
+                min: 0,
+                max: 10,
+                step: 1
+            },
+            strength: {
+                name: 'strength',
+                value: 1,
+                min: 0,
+                max: 10,
+                step: 0.5
+            },
+            radius: {
+                name: 'radius',
+                value: function value(node, i, nodes) {
+                    return node.r;
+                }
+                // min: 0,
+                // max: 1,
+                // step: 0.1,
             }
-            // min: 0,
-            // max: 1,
-            // step: 0.1,
         },
-        x: {
-            name: 'x',
-            value: 'cx'
-            // min: 0,
-            // max: 1,
-            // step: 0.1,
+
+        // forceLink: {
+        //     // links: {
+        //     //     name: 'links',
+        //     //     value: [],
+        //     // },
+        //     // id: {
+        //     //     name: 'id',
+        //     //     value: function(node) { return node.index; },
+        //     // },
+        //     iterations: {
+        //         name: 'iterations',
+        //         value: 1,
+        //         min: 0,
+        //         max: 10,
+        //         step: 1,
+        //     },
+        //     // strength: {
+        //     //     name: 'strength',
+        //     //     value: function(link, i, links) { return 1/Math.min(count[link.source.index],count[link.target.index]); },
+        //     // },
+        //     distance: {
+        //         name: 'distance',
+        //         value: 30, // function(link, i, links) { return 30; },
+        //         min: 0,
+        //         max: 100,
+        //         step: 1,
+        //     },
+        // },
+
+        // forceManyBody: {
+        //     strength: {
+        //         name: 'strength',
+        //         value: -30, // function(node, i, nodes) { return -30; },
+        //         min: -100,
+        //         max: 0,
+        //         step: 1,
+        //     },
+        //     // distanceMin: {
+        //     //     name: 'distanceMin',
+        //     //     value: 1,
+        //     //     min: 0,
+        //     //     max: 10000,
+        //     //     step: 1,
+        //     // },
+        //     // distanceMax: {
+        //     //     name: 'distanceMax',
+        //     //     value: 100, // Infinity
+        //     //     min: 0,
+        //     //     max: 200,
+        //     //     step: 1,
+        //     // },
+        //     theta: {
+        //         name: 'theta',
+        //         value: 0.81,
+        //         min: 0,
+        //         max: 1,
+        //         step: 0.1,
+        //     },
+        // },
+
+        // forceRadial: {
+        //     strength: {
+        //         name: 'strength',
+        //         value: 0.1, // function(node, i, nodes) { return 0.1; },
+        //         min: 0,
+        //         max: 1,
+        //         step: 0.01,
+        //     },
+        //     radius: {
+        //         name: 'radius',
+        //         value: function(node, i, nodes) { return node.r; },
+        //         // min: 0,
+        //         // max: 1,
+        //         // step: 0.1,
+        //     },
+        //     x: {
+        //         name: 'x',
+        //         value: 'cx',
+        //         // min: 0,
+        //         // max: 1,
+        //         // step: 0.1,
+        //     },
+        //     y: {
+        //         name: 'y',
+        //         value: 'cy',
+        //         // min: 0,
+        //         // max: 1,
+        //         // step: 0.1,
+        //     },
+        // },
+
+        forceX: {
+            strength: {
+                name: 'strength',
+                value: 1, // function(node, i, nodes) { return 0.1; },
+                min: 0,
+                max: 2,
+                step: 0.1
+            },
+            x: {
+                name: 'x',
+                value: 'cx'
+                // value: function(node, i, nodes) { return node.x; },
+            }
         },
-        y: {
-            name: 'y',
-            value: 'cy'
-            // min: 0,
-            // max: 1,
-            // step: 0.1,
-        }
-    };
-    that.forcesObj.forceX = {
-        strength: {
-            name: 'strength',
-            value: 1, // function(node, i, nodes) { return 0.1; },
-            min: 0,
-            max: 2,
-            step: 0.1
-        },
-        x: {
-            name: 'x',
-            value: 'cx'
-            // value: function(node, i, nodes) { return node.x; },
-        }
-    };
-    that.forcesObj.forceY = {
-        strength: {
-            name: 'strength',
-            value: 1, // function(node, i, nodes) { return 0.1; },
-            min: 0,
-            max: 2,
-            step: 0.1
-        },
-        y: {
-            name: 'y',
-            value: 'cy'
-            // value: function(node, i, nodes) { return node.y; },
+
+        forceY: {
+            strength: {
+                name: 'strength',
+                value: 1, // function(node, i, nodes) { return 0.1; },
+                min: 0,
+                max: 2,
+                step: 0.1
+            },
+            y: {
+                name: 'y',
+                value: 'cy'
+                // value: function(node, i, nodes) { return node.y; },
+            }
         }
     };
     //
@@ -638,7 +688,7 @@ function GraphClass() {
         verticeCircles = verticesG.selectAll('circle.vertice-circle').data(mapObj.vertices());
         verticeCircles = verticeCircles.enter().append('circle').classed('vertice-circle', true).on('mouseover', function (d) {
             personSelected = d.id;
-            console.log("personSelected = d.id;", personSelected);
+            UpdateInfo(d);
             that.UpdateNodesEdges();
         }).each(function (d) {
             d.x = mapObj.centroidByState()[d.state][0];
@@ -654,14 +704,15 @@ function GraphClass() {
         }).style('fill', function (d) {
             var fillValue = mapObj.$GivenByStateScale()(mapObj.$GivenByState()[d.state]);
             return vs.colorScale(fillValue);
-        }).merge(verticeCircles).style('opacity', function (d) {
+        }).merge(verticeCircles);
+        verticeCircles.transition().style('opacity', function (d) {
             if (personSelected === '') {
                 return 1;
             }
             if (d.id === personSelected) {
                 return 1;
             } else {
-                return 0;
+                return 0.05;
             }
         });
         //
@@ -674,17 +725,17 @@ function GraphClass() {
             return d.target.x;
         }).attr('y2', function (d) {
             return d.target.y;
-        }).merge(edgeLines).style('opacity', function (d) {
-            // var opacityValue = 1 - (1/5)*mapObj.$GivenByStateScale()(d.source.$Given);
-            // return opacityValue;
-            if (personSelected === '') {
-                return 1;
+        }).merge(edgeLines);
+        edgeLines.transition().style('opacity', function (d) {
+            var opacityValue = 1 - 1 / 5 * mapObj.$GivenByStateScale()(d.source.$Given);
+            if (personSelected !== '') {
+                if (d.source.id === personSelected) {
+                    // opacityValue = 1;
+                } else {
+                    opacityValue = 0.0;
+                }
             }
-            if (d.source.id === personSelected) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return opacityValue;
         });
         //
         if (logsTest) TestApp('UpdateNodesEdges');
@@ -765,8 +816,7 @@ function GraphClass() {
         }).merge(forceOptionDivs).each(function (optionDatum) {
             d3.select(this).selectAll('label.slider-value').text(optionDatum.value);
         });
-        // forceOptionDivs
-        //     .selectAll('label.slider-value')
+        // forceOptionDivs.selectAll('label.slider-value')
         //     .text(function(d) { return d.value; });
         //
         if (logsTest) TestApp('UpdateForceSliders');

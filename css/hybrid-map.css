@@ -105,7 +105,7 @@ body {
   margin: 0px;
 }
 #info-svg {
-  text-align: center;
+  outline: 1px solid white;
 }
 .vspacer-15 {
   display: block;
