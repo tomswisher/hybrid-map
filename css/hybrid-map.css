@@ -70,31 +70,37 @@ body {
 #states-select {
   height: 25px;
 }
-.force-div {
+.force-div,
+#simulation-div {
   display: inline-block;
   width: 620px;
   font-size: 0px !important;
 }
-.force-div > * {
+.force-div > *,
+#simulation-div > * {
   font-size: 14px;
 }
-.force-div div {
+.force-div div,
+#simulation-div div {
   display: inline-block;
 }
-.force-div label {
+.force-div label,
+#simulation-div label {
   display: inline-block;
   text-align: center;
-  font-family: Helvetica;
-  font-size: 18px;
-  color: black;
+  overflow: hidden;
+  white-space: nowrap;
 }
-.force-div label.label-small {
+.force-div label.label-small,
+#simulation-div label.label-small {
   width: 80px;
 }
-.force-div label.label-medium {
+.force-div label.label-medium,
+#simulation-div label.label-medium {
   width: 180px;
 }
-.force-div input[type='Range'] {
+.force-div input[type='Range'],
+#simulation-div input[type='Range'] {
   width: 200px;
   margin: 0px;
 }
@@ -136,4 +142,9 @@ path.inactive {
 rect.inactive,
 text.inactive {
   transform: translate(2px, 2px) !important;
+}
+.collapsed {
+  visibility: hidden;
+  width: 0px;
+  height: 0px;
 }

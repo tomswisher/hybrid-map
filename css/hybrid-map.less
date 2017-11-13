@@ -54,6 +54,7 @@ body {
         stroke-width: 1.5px;
     }
     line.edge-line {
+        // visibility: hidden;
         stroke: black;
         stroke-width: 2px;
     }
@@ -88,7 +89,7 @@ body {
 #states-select {
     height: 25px;
 }
-.force-div {
+.force-div, #simulation-div {
     display: inline-block;
     width: @labelMediumWidth + 3*@labelSmallWidth + @debugSliderWidth;
     font-size: 0px !important;
@@ -101,9 +102,8 @@ body {
     label {
         display: inline-block;
         text-align: center;
-        font-family: Helvetica;
-        font-size: 18px;
-        color: black;
+        overflow: hidden;
+        white-space: nowrap;
         &.label-small {
             width: @labelSmallWidth;
         }
@@ -154,4 +154,9 @@ body {
     rect&, text& {
         transform: translate(2px,2px) !important;
     }
+}
+.collapsed {
+    visibility: hidden;
+    width: 0px;
+    height: 0px;
 }

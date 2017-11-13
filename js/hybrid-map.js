@@ -14,26 +14,22 @@ window.onload = function () {
     d3.queue().defer(d3.json, 'data/us-states-features.json').defer(d3.json, 'data/nodes-edges-04-06-2017.json').awaitAll(InitializePage);
 };
 window.onresize = function () {
-    requestAnimationFrame(ResizePage);
+    // requestAnimationFrame(ResizePage);
+    ResizePage();
 };
-
-// -------------------------------------------------------------------------------------------------
-// Detected Settings
-
-var isMobile = false;
-if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-    if (logs0) console.log('isMobile', isMobile = true);
-}
 
 // -------------------------------------------------------------------------------------------------
 // Global Variables
 
 var logs0 = true;
 var logs1 = false;
+var logsTest = true;
 var debugLayoutEnabled = false;
 var mapObj = null;
 var graphObj = null;
 var sizeOfDOM = 0;
+var usedJSHeapSize = 0;
+var totalJSHeapSize = 0;
 var stateSelected = '';
 var visibleGrades = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
 var gradeScale = function gradeScale(letter) {
@@ -63,16 +59,29 @@ var mainSVG = body.select('#main-svg');
 var mainBGRect = body.select('#main-bg-rect');
 var statesG = body.select('#states-g');
 var verticesG = body.select('#vertices-g');
+var verticeCircles;
 var edgesG = body.select('#edges-g');
+var edgeLines;
 var hoverG = body.select('#hover-g');
 var hoverRect = body.select('#hover-rect');
 var hoverText = body.select('#hover-text');
 var filtersSVG = body.select('#filters-svg');
 var statesSelect = body.select('#states-select');
-var forcesDiv = body.select('#forces-div');
+var forcesContainer = body.select('#forces-container');
+var simulationDiv = body.select('#simulation-div');
+var alphaLabel = simulationDiv.selectAll('label.slider-value');
+var alphaSlider = simulationDiv.selectAll('input[type="range"');
 var infoSVG = body.select('#info-svg');
 var infoImage = body.select('#info-image');
 var defs = filtersSVG.append('defs');
+
+// -------------------------------------------------------------------------------------------------
+// Detected Settings
+
+var isMobile = false;
+if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    if (logsTest) console.log('isMobile', isMobile = true);
+}
 
 // -------------------------------------------------------------------------------------------------
 // Visual Styles
@@ -116,10 +125,10 @@ defs.append('filter').attr('id', 'drop-shadow').attr('height', '130%') // so the
 function InitializePage(error, results) {
     var usStatesFeaturesJSON = results[0];
     var nodesEdgesJSON = results[1];
-    mapObj = new MapClass();
-    mapObj.mapFeatures(usStatesFeaturesJSON.features);
-    mapObj.vertices(nodesEdgesJSON.nodes);
-    mapObj.edges(nodesEdgesJSON.links);
+    //
+    mapObj = new MapClass().mapFeatures(usStatesFeaturesJSON.features).vertices(nodesEdgesJSON.nodes).edges(nodesEdgesJSON.links);
+    //
+    graphObj = new GraphClass();
     //
     vs.hoverHeight = parseFloat(mainSVG.style('font-size')) + 2 * vs.hoverMargin;
     hoverRect.attr('height', vs.hoverHeight).attr('y', -1 * vs.hoverHeight - vs.hoverMargin).style('filter', 'url(#drop-shadow)');
@@ -137,7 +146,6 @@ function InitializePage(error, results) {
     //
     ResizePage();
     requestAnimationFrame(function () {
-        graphObj = new GraphClass();
         body.classed('loading', false);
     });
 }
@@ -223,7 +231,9 @@ function MapClass() {
         });
         return this;
     };
+    //
     this.UpdateMap = function (source) {
+        // if (logs0) console.log('UpdateMap');
         var $GivenByStatesArray = Object.keys(_$GivenByState).map(function (d) {
             return _$GivenByState[d];
         });
@@ -281,50 +291,11 @@ function MapClass() {
             return vs.colorScale(_$GivenByStateScale(d.$Given));
         });
         //
-        var verticeCircles = verticesG.selectAll('circle.vertice-circle').data(_vertices);
-        verticeCircles = verticeCircles.enter().append('circle').classed('vertice-circle', true).on('mouseover', function (d) {
-            if (logs0) console.log('mouseover', d);
-        })
-        //     .merge(verticeCircles);
-        // verticeCircles
-        .each(function (d) {
-            d.x = _centroidByState[d.state][0];
-            d.y = _centroidByState[d.state][1];
-            // d.r = _$GivenByVerticeScale(d.$Given);
-            d.r = 5;
-        }).attr('cx', function (d) {
-            return d.x;
-        }).attr('cy', function (d) {
-            return d.y;
-        }).attr('r', function (d) {
-            return d.r;
-        }).style('fill', function (d) {
-            return vs.colorScale(_$GivenByStateScale(_$GivenByState[d.state]));
-        });
-        //
-        var edgeLines = edgesG.selectAll('line.edge-line').data(_edges);
-        edgeLines = edgeLines.enter().append('line').classed('edge-line', true).on('mouseover', function (d) {
-            if (logs1) console.log('mouseover', d);
-        })
-        //     .merge(edgeLines);
-        // edgeLines
-        .attr('x1', function (d) {
-            return d.source.x;
-        }).attr('y1', function (d) {
-            return d.source.y;
-        }).attr('x2', function (d) {
-            return d.target.x;
-        }).attr('y2', function (d) {
-            return d.target.y;
-        }).style('opacity', function (d) {
-            var opacity = 1 - 1 / 5 * _$GivenByStateScale(d.source.$Given);
-            return opacity;
-        });
-        //
         if (debugLayoutEnabled === true) {
             DebugMap();
         }
-        if (logs0) console.log('UpdateMap       ' + source.padEnd(35) + GetJSHeapSize() + GetDOMSize());
+        if (logsTest) TestApp('UpdateMap');
+        return this;
     };
 }
 
@@ -378,7 +349,7 @@ function UpdateFilters(source) {
     //
     var gradeArray = ['A', 'B', 'C', 'D', 'F'];
     var gradeGs = filtersSVG.selectAll('g.grade-g').data(gradeArray);
-    gradeGs = gradeGs.enter().append('g').attr('class', 'grade-g').merge(gradeGs);
+    gradeGs = gradeGs.enter().append('g').classed('grade-g', true).merge(gradeGs);
     gradeGs.attr('transform', function (d, i) {
         var tx = 1 / 2 * filtersWidth + (1 / 2 - 1 / 2 * gradeArray.length + i) * vs.filtersHeight;
         var ty = 1 / 2 * vs.filtersHeight + 1;
@@ -396,11 +367,11 @@ function UpdateFilters(source) {
         UpdateFilters(source);
     }).each(function (grade) {
         var gradeBG = d3.select(this).selectAll('rect.grade-bg').data([grade]);
-        gradeBG = gradeBG.enter().append('rect').attr('class', 'grade-bg').merge(gradeBG);
+        gradeBG = gradeBG.enter().append('rect').classed('grade-bg', true).merge(gradeBG);
         gradeBG.attr('x', -1 / 2 * vs.filtersHeight).attr('y', -1 / 2 * vs.filtersHeight).attr('width', vs.filtersHeight).attr('height', vs.filtersHeight - 2);
         //
         var gradeRect = d3.select(this).selectAll('rect.grade-rect').data([grade]);
-        gradeRect = gradeRect.enter().append('rect').attr('class', 'grade-rect').merge(gradeRect).classed('inactive', function (d) {
+        gradeRect = gradeRect.enter().append('rect').classed('grade-rect', true).merge(gradeRect).classed('inactive', function (d) {
             return !visibleGrades[d];
         }).attr('x', -0.5 * rectSize).attr('y', -0.5 * rectSize).attr('width', rectSize).attr('height', rectSize).style('filter', function (d) {
             return visibleGrades[d] ? 'url(#drop-shadow)' : null;
@@ -409,7 +380,7 @@ function UpdateFilters(source) {
         });
         //
         var gradeLabel = d3.select(this).selectAll('text.grade-label').data([grade]);
-        gradeLabel = gradeLabel.enter().append('text').attr('class', 'grade-label button-text').text(function (d) {
+        gradeLabel = gradeLabel.enter().append('text').classed('grade-label', true).classed('button-text', true).text(function (d) {
             return d;
         }).merge(gradeLabel).classed('inactive', function (d) {
             return !visibleGrades[d];
@@ -421,7 +392,7 @@ function UpdateStatesDropdown(source) {
     if (logs1) console.log('UpdateStatesDropdown ' + source);
     var statesSelectOptionsData = Object.keys(mapObj.$GivenByState());
     statesSelectOptionsData.unshift('');
-    statesSelect.attr('class', 'button-object').on('change', function () {
+    statesSelect.classed('button-object', true).on('change', function () {
         var source = 'statesSelect change ' + this.value;
         stateSelected = this.value;
         if (stateSelected === '') {
@@ -442,7 +413,7 @@ function UpdateStatesDropdown(source) {
 }
 
 function UpdateInfoSVG(source) {
-    if (logs1) console.log('UpdateInfoSVG   ' + source.padEnd(35));
+    if (logs1) console.log('UpdateInfoSVG   ' + String(source).padEnd(35));
 }
 
 function ResizePage() {
@@ -461,10 +432,11 @@ function ResizePage() {
     box1.style('width', vs.box1Width + 'px');
     mainSVG.attr('width', vs.box0Width).attr('height', vs.box0Width / vs.mapWidthHeightRatio);
     mainBGRect.attr('width', vs.box0Width).attr('height', vs.box0Width / vs.mapWidthHeightRatio);
+    //
     mapObj.width(vs.box0Width).height(vs.box0Width / vs.mapWidthHeightRatio).UpdateMap('ResizePage');
-    if (graphObj !== null) {
-        graphObj.UpdateGraph();
-    }
+    //
+    graphObj.UpdateNodesEdges().UpdateSimulation().UpdateForceSliders();
+    //
     statesSelect.style('margin-left', (vs.box0Width - vs.statesSelectWidth) / 2 + 'px').style('margin-right', (vs.box0Width - vs.statesSelectWidth) / 2 + 'px');
     infoSVG.attr('width', vs.box1Width).attr('height', vs.box1Height);
     infoImage.attr('width', vs.box1Width).attr('height', vs.box1Height);
@@ -472,16 +444,388 @@ function ResizePage() {
     UpdateStatesDropdown(source);
     UpdateHover('event');
     UpdateInfoSVG(source);
+    if (logsTest) TestApp('ResizePage');
 }
 
-function GetJSHeapSize() {
-    if (!window.performance) {
-        return ''.padStart(6);
+function GraphClass() {
+    var that = this;
+    //
+    that.bundle = {
+        'source': true
+    };
+    //
+    that.simulation = d3.forceSimulation(mapObj.vertices())
+    // .alpha(0.1)
+    // .alphaMin(0.001)
+    // .alphaDecay(1-Math.pow(0.001,1/300))
+    // .alphaTarget(0)
+    // .velocityDecay(0.6)
+    .on('tick', _Tick);
+    //
+    alphaSlider.on('mousedown', function () {
+        that.simulation.stop();
+    }).on('change', function () {
+        alphaLabel.text(this.value);
+        that.simulation.alpha(this.value).restart();
+    });
+    //
+    that.forcesObj = {};
+    // that.forcesObj.forceCenter = { // visual centering based on mass
+    //     x: {
+    //         name: 'x',
+    //         value: 'cx',
+    //         // min: 0,
+    //         // max: 1,
+    //         // step: 0.1,
+    //     },
+    //     y: {
+    //         name: 'y',
+    //         value: 'cy',
+    //         // min: 0,
+    //         // max: 1,
+    //         // step: 0.1,
+    //     },
+    // };
+    that.forcesObj.forceCollide = {
+        iterations: {
+            name: 'iterations',
+            value: 5,
+            min: 0,
+            max: 10,
+            step: 1
+        },
+        strength: {
+            name: 'strength',
+            value: 1,
+            min: 0,
+            max: 10,
+            step: 0.5
+        },
+        radius: {
+            name: 'radius',
+            value: function value(node, i, nodes) {
+                return node.r;
+            }
+            // min: 0,
+            // max: 1,
+            // step: 0.1,
+        }
+    };
+    // that.forcesObj.forceLink = {
+    //     // links: {
+    //     //     name: 'links',
+    //     //     value: [],
+    //     // },
+    //     // id: {
+    //     //     name: 'id',
+    //     //     value: function(node) { return node.index; },
+    //     // },
+    //     iterations: {
+    //         name: 'iterations',
+    //         value: 1,
+    //         min: 0,
+    //         max: 10,
+    //         step: 1,
+    //     },
+    //     // strength: {
+    //     //     name: 'strength',
+    //     //     value: function(link, i, links) { return 1/Math.min(count[link.source.index],count[link.target.index]); },
+    //     // },
+    //     distance: {
+    //         name: 'distance',
+    //         value: 30, // function(link, i, links) { return 30; },
+    //         min: 0,
+    //         max: 100,
+    //         step: 1,
+    //     },
+    // };
+    that.forcesObj.forceManyBody = {
+        strength: {
+            name: 'strength',
+            value: -30, // function(node, i, nodes) { return -30; },
+            min: -100,
+            max: 0,
+            step: 1
+        },
+        // distanceMin: {
+        //     name: 'distanceMin',
+        //     value: 1,
+        //     min: 0,
+        //     max: 10000,
+        //     step: 1,
+        // },
+        // distanceMax: {
+        //     name: 'distanceMax',
+        //     value: 100, // Infinity
+        //     min: 0,
+        //     max: 200,
+        //     step: 1,
+        // },
+        theta: {
+            name: 'theta',
+            value: 0.81,
+            min: 0,
+            max: 1,
+            step: 0.1
+        }
+    };
+    that.forcesObj.forceRadial = {
+        strength: {
+            name: 'strength',
+            value: 0.1, // function(node, i, nodes) { return 0.1; },
+            min: 0,
+            max: 1,
+            step: 0.01
+        },
+        radius: {
+            name: 'radius',
+            value: function value(node, i, nodes) {
+                return node.r;
+            }
+            // min: 0,
+            // max: 1,
+            // step: 0.1,
+        },
+        x: {
+            name: 'x',
+            value: 'cx'
+            // min: 0,
+            // max: 1,
+            // step: 0.1,
+        },
+        y: {
+            name: 'y',
+            value: 'cy'
+            // min: 0,
+            // max: 1,
+            // step: 0.1,
+        }
+    };
+    that.forcesObj.forceX = {
+        strength: {
+            name: 'strength',
+            value: 1, // function(node, i, nodes) { return 0.1; },
+            min: 0,
+            max: 2,
+            step: 0.1
+        },
+        x: {
+            name: 'x',
+            value: 'cx'
+            // value: function(node, i, nodes) { return node.x; },
+        }
+    };
+    that.forcesObj.forceY = {
+        strength: {
+            name: 'strength',
+            value: 1, // function(node, i, nodes) { return 0.1; },
+            min: 0,
+            max: 2,
+            step: 0.1
+        },
+        y: {
+            name: 'y',
+            value: 'cy'
+            // value: function(node, i, nodes) { return node.y; },
+        }
+    };
+    //
+    that.UpdateNodesEdges = function () {
+        verticeCircles = verticesG.selectAll('circle.vertice-circle').data(mapObj.vertices());
+        verticeCircles = verticeCircles.enter().append('circle').classed('vertice-circle', true).on('mouseover', function (d) {
+            if (logs0) console.log('mouseover', d);
+        }).merge(verticeCircles).each(function (d) {
+            d.x = mapObj.centroidByState()[d.state][0];
+            d.y = mapObj.centroidByState()[d.state][1];
+            d.r = 5;
+            // d.r = mapObj.$GivenByVerticeScale()(d.$Given);
+        }).attr('cx', function (d) {
+            return d.x;
+        }).attr('cy', function (d) {
+            return d.y;
+        }).attr('r', function (d) {
+            return d.r;
+        }).style('fill', function (d) {
+            var fillValue = mapObj.$GivenByStateScale()(mapObj.$GivenByState()[d.state]);
+            return vs.colorScale(fillValue);
+        });
+        //
+        edgeLines = edgesG.selectAll('line.edge-line').data(mapObj.edges());
+        edgeLines = edgeLines.enter().append('line').classed('edge-line', true).on('mouseover', function (d) {
+            if (logs1) console.log('mouseover', d);
+        }).merge(edgeLines).attr('x1', function (d) {
+            return d.source.x;
+        }).attr('y1', function (d) {
+            return d.source.y;
+        }).attr('x2', function (d) {
+            return d.target.x;
+        }).attr('y2', function (d) {
+            return d.target.y;
+        }).style('opacity', function (d) {
+            var opacityValue = 1 - 1 / 5 * mapObj.$GivenByStateScale()(d.source.$Given);
+            return opacityValue;
+        });
+        //
+        if (logsTest) TestApp('UpdateNodesEdges');
+        return that;
+    };
+    //
+    that.UpdateSimulation = function () {
+        Object.keys(mapObj.$GivenByState()).forEach(function (state) {
+            var cx = mapObj.centroidByState()[state][0];
+            var cy = mapObj.centroidByState()[state][1];
+            Object.keys(that.forcesObj).forEach(function (forceType) {
+                var forceNew = _IsolateForce(d3[forceType](), function (d) {
+                    return d.state === state;
+                });
+                var optionsObj = that.forcesObj[forceType];
+                Object.keys(optionsObj).forEach(function (optionName) {
+                    var optionDatum = optionsObj[optionName];
+                    var optionValue = optionDatum.value; // do not mutate original value
+                    switch (optionValue) {
+                        case 'cx':
+                            optionValue = cx;
+                            break;
+                        case 'cy':
+                            optionValue = cy;
+                            break;
+                    }
+                    forceNew[optionName](optionValue);
+                    if (logs1) console.log(state, forceType, optionName, optionValue.toString ? optionValue.toString().split('\n')[0] : optionValue);
+                });
+                that.simulation.force(forceType + state, forceNew);
+            });
+        });
+        that.simulation.alpha(0.5).restart();
+        //
+        if (logsTest) TestApp('UpdateSimulation');
+        return that;
+    };
+    //
+    that.UpdateForceSliders = function () {
+        that.forcesData = Object.keys(that.forcesObj).map(function (forceType) {
+            var optionsObj = that.forcesObj[forceType];
+            var optionsDataFiltered = [];
+            Object.keys(optionsObj).forEach(function (optionName) {
+                var optionDatum = optionsObj[optionName];
+                if (optionDatum.min !== undefined && optionDatum.max !== undefined) {
+                    optionsDataFiltered.push(optionDatum);
+                }
+            });
+            return [forceType, optionsDataFiltered];
+        });
+        //
+        var forceDivs = forcesContainer.selectAll('div.force-div').data(that.forcesData);
+        var forceDivsEnter = forceDivs.enter().append('div').classed('force-div', true);
+        forceDivsEnter.append('p').text(function (d) {
+            return d[0];
+        });
+        forceDivs = forceDivsEnter.merge(forceDivs)
+        // .classed('collapsed', function(d) { return d[1].length === 0; })
+        ;
+        //
+        var forceOptionDivs = forceDivs.selectAll('div.force-option-div').data(function (d) {
+            return d[1];
+        });
+        forceOptionDivs = forceOptionDivs.enter().append('div').classed('force-option-div', true).each(function (optionDatum) {
+            d3.select(this).append('label').classed('label-medium', true).text(optionDatum.name);
+            d3.select(this).append('label').classed('label-small', true).classed('slider-value', true).text(optionDatum.value);
+            d3.select(this).append('label').classed('label-small', true).text(optionDatum.min);
+            d3.select(this).append('input').attr('type', 'range').attr('min', optionDatum.min).attr('max', optionDatum.max).attr('step', optionDatum.step).attr('value', optionDatum.value).on('change', function () {
+                if (optionDatum.step === parseInt(optionDatum.step)) {
+                    optionDatum.value = parseInt(this.value);
+                } else {
+                    optionDatum.value = parseFloat(this.value);
+                }
+                that.simulation.alpha(0);
+                that.UpdateNodesEdges().UpdateSimulation().UpdateForceSliders();
+            });
+            d3.select(this).append('label').classed('label-small', true).text(optionDatum.max);
+        }).merge(forceOptionDivs).each(function (optionDatum) {
+            d3.select(this).selectAll('label.slider-value').text(optionDatum.value);
+        });
+        // forceOptionDivs
+        //     .selectAll('label.slider-value')
+        //     .text(function(d) { return d.value; });
+        //
+        if (logsTest) TestApp('UpdateForceSliders');
+        return that;
+    };
+    //
+    function _IsolateForce(force, filter) {
+        var initialize = force.initialize;
+        force.initialize = function () {
+            initialize.call(force, mapObj.vertices().filter(filter));
+        };
+        return force;
     }
-    return ((window.performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(2) + ' Mb').padStart(13);
+    //
+    function _Tick() {
+        verticeCircles
+        // .interrupt('vertices-transition')
+        // .transition('vertices-transition')
+        .attr('cx', function (d) {
+            return d.x;
+        }).attr('cy', function (d) {
+            return d.y;
+        });
+        edgeLines
+        // .interrupt('edges-transition')
+        // .transition('edges-transition')
+        .attr('x1', function (d) {
+            if (that.bundle.source) {
+                return mapObj.centroidByState()[d.source.state][0];
+            } else {
+                return d.source.x;
+            }
+        }).attr('y1', function (d) {
+            if (that.bundle.source) {
+                return mapObj.centroidByState()[d.source.state][1];
+            } else {
+                return d.source.y;
+            }
+        }).attr('x2', function (d) {
+            if (that.bundle.target) {
+                return mapObj.centroidByState()[d.target.state][0];
+            } else {
+                return d.target.x;
+            }
+        }).attr('y2', function (d) {
+            if (that.bundle.target) {
+                return mapObj.centroidByState()[d.target.state][1];
+            } else {
+                return d.target.y;
+            }
+        });
+        //
+        alphaLabel.text(that.simulation.alpha());
+        alphaSlider.property('value', that.simulation.alpha());
+        // if (logsTest) TestApp('_Tick');
+    }
 }
 
-function GetDOMSize() {
+function TestJSHeapSize() {
+    if (!window.performance || !window.performance.memory) {
+        return '';
+    }
+    var usedString = '';
+    var totalString = '';
+    if (window.performance.memory.usedJSHeapSize > usedJSHeapSize) {
+        usedJSHeapSize = window.performance.memory.usedJSHeapSize;
+        usedString = 'usedJSHeapSize: ' + ((usedJSHeapSize / (1024 * 1024)).toFixed(2) + ' Mb');
+    }
+    if (window.performance.memory.totalJSHeapSize > totalJSHeapSize) {
+        totalJSHeapSize = window.performance.memory.totalJSHeapSize;
+        totalString = 'totalJSHeapSize: ' + ((totalJSHeapSize / (1024 * 1024)).toFixed(2) + ' Mb');
+    }
+    if (usedString || totalString) {
+        return usedString.padEnd(30) + totalString.padEnd(30);
+    } else {
+        return '';
+    }
+}
+
+function TestDOMSize() {
     if (sizeOfDOM !== d3.selectAll('*').size()) {
         sizeOfDOM = d3.selectAll('*').size();
         return (sizeOfDOM + ' nodes').padStart(13);
@@ -490,271 +834,9 @@ function GetDOMSize() {
     }
 }
 
-function isolate(force, filter) {
-    var initialize = force.initialize;
-    force.initialize = function () {
-        initialize.call(force, mapObj.vertices().filter(filter));
-    };
-    return force;
-}
-
-function GraphClass() {
-    var that = this;
-    //
-    var _bundle = {};
-    that.bundle = function (_) {
-        return arguments.length ? (_bundle = _, that) : _bundle;
-    };
-    var _simulation = d3.forceSimulation().nodes(mapObj.vertices()) // initialize(), Nodes(), forces.each(initializeForce)
-    .alpha(1).alphaMin(0.001).alphaDecay(1 - Math.pow(0.001, 1 / 300)).alphaTarget(0).velocityDecay(0.6).on('tick', _Tick);
-    that.simulation = _simulation;
-    that.UpdateForces = UpdateForces;
-    that.UpdateGraph = UpdateGraph;
-    //
-    var forcesObjDefault = {
-        // forceCenter: {
-        //   x: 'cX', // 0
-        //   y: 'cY', // 0
-        // },
-        // forceCollide: {
-        //   iterations: 1,
-        //   strength: 1,
-        //   radius: function (node, i, nodes) { // initialize()
-        //       return node.r;
-        //   },
-        // },
-        // forceLink: {
-        //   links: [], // initialize()
-        //   id: function(node) {
-        //       return node.index;
-        //   },
-        //   iterations: 1,
-        //   strength: function(link, i, links) { // initialize()Strength()
-        //       return 1 / Math.min(count[link.source.index], count[link.target.index]);
-        //   },
-        //   distance: function(link, i, links) { // initialize()Distance()
-        //       return 30;
-        //   },
-        // },
-        // forceManyBody: {
-        //   strength: function(node, i, nodes) { // initialize()
-        //       return -30;
-        //   },
-        //   distanceMin: 1,
-        //   distanceMax: 10,
-        //   theta: 0.81,
-        // },
-        // forceRadial: {
-        //   strength: function(node, i, nodes) { // initialize()
-        //       return 0.1;
-        //   },
-        //   radius: function(node, i, nodes) { // initialize()
-        //       return node.r;
-        //   },
-        //   x: 'cX', // 0
-        //   y: 'cY', // 0
-        // },
-        // forceX: {
-        //   strength: function(node, i, nodes) { // initialize()
-        //       return 0.1;
-        //   },
-        //   x: function(node, i, nodes) { // initialize()
-        //       return node.x;
-        //   },
-        // },
-        // forceY: {
-        //   strength: function(node, i, nodes) { // initialize()
-        //       return 0.1;
-        //   },
-        //   y: function(node, i, nodes) { // initialize()
-        //       return node.y;
-        //   },
-        // }
-    };
-    that.UpdateForces(forcesObjDefault);
-    //
-    function UpdateForces(forcesObj) {
-        Object.keys(mapObj.$GivenByState()).forEach(function (state) {
-            var cX = mapObj.centroidByState()[state][0];
-            var cY = mapObj.centroidByState()[state][1];
-            Object.keys(forcesObj).forEach(function (forceType) {
-                var forceNew = isolate(d3[forceType](), function (d) {
-                    return d.state === state;
-                });
-                _simulation.force(forceType + state, forceNew);
-                var forceOptions = forcesObj[forceType];
-                Object.keys(forceOptions).forEach(function (optionName) {
-                    var optionValue = forceOptions[optionName];
-                    switch (optionValue) {
-                        case 'cX':
-                            optionValue = cX;
-                            break;
-                        case 'cY':
-                            optionValue = cY;
-                            break;
-                    }
-                    forceNew[optionName](optionValue);
-                    console.log(state, forceType, optionName, optionValue.toString ? optionValue.toString().split('\n')[0] : optionValue);
-                });
-            });
-        });
-    }
-    //
-    function UpdateGraph() {
-        console.log('UpdateGraph');
-        Object.keys(mapObj.$GivenByState()).forEach(function (state) {
-            var cX = mapObj.centroidByState()[state][0];
-            var cY = mapObj.centroidByState()[state][1];
-            if (_simulation.force('forceCenter' + state)) {
-                _simulation.force('forceCenter' + state).x(cX).y(cY);
-            }
-        });
-        _simulation
-        // .alpha(0.1)
-        .restart();
-    }
-    //
-    function _Tick() {
-        verticesG.selectAll('circle.vertice-circle').attr('cx', function (d) {
-            return d.x;
-        }).attr('cy', function (d) {
-            return d.y;
-        });
-        edgesG.selectAll('line.edge-line').attr('x1', function (d) {
-            if (_bundle.source) {
-                return mapObj.centroidByState()[d.source.state][0];
-            } else {
-                return d.source.x;
-            }
-        }).attr('y1', function (d) {
-            if (_bundle.source) {
-                return mapObj.centroidByState()[d.source.state][1];
-            } else {
-                return d.source.y;
-            }
-        }).attr('x2', function (d) {
-            if (_bundle.target) {
-                return mapObj.centroidByState()[d.target.state][0];
-            } else {
-                return d.target.x;
-            }
-        }).attr('y2', function (d) {
-            if (_bundle.target) {
-                return mapObj.centroidByState()[d.target.state][1];
-            } else {
-                return d.target.y;
-            }
-        });
-    }
-    //
-    function _AddSliders() {}
-    /*
-    <div>
-        <label>linkDistance</label>
-        <label class="label-medium linkDistance-readout">120</label>
-        <label class="label-small">0</label>
-        <input type="range" min="0" max="1000" step="10" value="120">
-        <label class="label-small">1000</label>
-    </div>
-    <div>
-        <label>linkStrength</label>
-        <label class="label-medium linkStrength-readout">0.9</label>
-        <label class="label-small">0</label>
-        <input type="range" min="0" max="1" step="0.01" value="0.9">
-        <label class="label-small">1</label>
-    </div>
-    <div>
-        <label>friction</label>
-        <label class="label-medium friction-readout">0.8</label>
-        <label class="label-small">0</label>
-        <input type="range" min="0" max="1" step="0.01" value="0.8">
-        <label class="label-small">1</label>
-    </div>
-    <div>
-        <label>charge</label>
-        <label class="label-medium charge-readout">-1000</label>
-        <label class="label-small">-2000</label>
-        <input type="range" min="-2000" max="0" step="20" value="-1000">
-        <label class="label-small">0</label>
-    </div>
-    <div>
-        <label>chargeDistance</label>
-        <label class="label-medium chargeDistance-readout">500</label>
-        <label class="label-small">0</label>
-        <input type="range" min="0" max="2000" step="20" value="500">
-        <label class="label-small">2000</label>
-    </div>
-    <div>
-        <label>theta</label>
-        <label class="label-medium theta-readout">0.8</label>
-        <label class="label-small">0</label>
-        <input type="range" min="0" max="10" step="0.1" value="0.8">
-        <label class="label-small">10</label>
-    </div>
-    <div>
-        <label>gravity</label>
-        <label class="label-medium gravity-readout">0.1</label>
-        <label class="label-small">0</label>
-        <input type="range" min="0" max="1" step="0.01" value="0.1">
-        <label class="label-small">1</label>
-    </div>
-    <div>
-        <label>node_r</label>
-        <label class="label-medium node_r-readout">13</label>
-        <label class="label-small">0</label>
-        <input type="range" min="0" max="100" step="1" value="13">
-        <label class="label-small">100</label>
-    </div>
-    <div>
-        <label>duration</label>
-        <label class="label-medium duration-readout">800</label>
-        <label class="label-small">0</label>
-        <input type="range" min="0" max="5000" step="50" value="800">
-        <label class="label-small">5000</label>
-    </div>
-    */
-
-    //
-    function UpdateSliders(property, value) {
-        // forcesDiv
-        //     .select('.'+property+'-readout')
-        //         .text(value);
-        // switch(property) {
-        //     case 'linkDistance':
-        //         force['linkDistance'](value);
-        //         force.start();
-        //         break;
-        //     case 'linkStrength':
-        //         force['linkStrength'](value);
-        //         force.start();
-        //         break;
-        //     case 'friction':
-        //         force['friction'](value);
-        //         force.start();
-        //         break;
-        //     case 'charge':
-        //         force['charge'](value);
-        //         force.start();
-        //         break;
-        //     case 'chargeDistance':
-        //         force['chargeDistance'](value);
-        //         force.start();
-        //         break;
-        //     case 'theta':
-        //         force['theta'](value);
-        //         force.start();
-        //         break;
-        //     case 'gravity':
-        //         force['gravity'](value);
-        //         force.start();
-        //         break;
-        //     case 'node_r':
-        //         g['node_r'] = value;
-        //         d3.selectAll('.nodecircles').attr('r', g['node_r']);
-        //         break;
-        //     case 'duration':
-        //         g['duration'] = value;
-        //         UpdateDurations();
-        //         break;
+function TestApp(source) {
+    var result = TestJSHeapSize() + TestDOMSize();
+    if (result !== '') {
+        console.log(String(source).padEnd(20) + result);
     }
 }
