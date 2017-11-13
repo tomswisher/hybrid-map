@@ -31,6 +31,7 @@ var sizeOfDOM = 0;
 var usedJSHeapSize = 0;
 var totalJSHeapSize = 0;
 var stateSelected = '';
+var personSelected = '';
 var visibleGrades = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
 var gradeScale = function gradeScale(letter) {
     switch (letter) {
@@ -136,10 +137,13 @@ function InitializePage(error, results) {
     mainBGRect.on('mouseover', function () {
         var source = 'mainBGRect mouseover';
         stateSelected = '';
+        personSelected = '';
+        console.log("personSelected = '';");
         hoverText.text('');
         mapObj.UpdateMap(source);
         UpdateStatesDropdown(source);
         UpdateHover('mouse');
+        graphObj.UpdateNodesEdges();
     }).attr('x', 0).attr('y', 0);
     filtersSVG.attr('width', 0).attr('height', 0);
     statesSelect.style('width', vs.statesSelectWidth + 'px');
@@ -451,7 +455,7 @@ function GraphClass() {
     var that = this;
     //
     that.bundle = {
-        'source': true
+        // 'target': true,
     };
     //
     that.simulation = d3.forceSimulation(mapObj.vertices())
@@ -633,12 +637,14 @@ function GraphClass() {
     that.UpdateNodesEdges = function () {
         verticeCircles = verticesG.selectAll('circle.vertice-circle').data(mapObj.vertices());
         verticeCircles = verticeCircles.enter().append('circle').classed('vertice-circle', true).on('mouseover', function (d) {
-            if (logs0) console.log('mouseover', d);
-        }).merge(verticeCircles).each(function (d) {
+            personSelected = d.id;
+            console.log("personSelected = d.id;", personSelected);
+            that.UpdateNodesEdges();
+        }).each(function (d) {
             d.x = mapObj.centroidByState()[d.state][0];
             d.y = mapObj.centroidByState()[d.state][1];
-            d.r = 5;
-            // d.r = mapObj.$GivenByVerticeScale()(d.$Given);
+            // d.r = 5;
+            d.r = mapObj.$GivenByVerticeScale()(d.$Given);
         }).attr('cx', function (d) {
             return d.x;
         }).attr('cy', function (d) {
@@ -648,12 +654,19 @@ function GraphClass() {
         }).style('fill', function (d) {
             var fillValue = mapObj.$GivenByStateScale()(mapObj.$GivenByState()[d.state]);
             return vs.colorScale(fillValue);
+        }).merge(verticeCircles).style('opacity', function (d) {
+            if (personSelected === '') {
+                return 1;
+            }
+            if (d.id === personSelected) {
+                return 1;
+            } else {
+                return 0;
+            }
         });
         //
         edgeLines = edgesG.selectAll('line.edge-line').data(mapObj.edges());
-        edgeLines = edgeLines.enter().append('line').classed('edge-line', true).on('mouseover', function (d) {
-            if (logs1) console.log('mouseover', d);
-        }).merge(edgeLines).attr('x1', function (d) {
+        edgeLines = edgeLines.enter().append('line').classed('edge-line', true).attr('x1', function (d) {
             return d.source.x;
         }).attr('y1', function (d) {
             return d.source.y;
@@ -661,9 +674,17 @@ function GraphClass() {
             return d.target.x;
         }).attr('y2', function (d) {
             return d.target.y;
-        }).style('opacity', function (d) {
-            var opacityValue = 1 - 1 / 5 * mapObj.$GivenByStateScale()(d.source.$Given);
-            return opacityValue;
+        }).merge(edgeLines).style('opacity', function (d) {
+            // var opacityValue = 1 - (1/5)*mapObj.$GivenByStateScale()(d.source.$Given);
+            // return opacityValue;
+            if (personSelected === '') {
+                return 1;
+            }
+            if (d.source.id === personSelected) {
+                return 1;
+            } else {
+                return 0;
+            }
         });
         //
         if (logsTest) TestApp('UpdateNodesEdges');
