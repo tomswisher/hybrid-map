@@ -26,15 +26,9 @@ body {
     font-weight: 400;
     font-size: 0px;
 }
-#box0 {
+#box1, #box2, #box3 {
     display: inline-block;
     text-align: center;
-    > * {
-        font-size: @font1Size;
-    }
-}
-#box1 {
-    display: inline-block;
     vertical-align: top;
     > * {
         font-size: @font1Size;
@@ -57,6 +51,7 @@ body {
         // visibility: hidden;
         stroke: black;
         stroke-width: 2px;
+        pointer-events: none;
     }
     #hover-g {
         pointer-events: none;
@@ -80,9 +75,9 @@ body {
         stroke-width: @gradesStrokeWidth;
         pointer-events: none;
     }
-    text.grade-label {
-        text-anchor: middle;
+    text.grade-label, text.filters-text {
         dominant-baseline: middle;
+        text-anchor: middle;
         pointer-events: none;
     }
 }
@@ -117,8 +112,11 @@ body {
     }
 }
 #info-svg {
-    outline: 1px solid @statesStrokeColor;
-    // text-align: center;
+    text-align: center;
+    text.info-text {
+        dominant-baseline: middle;
+        text-anchor: middle;
+    }
 }
 .vspacer-15 {
     display: block;
