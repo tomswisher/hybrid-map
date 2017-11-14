@@ -565,6 +565,20 @@ function UpdateInfo(data) {
         }
     }
     //
+    var infoText = infoSVG.selectAll('text.info-text')
+        .data(function(d) {
+            return [d.id, 'State: '+d.state];
+        });
+    infoText = infoText.enter().append('text')
+        .classed('info-text', true)
+        .attr('x', +infoSVG.attr('width')*(1/2))
+        .attr('y', function(d, i) {
+            return +infoSVG.attr('height') - (3-i)*15 - 5;
+        })
+        .style('opacity', 0)
+        .merge(infoText)
+        .text(function(d) { return d; });
+    //
     var infoImage = infoSVG.selectAll('image')
         .data(function(d) {
             return [d.id];
@@ -590,19 +604,6 @@ function UpdateInfo(data) {
             .transition()
             .style('opacity', 1);
         //
-        var infoText = infoSVG.selectAll('text.info-text')
-            .data(function(d) {
-                return [d.id, 'State: '+d.state];
-            });
-        infoText = infoText.enter().append('text')
-            .classed('info-text', true)
-            .attr('x', +infoSVG.attr('width')*(1/2))
-            .attr('y', function(d, i) {
-                return +infoSVG.attr('height') - (3-i)*15 - 5;
-            })
-            .style('opacity', 0)
-            .merge(infoText)
-            .text(function(d) { return d; });
         infoText
             .transition()
             .style('opacity', 1);
