@@ -96,8 +96,7 @@ vs.box1WidthMin = 400;
 vs.box2Width = null;
 vs.box2WidthMin = 200;
 vs.box2WidthMax = 200;
-vs.box2Height = null;
-vs.box2HeightMin = 300;
+vs.box2Height = 300;
 vs.mapWidthHeightRatio = 1.7;
 vs.mapProjectionScale = 1.3;
 vs.statesSelectWidth = 100;
@@ -507,12 +506,10 @@ function ResizePage() {
     if (clientWidth - vs.box2WidthMin > vs.box1WidthMin) {
         vs.box1Width = clientWidth - vs.box2WidthMin;
         vs.box2Width = vs.box2WidthMin;
-        vs.box2Height = vs.box2HeightMin;
         vs.box2Margins = 0;
     } else {
         vs.box1Width = vs.box1WidthMin;
         vs.box2Width = vs.box2WidthMax;
-        vs.box2Height = vs.box2HeightMin;
         vs.box2Margins = (vs.box1Width - vs.box2Width) / 2;
     }
     box1.style('width', vs.box1Width + 'px');
