@@ -82,7 +82,7 @@ var hoverG = body.select('#hover-g');
 var hoverRect = body.select('#hover-rect');
 var hoverText = body.select('#hover-text');
 var filtersSVG = body.select('#filters-svg');
-// var statesSelect = body.select('#states-select');
+var statesSelect = body.select('#states-select');
 var forcesContainer = body.select('#forces-container');
 var simulationDiv = body.select('#simulation-div');
 var alphaLabel = simulationDiv.selectAll('label.slider-value');
@@ -173,18 +173,18 @@ function InitializePage(error, results) {
         .attr('y', -0.5*vs.hoverHeight-vs.hoverMargin);
     //
     mainBGRect
-        // .on('mouseover', function() {
-        //     var source = 'mainBGRect mouseover';
-        //     stateSelected = '';
-        //     // idSelected = '';
-        //     hoverText.text('');
-        //     mapObj
-        //         .UpdateMap(source);
-        //     UpdateStatesDropdown(source);
-        //     UpdateHover('mouse');
-        //     graphObj
-        //         .UpdateNodesEdges();
-        // })
+        .on('mouseover', function() {
+            var source = 'mainBGRect mouseover';
+            stateSelected = '';
+            // idSelected = '';
+            hoverText.text('');
+            mapObj
+                .UpdateMap(source);
+            UpdateStatesDropdown(source);
+            UpdateHover('mouse');
+            graphObj
+                .UpdateNodesEdges();
+        })
         .attr('x', 0)
         .attr('y', 0);
     //
@@ -192,8 +192,8 @@ function InitializePage(error, results) {
         .attr('width', 0)
         .attr('height', 0);
     //
-    // statesSelect
-    //     .style('width', vs.statesSelectWidth+'px');
+    statesSelect
+        .style('width', vs.statesSelectWidth+'px');
     //
     UpdateInfo([undefined]);
     //
@@ -335,19 +335,19 @@ function MapClass() {
                 d.$Given = parseInt(_$GivenByState[d.properties.ansi]);
                 d.$Received = parseInt(_$ReceivedByState[d.properties.ansi]);
             })
-            // .on('mouseover', function(d) {
-            //     // if (isMobile === true) { return; }
-            //     stateSelected = d.properties.ansi;
-            //     var source = 'statePaths mouseover '+stateSelected;
-            //     hoverText.text(d.properties.ansi+': '+d.$Given+' '+d.$Received);
-            //     mapObj
-            //         .UpdateMap(source);
-            //     UpdateStatesDropdown(source);
-            //     UpdateHover('mouse');
-            // })
-            // .on('mousemove', function(d) {
-            //     UpdateHover('mouse');
-            // })
+            .on('mouseover', function(d) {
+                // if (isMobile === true) { return; }
+                stateSelected = d.properties.ansi;
+                var source = 'statePaths mouseover '+stateSelected;
+                hoverText.text(d.properties.ansi+': '+d.$Given+' '+d.$Received);
+                mapObj
+                    .UpdateMap(source);
+                UpdateStatesDropdown(source);
+                UpdateHover('mouse');
+            })
+            .on('mousemove', function(d) {
+                UpdateHover('mouse');
+            })
             .attr('d', _path)
             .merge(statePaths);
         statePaths
@@ -517,33 +517,33 @@ function UpdateFilters(source) {
 }
 
 function UpdateStatesDropdown(source) {
-    // if (logs1) console.log('UpdateStatesDropdown '+source);
-    // var statesSelectOptionsData = Object.keys(mapObj.$GivenByState());
-    // statesSelectOptionsData.unshift('');
-    // statesSelect
-    //     .classed('button-object', true)
-    //     .on('change', function() {
-    //         var source = 'statesSelect change '+this.value;
-    //         stateSelected = this.value;
-    //         if (stateSelected === '') {
-    //             hoverText.text('');
-    //         } else {
-    //             var d = mainSVG.selectAll('path.state-path')
-    //                 .filter(function(d) { return d.properties.ansi === stateSelected; })
-    //                 .datum();
-    //             hoverText.text(stateSelected+': '+d.$Given+' '+d.$Received);
-    //         }
-    //         mapObj
-    //             .UpdateMap(source);
-    //         UpdateStatesDropdown(source);
-    //         UpdateHover(source);
-    //     })
-    //     .selectAll('option.states-select-option')
-    //         .data(statesSelectOptionsData)
-    //         .enter().append('option')
-    //             .classed('states-select-option', true)
-    //             .text(function(d) { return d; });
-    // statesSelect.node().value = stateSelected;
+    if (logs1) console.log('UpdateStatesDropdown '+source);
+    var statesSelectOptionsData = Object.keys(mapObj.$GivenByState());
+    statesSelectOptionsData.unshift('');
+    statesSelect
+        .classed('button-object', true)
+        .on('change', function() {
+            var source = 'statesSelect change '+this.value;
+            stateSelected = this.value;
+            if (stateSelected === '') {
+                hoverText.text('');
+            } else {
+                var d = mainSVG.selectAll('path.state-path')
+                    .filter(function(d) { return d.properties.ansi === stateSelected; })
+                    .datum();
+                hoverText.text(stateSelected+': '+d.$Given+' '+d.$Received);
+            }
+            mapObj
+                .UpdateMap(source);
+            UpdateStatesDropdown(source);
+            UpdateHover(source);
+        })
+        .selectAll('option.states-select-option')
+            .data(statesSelectOptionsData)
+            .enter().append('option')
+                .classed('states-select-option', true)
+                .text(function(d) { return d; });
+    statesSelect.node().value = stateSelected;
 }
 
 function UpdateInfo(data) {
@@ -650,9 +650,9 @@ function ResizePage() {
         .UpdateSimulation()
         .UpdateForceSliders();
     //
-    // statesSelect
-    //     .style('margin-left', (vs.box1Width - vs.statesSelectWidth)/2+'px')
-    //     .style('margin-right', (vs.box1Width - vs.statesSelectWidth)/2+'px');
+    statesSelect
+        .style('margin-left', (vs.box1Width - vs.statesSelectWidth)/2+'px')
+        .style('margin-right', (vs.box1Width - vs.statesSelectWidth)/2+'px');
     //
     infoSVG
         .attr('width', vs.box2Width - 2*vs.infoSVGMargin)
