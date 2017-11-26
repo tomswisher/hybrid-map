@@ -11,6 +11,7 @@
 
 var transitionDuration = 250;
 var transitionEase = d3.easeCubic;
+var defaultRadius = 5;
 
 // -------------------------------------------------------------------------------------------------
 // Performance
@@ -876,13 +877,14 @@ function GraphClass() {
             .merge(verticeCircles);
         verticeCircles
             .each(function(d) {
-                if (nodeSelected && nodeSelected.id === d.id) {
-                    //
-                } else if (nodeSelected) {
-                    d.r = 2+15*Math.sqrt(mapObj.$ReceivedByVerticeScale()(d.$Received));
-                } else {
-                    d.r = 2+15*Math.sqrt(mapObj.$GivenByVerticeScale()(d.$Given));
-                }
+                d.r = defaultRadius;
+                // if (nodeSelected && nodeSelected.id === d.id) {
+                //     //
+                // } else if (nodeSelected) {
+                //     d.r = 2+15*Math.sqrt(mapObj.$ReceivedByVerticeScale()(d.$Received));
+                // } else {
+                //     d.r = 2+15*Math.sqrt(mapObj.$GivenByVerticeScale()(d.$Given));
+                // }
             })
             .style('fill', function(d) {
                 return 'white';
