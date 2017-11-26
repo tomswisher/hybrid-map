@@ -93,17 +93,18 @@ var vs = {
         w: null,
         wMin: 300,
         h: null,
-        ratioWH: 1.7,
+        ratioMapWH: 1.7,
         projectionScale: 1.3,
         selectedOpacity: 0.3
     },
     info: {
         w: 396 / 2,
-        h: 432 / 2
+        h: 250, // h: 432/2,
+        ratioImageWH: 396 / 432
     },
     filters: {
         w: null,
-        h: 40,
+        h: 0,
         gradeMargin: 2.5
     },
     statesSelect: {
@@ -379,17 +380,17 @@ function UpdateFilters(source) {
     filtersG.attr('transform', function () {
         return 'translate(' + 0 + ',' + (vs.svg.h - vs.filters.h) + ')';
     });
-    var rectSize = vs.filters.h - 2 * vs.filters.gradeMargin - 2;
+    var rectSize = Math.max(0, vs.filters.h - 2 * vs.filters.gradeMargin - 2);
     //
     var filtersText = filtersG.selectAll('text.filters-text').data([null]);
-    filtersText = filtersText.enter().append('text').classed('filters-text', true).merge(filtersText).attr('x', 1 / 2 * vs.filters.w - 130).attr('y', 1 / 2 * vs.filters.h + 1).text('$ Given');
+    filtersText = filtersText.enter().append('text').classed('filters-text', true).merge(filtersText).attr('x', 1 / 2 * vs.filters.w - 130).attr('y', 1 / 2 * vs.filters.h).text('$ Given');
     //
     var gradeArray = ['A', 'B', 'C', 'D', 'F'];
     var gradeGs = filtersG.selectAll('g.grade-g').data(gradeArray);
     gradeGs = gradeGs.enter().append('g').classed('grade-g', true).merge(gradeGs);
     gradeGs.attr('transform', function (d, i) {
         var tx = 1 / 2 * vs.filters.w + (1 / 2 - 1 / 2 * gradeArray.length + i) * vs.filters.h;
-        var ty = 1 / 2 * vs.filters.h + 1;
+        var ty = 1 / 2 * vs.filters.h;
         return 'translate(' + tx + ',' + ty + ')';
     }).on('mouseover', function (d) {
         // ToggleGrades(false);
@@ -404,7 +405,7 @@ function UpdateFilters(source) {
         //     .UpdateMap();
     }).each(function (grade) {
         var gradeBG = d3.select(this).selectAll('rect.grade-bg').data([grade]);
-        gradeBG = gradeBG.enter().append('rect').classed('grade-bg', true).merge(gradeBG).attr('x', -1 / 2 * vs.filters.h).attr('y', -1 / 2 * vs.filters.h).attr('width', vs.filters.h).attr('height', vs.filters.h - 2);
+        gradeBG = gradeBG.enter().append('rect').classed('grade-bg', true).merge(gradeBG).attr('x', -1 / 2 * vs.filters.h).attr('y', -1 / 2 * vs.filters.h).attr('width', vs.filters.h).attr('height', vs.filters.h);
         //
         var gradeRect = d3.select(this).selectAll('rect.grade-rect').data([grade]);
         gradeRect = gradeRect.enter().append('rect').classed('grade-rect', true).merge(gradeRect).classed('inactive', function (d) {
@@ -468,7 +469,7 @@ function UpdateInfo() {
     //
     var infoImageGs = infoG.selectAll('g.info-image-g').data(infoData);
     infoImageGs = infoImageGs.enter().append('g').classed('info-image-g', true).each(function (datum) {
-        d3.select(this).append('image').attr('x', 0).attr('y', 0).attr('width', vs.info.w).attr('height', vs.info.h).attr('xlink:href', function () {
+        d3.select(this).append('image').attr('x', 0).attr('y', 0).attr('width', vs.info.w).attr('height', vs.info.w * vs.info.ratioImageWH).attr('xlink:href', function () {
             if (!allTopIds.includes(datum.id)) {
                 return 'img/mu.png';
             } else {
@@ -485,7 +486,9 @@ function UpdateInfo() {
     });
     //
     var infoTextGs = infoG.selectAll('g.info-text-g').data(infoData);
-    infoTextGs = infoTextGs.enter().append('g').classed('info-text-g', true).attr('transform', 'translate(' + vs.info.w / 2 + ',' + vs.info.h + ')').each(function (datum) {
+    infoTextGs = infoTextGs.enter().append('g').classed('info-text-g', true).attr('transform', function () {
+        return 'translate(' + vs.info.w / 2 + ',' + vs.info.w * vs.info.ratioImageWH + ')';
+    }).each(function (datum) {
         d3.select(this).append('text').attr('x', 0).attr('y', 1 * 15).text(datum.id);
         d3.select(this).append('text').attr('x', 0).attr('y', 2 * 15).text('State: ' + datum.state);
         d3.select(this).append('text').attr('x', 0).attr('y', 3 * 15).text('Given: ' + d3.format('$,')(datum.$Given));
@@ -514,7 +517,7 @@ function UpdatePageDimensions() {
         vs.map.w = vs.map.wMin;
         vs.svg.w = vs.map.wMin + vs.info.w;
     }
-    vs.map.h = vs.map.w / vs.map.ratioWH;
+    vs.map.h = vs.map.w / vs.map.ratioMapWH;
     vs.svg.h = Math.max(vs.map.h, vs.info.h) + vs.filters.h;
     vs.filters.w = vs.map.w;
     //
@@ -530,7 +533,9 @@ function UpdatePageDimensions() {
     //
     statesSelect.style('margin-left', (vs.map.w - vs.statesSelect.w) / 2 + 'px').style('margin-right', (vs.map.w - vs.statesSelect.w) / 2 + 'px');
     //
-    UpdateFilters();
+    if (vs.filters.h) {
+        UpdateFilters();
+    }
     //
     // UpdateHover('event');
     //
