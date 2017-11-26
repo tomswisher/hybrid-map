@@ -9,9 +9,9 @@
 // -------------------------------------------------------------------------------------------------
 // Globl Settings
 
-var transitionDuration = 250;
+var defaultRadius = 6;
+var transitionDuration = 300;
 var transitionEase = d3.easeCubic;
-var defaultRadius = 5;
 
 // -------------------------------------------------------------------------------------------------
 // Performance
@@ -21,8 +21,7 @@ var logsLvl1 = 0;
 var logsLvl2 = 0;
 var logsTest = 1 && performance && performance.memory;
 var memWatch = 0 && performance && performance.memory ? MemoryTester() : 0;
-var mobileOptions = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-var isMobile = navigator && mobileOptions.test(navigator.userAgent);
+var resizeWait = 250;
 var resizingCounter = 0;
 var stackLvl = 0;
 var nodesCount = 0;
@@ -34,6 +33,8 @@ var nStr = '';
 var uStr = '';
 var tStr = '';
 var testStr = '';
+var mobileOptions = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+var isMobile = navigator && mobileOptions.test(navigator.userAgent);
 
 // -------------------------------------------------------------------------------------------------
 // Window Variables
@@ -58,23 +59,22 @@ window.onload = function () {
     d3.queue().defer(d3.json, 'data/us-states-features.json').defer(d3.json, 'data/nodes-edges-04-06-2017.json').awaitAll(InitializePage);
 };
 window.onresize = function () {
+    if (resizingCounter === 0) {
+        console.log('Waiting to resize...');
+    }
     resizingCounter += 1;
-    body.classed('resizing', true);
-    console.log(''.padStart(resizingCounter * 2, ' ') + resizingCounter);
+    // console.log(''.padStart(resizingCounter*2,' ')+resizingCounter);
     setTimeout(function () {
         if (resizingCounter > 1) {
             resizingCounter -= 1;
         } else if (resizingCounter === 1) {
             resizingCounter = 0;
-            body.classed('resizing', false);
             UpdatePageDimensions();
-        } else {
-            //
         }
-        console.log(''.padStart(resizingCounter * 2, ' ') + resizingCounter);
-    }, 500);
+        // console.log(''.padStart(resizingCounter*2,' ')+resizingCounter);
+    }, resizeWait);
 };
-var allTopIds = ['Alice Walton', 'Carrie Walton Penner', 'Dorris Fisher', 'Eli Broad', 'Greg Penner', 'Jim Walton', 'John Arnold', 'Jonathan Sackler', 'Laura Arnold', 'Laurene Powell Jobs', 'Michael Bloomberg', 'Reed Hastings', 'Stacy Schusterman'];
+var topIds = ['Alice Walton', 'Carrie Walton Penner', 'Jim Walton', 'Dorris Fisher', 'Eli Broad', 'Greg Penner', 'Jonathan Sackler', 'Laurene Powell Jobs', 'Michael Bloomberg', 'Reed Hastings', 'Stacy Schusterman', 'John Arnold', 'Laura Arnold'];
 var mapObj = null;
 var graphObj = null;
 var stateSelected = '';
@@ -256,17 +256,17 @@ function MapClass() {
             _$GivenByState[edge.source.state] += edge.dollars;
             _$ReceivedByState[edge.target.state] += edge.dollars;
             //
-            edge.isTopId = allTopIds.includes(edge.source.id) || allTopIds.includes(edge.target.id);
-            if (edge.isTopId) {
-                edge.source.isTopId = true;
-                edge.target.isTopId = true;
+            edge.topId = topIds.includes(edge.source.id) || topIds.includes(edge.target.id);
+            if (edge.topId) {
+                edge.source.topId = true;
+                edge.target.topId = true;
             }
         });
         _edges = _edges.filter(function (edge) {
-            return edge.isTopId;
+            return edge.topId;
         });
         _vertices = _vertices.filter(function (vertice) {
-            return vertice.isTopId;
+            return vertice.topId;
         });
         return that;
     };
@@ -321,13 +321,15 @@ function MapClass() {
         statePaths.each(function (d) {
             _centroidByState[d.properties.ansi] = _path.centroid(d);
         }).classed('inactive', function (d) {
-            return isNaN(d.$Given) && isNaN(d.$Received);
+            return true;
+            // return isNaN(d.$Given) && isNaN(d.$Received);
         }).attr('d', _path).style('opacity', function (d) {
             // if (stateSelected === d.properties.ansi) { return vs.map.selectedOpacity; }
             return 1;
-        }).style('fill', function (d) {
-            return vs.colorScale(5 * _$GivenByStateScale(d.$Given));
         });
+        // .style('fill', function(d) {
+        //     return vs.colorScale(5*_$GivenByStateScale(d.$Given));
+        // });
         //
         TestApp('UpdateMap');
         return that;
@@ -471,7 +473,7 @@ function UpdateInfo() {
     var infoImageGs = infoG.selectAll('g.info-image-g').data(infoData);
     infoImageGs = infoImageGs.enter().append('g').classed('info-image-g', true).each(function (datum) {
         d3.select(this).append('image').attr('x', 0).attr('y', 0).attr('width', vs.info.w).attr('height', vs.info.w * vs.info.ratioImageWH).attr('xlink:href', function () {
-            if (!allTopIds.includes(datum.id)) {
+            if (!topIds.includes(datum.id)) {
                 return 'img/mu.png';
             } else {
                 return 'img/' + datum.id + '.jpg';
@@ -706,24 +708,45 @@ function GraphClass() {
         });
         //
         verticeCircles = verticesG.selectAll('circle.vertice-circle').data(mapObj.vertices());
-        verticeCircles = verticeCircles.enter().append('circle').classed('vertice-circle', true).on('mouseover', function (d) {
+        verticeCircles = verticeCircles.enter().append('circle').classed('vertice-circle', true)
+        // .on('click', function(d) {
+        //     if (!d.selected) {
+        //         d.selected = true;
+        //         d.fx = d.x;
+        //         d.fy = d.y;
+        //     } else {
+        //         delete(d.selected);
+        //         d.fx = null;
+        //         d.fy = null;
+        //     }
+        //     that
+        //         .UpdateNodesEdges();
+        // })
+        .on('mouseover', function (d) {
+            // d.fx = d.x;
+            // d.fy = d.y;
             nodeSelected = d;
             that.UpdateNodesEdges();
-            // .UpdateSimulation();
             UpdateInfo();
-        }).on('mouseout', function () {
+        }).on('mouseout', function (d) {
+            // d.fx = null;
+            // d.fy = null;
             nodeSelected = null;
             that.UpdateNodesEdges();
-            // .UpdateSimulation();
             UpdateInfo();
-        }).each(function (d) {
+        })
+        // .call(d3.drag()
+        //     .on('start', _DragStarted)
+        //     .on('drag', _Dragged)
+        //     .on('end', _DragEnded))
+        .each(function (d) {
             d.x = mapObj.centroidByState()[d.state][0];
             d.y = mapObj.centroidByState()[d.state][1];
         }).attr('cx', function (d) {
             return d.x;
         }).attr('cy', function (d) {
             return d.y;
-        }).call(d3.drag().on('start', _DragStarted).on('drag', _Dragged).on('end', _DragEnded)).merge(verticeCircles);
+        }).merge(verticeCircles);
         verticeCircles.each(function (d) {
             d.r = defaultRadius;
             // if (nodeSelected && nodeSelected.id === d.id) {
@@ -734,8 +757,11 @@ function GraphClass() {
             //     d.r = 2+15*Math.sqrt(mapObj.$GivenByVerticeScale()(d.$Given));
             // }
         }).style('fill', function (d) {
+            if (d.selected) {
+                return 'red';
+            }
             return 'white';
-            // if (allTopIds.includes(d.id)) {
+            // if (topIds.includes(d.id)) {
             //     return 'white';
             // }
             // var fillValue = mapObj.$GivenByStateScale()(mapObj.$GivenByState()[d.state]);
@@ -767,11 +793,9 @@ function GraphClass() {
         }).attr('y2', function (d) {
             return d.target.y;
         }).merge(edgeLines);
-        edgeLines
-        // .transition().duration(transitionDuration).ease(transitionEase)
-        .style('opacity', function (d) {
+        edgeLines.transition().duration(transitionDuration).ease(transitionEase).style('opacity', function (d) {
             // var opacityValue = 1 - (1/5)*mapObj.$GivenByStateScale()(d.source.$Given);
-            var opacityValue = 0.1;
+            var opacityValue = 1;
             if (!nodeSelected) {
                 return opacityValue;
             } else if (nodeSelected.id === d.source.id || nodeSelected.id === d.target.id) {
@@ -895,25 +919,30 @@ function GraphClass() {
         return force;
     }
     //
-    function _DragStarted(d) {
-        if (!d3.event.active) {
-            that.simulation.alphaTarget(0.3).restart();
-        }
-        d.fx = d.x;
-        d.fy = d.y;
-    }
+    function _DragStarted(d) {}
+    // if (!d3.event.active) { that.simulation.alphaTarget(0.3).restart(); }
+    // d.fx = d.x;
+    // d.fy = d.y;
+    // d._x = d.x;
+    // d._y = d.y;
+
     //
     function _Dragged(d) {
-        d.fx = d3.event.x;
-        d.fy = d3.event.y;
+        console.log('_Dragged');
+        // d.fx = d3.event.x;
+        // d.fy = d3.event.y;
+        d.x = d3.event.x;
+        d.y = d3.event.y;
+        _Tick();
     }
     //
     function _DragEnded(d) {
-        if (!d3.event.active) {
-            that.simulation.alphaTarget(0);
-        }
-        d.fx = null;
-        d.fy = null;
+        // if (!d3.event.active) { that.simulation.alphaTarget(0); }
+        // d.fx = null;
+        // d.fy = null;
+        // d.x = d._x;
+        // d.y = d._y;
+        _Tick();
     }
     //
     function _Tick() {
