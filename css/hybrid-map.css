@@ -25,7 +25,7 @@ body {
 }
 #main-svg circle.vertice-circle {
   stroke: black;
-  stroke-width: 1.5px;
+  stroke-width: 2px;
 }
 #main-svg line.edge-line {
   stroke: black;
@@ -73,8 +73,8 @@ body {
 }
 .option-div > * {
   font-size: 14px;
-  height: 30px;
-  line-height: 30px;
+  height: 28px;
+  line-height: 28px;
 }
 .option-div label {
   display: inline-block;
@@ -135,7 +135,7 @@ rect.inactive,
 path.inactive {
   pointer-events: none !important;
   fill: gainsboro !important;
-  opacity: 0.5 !important;
+  opacity: 0.7 !important;
 }
 rect.inactive,
 text.inactive {
@@ -160,12 +160,12 @@ text.inactive {
 }
 #memory-container div {
   display: inline-block;
-  width: 100%;
+  width: 400px;
   height: 16px;
 }
 #memory-container div.cell {
   display: inline-block;
-  width: 50%;
+  width: 200px;
   height: auto;
 }
 #memory-container div.min {
