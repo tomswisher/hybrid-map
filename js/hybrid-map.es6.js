@@ -60,20 +60,21 @@ window.onload = function() {
         .awaitAll(InitializePage);
 };
 window.onresize = function() {
-    resizingCounter = Math.max(1, resizingCounter + 1); // restart a negative counter
+    resizingCounter += 1;
     body.classed('resizing', true);
-    // console.log(''.padStart(resizingCounter*2,' ')+resizingCounter);
+    console.log(''.padStart(resizingCounter*2,' ')+resizingCounter);
     setTimeout(function() {
-        if (resizingCounter >= 1) {
+        if (resizingCounter > 1) {
             resizingCounter -= 1;
-            // console.log(''.padStart(resizingCounter*2,' ')+resizingCounter);
-        }
-        if (resizingCounter === 0) {
-            resizingCounter = -1;
+        } else if (resizingCounter === 1) {
+            resizingCounter = 0;
             body.classed('resizing', false);
             UpdatePageDimensions();
+        } else {
+            //
         }
-    }, 200);
+        console.log(''.padStart(resizingCounter*2,' ')+resizingCounter);
+    }, 500);
 };
 var allTopIds = [
     'Alice Walton',

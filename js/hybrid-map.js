@@ -57,20 +57,21 @@ window.onload = function () {
     d3.queue().defer(d3.json, 'data/us-states-features.json').defer(d3.json, 'data/nodes-edges-04-06-2017.json').awaitAll(InitializePage);
 };
 window.onresize = function () {
-    resizingCounter = Math.max(1, resizingCounter + 1); // restart a negative counter
+    resizingCounter += 1;
     body.classed('resizing', true);
-    // console.log(''.padStart(resizingCounter*2,' ')+resizingCounter);
+    console.log(''.padStart(resizingCounter * 2, ' ') + resizingCounter);
     setTimeout(function () {
-        if (resizingCounter >= 1) {
+        if (resizingCounter > 1) {
             resizingCounter -= 1;
-            // console.log(''.padStart(resizingCounter*2,' ')+resizingCounter);
-        }
-        if (resizingCounter === 0) {
-            resizingCounter = -1;
+        } else if (resizingCounter === 1) {
+            resizingCounter = 0;
             body.classed('resizing', false);
             UpdatePageDimensions();
+        } else {
+            //
         }
-    }, 200);
+        console.log(''.padStart(resizingCounter * 2, ' ') + resizingCounter);
+    }, 500);
 };
 var allTopIds = ['Alice Walton', 'Carrie Walton Penner', 'Dorris Fisher', 'Eli Broad', 'Greg Penner', 'Jim Walton', 'John Arnold', 'Jonathan Sackler', 'Laura Arnold', 'Laurene Powell Jobs', 'Michael Bloomberg', 'Reed Hastings', 'Stacy Schusterman'];
 var mapObj = null;
