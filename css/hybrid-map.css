@@ -17,19 +17,21 @@ body {
   font-size: 14px;
 }
 #main-svg #main-bg-rect {
-  opacity: 0;
+  fill: lightblue;
 }
 #main-svg path.state-path {
-  stroke: white;
+  stroke: lightblue;
   stroke-width: 2px;
+}
+#main-svg path.state-path.inactive {
+  pointer-events: none !important;
+  fill: white !important;
 }
 #main-svg circle.vertice-circle {
-  stroke: black;
-  stroke-width: 2px;
+  stroke-width: 1.5px;
 }
 #main-svg line.edge-line {
-  stroke: black;
-  stroke-width: 2px;
+  stroke-width: 1.5px;
   pointer-events: none;
 }
 #main-svg #hover-g {
@@ -96,12 +98,17 @@ body {
 #simulation-div label.slider-value {
   text-align: left;
 }
+#info-g rect.info-bg-rect {
+  stroke: gainsboro;
+  fill: white;
+}
 #info-g g.info-image-g image {
   pointer-events: none;
 }
 #info-g g.info-text-g text {
   dominant-baseline: middle;
   text-anchor: middle;
+  pointer-events: none;
 }
 .vspacer-10 {
   height: 10px;
@@ -130,16 +137,6 @@ body {
 }
 .loading {
   opacity: 0;
-}
-rect.inactive,
-path.inactive {
-  pointer-events: none !important;
-  fill: gainsboro !important;
-  opacity: 0.7 !important;
-}
-rect.inactive,
-text.inactive {
-  transform: translate(2px, 2px) !important;
 }
 .collapsed {
   visibility: hidden;

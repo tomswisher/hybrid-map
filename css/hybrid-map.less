@@ -12,6 +12,8 @@
 @labelSmallWidth: 80px;
 @labelMediumWidth: 150px;
 @sliderWidth: 200px;
+@bgColor: lightblue;
+@inactiveColor: white;
 
 body {
     margin: 0px;
@@ -22,21 +24,22 @@ body {
 #main-svg {
     font-size: @font1Size;
     #main-bg-rect {
-        opacity: 0;
+        fill: @bgColor;
     }
     path.state-path {
-        stroke: white;
+        stroke: @bgColor;
         stroke-width: 2px;
+        &.inactive {
+            pointer-events: none !important;
+            fill: @inactiveColor !important;
+            // transform: translate(2px,2px) !important;
+        }
     }
     circle.vertice-circle {
-        // fill: purple;
-        stroke: black;
-        stroke-width: 2px;
+        stroke-width: 1.5px;
     }
     line.edge-line {
-        // visibility: hidden;
-        stroke: black;
-        stroke-width: 2px;
+        stroke-width: 1.5px;
         pointer-events: none;
     }
     #hover-g {
@@ -108,15 +111,20 @@ body {
     }
 }
 #info-g {
+    rect.info-bg-rect {
+        stroke: gainsboro;
+        fill: @inactiveColor;
+    }
     g.info-image-g {
         image {
             pointer-events: none;
         }
     }
     g.info-text-g {
-        text{
+        text {
             dominant-baseline: middle;
             text-anchor: middle;
+            pointer-events: none;
         }
     }
 }
@@ -147,16 +155,6 @@ body {
 }
 .loading {
     opacity: 0;
-}
-.inactive {
-    rect&, path& {
-        pointer-events: none !important;
-        fill: gainsboro !important;
-        opacity: 0.7 !important;
-    }
-    rect&, text& {
-        transform: translate(2px,2px) !important;
-    }
 }
 .collapsed {
     visibility: hidden;
