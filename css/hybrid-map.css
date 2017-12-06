@@ -46,16 +46,16 @@ body {
   stroke-width: 0px;
   fill: white;
 }
-#main-svg #filters-g rect.grade-bg {
+#main-svg #grades-g rect.grade-bg {
   opacity: 0;
 }
-#main-svg #filters-g rect.grade-rect {
+#main-svg #grades-g rect.grade-rect {
   stroke: black;
   stroke-width: 0px;
   pointer-events: none;
 }
-#main-svg #filters-g text.grade-label,
-#main-svg #filters-g text.filters-text {
+#main-svg #grades-g text.grade-label,
+#main-svg #grades-g text.grades-text {
   dominant-baseline: middle;
   text-anchor: middle;
   pointer-events: none;

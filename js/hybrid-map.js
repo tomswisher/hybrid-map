@@ -52,8 +52,9 @@ var edgeLines = edgesG.selectAll('line.edge-line');
 var hoverG = body.select('#hover-g');
 var hoverRect = body.select('#hover-rect');
 var hoverText = body.select('#hover-text');
-var filtersG = body.select('#filters-g');
-var defs = filtersG.append('defs');
+var gradesG = body.select('#grades-g');
+var gradeGs = gradesG.selectAll('g.grade-g');
+var defs = gradesG.append('defs');
 var statesSelect = body.select('#states-select');
 var optionsContainer = body.select('#options-container');
 var infoG = body.select('#info-g');
@@ -86,6 +87,7 @@ var nodeSelected = null;
 var linksSelected = [];
 var infoData = [];
 var visibleGrades = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
+var gradeArray = ['A', 'B', 'C', 'D', 'F'];
 var isDragging = false;
 
 // -------------------------------------------------------------------------------------------------
@@ -113,12 +115,10 @@ var vs = {
         margin: 5,
         textRowH: 15
     },
-    filters: {
+    grades: {
         w: null,
-        h: null,
-        hGrades: 0,
-        hCheckBoxes: 0,
-        gradeMargin: 2.5
+        h: 0,
+        margin: 3
     },
     hover: {
         w: null,
@@ -137,7 +137,6 @@ var vs = {
 vs.info.wImage = vs.info.w - 2 * vs.info.margin;
 vs.info.hImage = vs.info.wImage / vs.info.ratioImageWH;
 vs.info.h = vs.info.hImage + 4 * vs.info.textRowH + 3 * vs.info.margin;
-vs.filters.h = vs.filters.hGrades + vs.filters.hCheckBoxes;
 vs.colorScale = d3.scaleQuantize().domain([0, 5]).range(vs.gradeColorArray);
 defs.append('filter').attr('id', 'drop-shadow').attr('height', '130%') // so the shadow is not clipped
 .attr('width', '120%').each(function () {
@@ -315,7 +314,7 @@ function MapClass() {
         _path.projection(_projection);
         //
         statesG.attr('transform', function () {
-            return 'translate(' + 0 + ',' + (vs.svg.h - vs.filters.h - vs.map.h) / 2 + ')';
+            return 'translate(' + 0 + ',' + 0.5 * (vs.svg.h - vs.grades.h - vs.map.h) + ')';
         });
         //
         var statePaths = statesG.selectAll('path.state-path').data(_mapFeatures, function (d) {
@@ -392,44 +391,48 @@ function ToggleGrades(bool) {
     visibleGrades['A'] = visibleGrades['B'] = visibleGrades['C'] = visibleGrades['D'] = visibleGrades['F'] = bool;
 }
 
-function UpdateFilters(source) {
-    // TestApp('UpdateFilters', 1);
-    if (logsLvl2) console.log('UpdateFilters   ' + source);
+function UpdateGrades(source) {
+    // TestApp('UpdateGrades', 1);
+    if (logsLvl2) console.log('UpdateGrades   ' + source);
     //
-    filtersG.attr('transform', function () {
+    gradesG.attr('transform', function () {
         return 'translate(' + 0 + ',' + vs.map.h + ')';
     });
-    var rectSize = Math.max(0, vs.filters.h - 2 * vs.filters.gradeMargin - 2);
     //
-    var filtersText = filtersG.selectAll('text.filters-text').data([null]);
-    filtersText = filtersText.enter().append('text').classed('filters-text', true).merge(filtersText).attr('x', 0.5 * vs.filters.w - 130).attr('y', 0.5 * vs.filters.h).text('$ Given');
+    // var gradesText = gradesG.selectAll('text.grades-text')
+    //     .data([null]);
+    // gradesText = gradesText.enter().append('text')
+    //     .classed('grades-text', true)
+    //     .merge(gradesText)
+    //     .attr('x', 0.5*vs.grades.w-130)
+    //     .attr('y', 0.5*vs.grades.h)
+    //     .text('$ Given');
     //
-    var gradeArray = ['A', 'B', 'C', 'D', 'F'];
-    var gradeGs = filtersG.selectAll('g.grade-g').data(gradeArray);
+    gradeGs = gradesG.selectAll('g.grade-g').data(gradeArray);
     gradeGs = gradeGs.enter().append('g').classed('grade-g', true).merge(gradeGs);
     gradeGs.attr('transform', function (d, i) {
-        var tx = 0.5 * vs.filters.w + (0.5 - 0.5 * gradeArray.length + i) * vs.filters.h;
-        var ty = 0.5 * vs.filters.h;
+        var tx = 0.5 * vs.grades.w + (0.5 - 0.5 * gradeArray.length + i) * vs.grades.h;
+        var ty = 0.5 * vs.grades.h - 2;
         return 'translate(' + tx + ',' + ty + ')';
     }).on('mouseover', function (d) {
         // ToggleGrades(false);
         // visibleGrades[d] = true;
-        // UpdateFilters();
+        // UpdateGrades();
         // mapObj
         //     .UpdateMap();
     }).on('mouseout', function (d) {
         // ToggleGrades(true);
-        // UpdateFilters();
+        // UpdateGrades();
         // mapObj
         //     .UpdateMap();
     }).each(function (grade) {
         var gradeBG = d3.select(this).selectAll('rect.grade-bg').data([grade]);
-        gradeBG = gradeBG.enter().append('rect').classed('grade-bg', true).merge(gradeBG).attr('x', -0.5 * vs.filters.h).attr('y', -0.5 * vs.filters.h).attr('width', vs.filters.h).attr('height', vs.filters.h);
+        gradeBG = gradeBG.enter().append('rect').classed('grade-bg', true).merge(gradeBG).attr('x', -0.5 * vs.grades.h).attr('y', -0.5 * vs.grades.h).attr('width', vs.grades.h).attr('height', vs.grades.h);
         //
         var gradeRect = d3.select(this).selectAll('rect.grade-rect').data([grade]);
         gradeRect = gradeRect.enter().append('rect').classed('grade-rect', true).merge(gradeRect).classed('inactive', function (d) {
             return !visibleGrades[d];
-        }).attr('x', -0.5 * rectSize).attr('y', -0.5 * rectSize).attr('width', rectSize).attr('height', rectSize).style('filter', function (d) {
+        }).attr('x', -0.5 * Math.max(0, vs.grades.h - 2 * vs.grades.margin)).attr('y', -0.5 * Math.max(0, vs.grades.h - 2 * vs.grades.margin)).attr('width', Math.max(0, vs.grades.h - 2 * vs.grades.margin)).attr('height', Math.max(0, vs.grades.h - 2 * vs.grades.margin)).style('filter', function (d) {
             return visibleGrades[d] ? 'url(#drop-shadow)' : null;
         }).style('fill', function (d) {
             return vs.colorScale(['F', 'D', 'C', 'B', 'A'].indexOf(d));
@@ -443,7 +446,9 @@ function UpdateFilters(source) {
         });
     });
     //
-    TestApp('UpdateFilters');
+
+    //
+    TestApp('UpdateGrades');
 }
 
 function UpdateStatesSelect(source) {
@@ -533,12 +538,12 @@ function UpdatePageDimensions() {
         vs.svg.w = vs.map.wMin + vs.info.w;
     }
     vs.map.h = vs.map.w / vs.map.ratioMapWH;
-    vs.svg.h = Math.max(vs.map.h, vs.info.h) + vs.filters.h;
-    vs.filters.w = vs.map.w;
+    vs.svg.h = Math.max(vs.map.h, vs.info.h) + vs.grades.h;
+    vs.grades.w = vs.map.w;
     //
     mainSVG.attr('width', vs.svg.w).attr('height', vs.svg.h);
     //
-    mainBGRect.attr('width', vs.map.w).attr('height', vs.svg.h);
+    mainBGRect.attr('width', vs.map.w).attr('height', vs.map.h);
     //
     mainClipPathRect.attr('width', vs.map.w).attr('height', vs.svg.h);
     //
@@ -550,8 +555,8 @@ function UpdatePageDimensions() {
     //
     statesSelect.style('margin-left', (vs.map.w - vs.statesSelect.w) / 2 + 'px').style('margin-right', (vs.map.w - vs.statesSelect.w) / 2 + 'px');
     //
-    if (vs.filters.h) {
-        UpdateFilters();
+    if (vs.grades.h) {
+        UpdateGrades();
     }
     //
     // UpdateHover('event');
@@ -721,7 +726,7 @@ function GraphClass() {
     that.UpdateNodesEdges = function () {
         // TestApp('UpdateNodesEdges', 1);
         verticesG.attr('transform', function () {
-            return 'translate(' + 0 + ',' + (vs.svg.h - vs.filters.h - vs.map.h) / 2 + ')';
+            return 'translate(' + 0 + ',' + (vs.svg.h - vs.grades.h - vs.map.h) / 2 + ')';
         });
         //
         var iCount = 0;
@@ -833,7 +838,7 @@ function GraphClass() {
         });
         //
         edgesG.attr('transform', function () {
-            return 'translate(' + 0 + ',' + (vs.svg.h - vs.filters.h - vs.map.h) / 2 + ')';
+            return 'translate(' + 0 + ',' + (vs.svg.h - vs.grades.h - vs.map.h) / 2 + ')';
         });
         //
         edgeLines = edgesG.selectAll('line.edge-line').data(mapObj.edges());
