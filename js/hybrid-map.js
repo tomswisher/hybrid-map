@@ -83,12 +83,13 @@ window.onresize = function () {
 var topIds = ['Alice Walton', 'Carrie Walton Penner', 'Jim Walton', 'Dorris Fisher', 'Eli Broad', 'Greg Penner', 'Jonathan Sackler', 'Laurene Powell Jobs', 'Michael Bloomberg', 'Reed Hastings', 'Stacy Schusterman', 'John Arnold', 'Laura Arnold'];
 var mapObj = null;
 var graphObj = null;
+var infoData = [];
+var filtersDatum = {};
 var stateSelected = '';
+var isDragging = false;
 var nodeSelected = null;
 var linksSelected = [];
-var infoData = [];
 var gradesObj = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
-var isDragging = false;
 
 // -------------------------------------------------------------------------------------------------
 // Visual Styles
@@ -128,6 +129,10 @@ var vs = {
     statesSelect: {
         w: 100,
         h: 0
+    },
+    filters: {
+        w: null,
+        h: 50
     },
     options: {},
     // gradeColorArray: ['rgb(50,50,50)','rgb(28,44,160)','rgb(240,6,55)','rgb(251,204,12)','rgb(239,230,221)'], /*BH1*/
@@ -525,9 +530,11 @@ function UpdatePageDimensions() {
     if (clientWidth >= vs.map.wMin + vs.info.w) {
         vs.map.w = clientWidth - vs.info.w;
         vs.svg.w = clientWidth;
+        vs.filters.w = clientWidth;
     } else {
         vs.map.w = vs.map.wMin;
         vs.svg.w = vs.map.wMin + vs.info.w;
+        vs.filters.w = clientWidth;
     }
     vs.map.h = vs.map.w / vs.map.ratioMapWH;
     vs.svg.h = Math.max(vs.map.h, vs.info.h) + vs.grades.h;
@@ -541,7 +548,7 @@ function UpdatePageDimensions() {
     //
     mapObj.width(vs.map.w).height(vs.map.h).UpdateMap('UpdatePageDimensions');
     //
-    graphObj.UpdateNodesEdges().UpdateSimulation();
+    graphObj.UpdateNodesEdges().UpdateSimulation().UpdateFilters();
     //
     UpdateInfo();
     //
@@ -926,6 +933,21 @@ function GraphClass() {
         return that;
     };
     //
+    that.UpdateFilters = function () {
+        filtersContainer.style('width', vs.filters.w + 'px');
+        //
+        var filtersYears = filtersContainer.selectAll('div.filters-year').data(['2011', '2012', '2013', '2014', '2015', '2016', '2017']);
+        filtersYears = filtersYears.enter().append('div').classed('filters-year', true).each(function (year) {
+            d3.select(this).append('div').style('width', '50px').style('height', '50px').text(year);
+            d3.select(this).append('input').each(function () {
+                this.checked = true;
+                filtersDatum[year] = this.checked;
+            }).attr('type', 'checkbox').on('change', function () {
+                filtersDatum[year] = this.checked;
+            });
+        }).style('width', '14.28%');
+    };
+    //
     that.UpdateOptions = function () {
         // TestApp('UpdateOptions', 1);
         //
@@ -958,7 +980,7 @@ function GraphClass() {
                         optionDatum.value = parseFloat(this.value);
                     }
                     that.simulation.alpha(0);
-                    that.UpdateSimulation().UpdateOptions();
+                    that.UpdateSimulation().UpdateFilters().UpdateOptions();
                 });
             }
             if (optionDatum.max !== undefined) {
