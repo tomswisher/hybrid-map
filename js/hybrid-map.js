@@ -56,6 +56,7 @@ var gradesG = body.select('#grades-g');
 var gradeGs = gradesG.selectAll('g.grade-g');
 var defs = gradesG.append('defs');
 var statesSelect = body.select('#states-select');
+var filtersContainer = body.select('#filters-container');
 var optionsContainer = body.select('#options-container');
 var infoG = body.select('#info-g');
 var infoImageGs = infoG.selectAll('g.info-image-g');
@@ -86,8 +87,7 @@ var stateSelected = '';
 var nodeSelected = null;
 var linksSelected = [];
 var infoData = [];
-var visibleGrades = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
-var gradeArray = ['A', 'B', 'C', 'D', 'F'];
+var gradesObj = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
 var isDragging = false;
 
 // -------------------------------------------------------------------------------------------------
@@ -184,7 +184,7 @@ function InitializePage(error, results) {
     UpdatePageDimensions();
     //
     requestAnimationFrame(function () {
-        graphObj.UpdateForceSliders();
+        graphObj.UpdateOptions();
         body.classed('loading', false);
     });
     //
@@ -313,10 +313,6 @@ function MapClass() {
         _projection.scale(_width * vs.map.projectionScale).translate([_width / 2, _height / 2]);
         _path.projection(_projection);
         //
-        statesG.attr('transform', function () {
-            return 'translate(' + 0 + ',' + 0.5 * (vs.svg.h - vs.grades.h - vs.map.h) + ')';
-        });
-        //
         var statePaths = statesG.selectAll('path.state-path').data(_mapFeatures, function (d) {
             return d.properties.ansi;
         });
@@ -387,10 +383,6 @@ function UpdateHover(source) {
     TestApp('UpdateHover');
 }
 
-function ToggleGrades(bool) {
-    visibleGrades['A'] = visibleGrades['B'] = visibleGrades['C'] = visibleGrades['D'] = visibleGrades['F'] = bool;
-}
-
 function UpdateGrades(source) {
     // TestApp('UpdateGrades', 1);
     if (logsLvl2) console.log('UpdateGrades   ' + source);
@@ -408,20 +400,20 @@ function UpdateGrades(source) {
     //     .attr('y', 0.5*vs.grades.h)
     //     .text('$ Given');
     //
-    gradeGs = gradesG.selectAll('g.grade-g').data(gradeArray);
+    gradeGs = gradesG.selectAll('g.grade-g').data(['A', 'B', 'C', 'D', 'F']);
     gradeGs = gradeGs.enter().append('g').classed('grade-g', true).merge(gradeGs);
     gradeGs.attr('transform', function (d, i) {
-        var tx = 0.5 * vs.grades.w + (0.5 - 0.5 * gradeArray.length + i) * vs.grades.h;
+        var tx = 0.5 * vs.grades.w + (0.5 - 0.5 * ['A', 'B', 'C', 'D', 'F'].length + i) * vs.grades.h;
         var ty = 0.5 * vs.grades.h - 2;
         return 'translate(' + tx + ',' + ty + ')';
     }).on('mouseover', function (d) {
-        // ToggleGrades(false);
-        // visibleGrades[d] = true;
+        // gradesObj.A = gradesObj.B = gradesObj.C = gradesObj.D = gradesObj.F = false;
+        // gradesObj[d] = true;
         // UpdateGrades();
         // mapObj
         //     .UpdateMap();
     }).on('mouseout', function (d) {
-        // ToggleGrades(true);
+        // gradesObj.A = gradesObj.B = gradesObj.C = gradesObj.D = gradesObj.F = true;
         // UpdateGrades();
         // mapObj
         //     .UpdateMap();
@@ -431,9 +423,9 @@ function UpdateGrades(source) {
         //
         var gradeRect = d3.select(this).selectAll('rect.grade-rect').data([grade]);
         gradeRect = gradeRect.enter().append('rect').classed('grade-rect', true).merge(gradeRect).classed('inactive', function (d) {
-            return !visibleGrades[d];
+            return !gradesObj[d];
         }).attr('x', -0.5 * Math.max(0, vs.grades.h - 2 * vs.grades.margin)).attr('y', -0.5 * Math.max(0, vs.grades.h - 2 * vs.grades.margin)).attr('width', Math.max(0, vs.grades.h - 2 * vs.grades.margin)).attr('height', Math.max(0, vs.grades.h - 2 * vs.grades.margin)).style('filter', function (d) {
-            return visibleGrades[d] ? 'url(#drop-shadow)' : null;
+            return gradesObj[d] ? 'url(#drop-shadow)' : null;
         }).style('fill', function (d) {
             return vs.colorScale(['F', 'D', 'C', 'B', 'A'].indexOf(d));
         });
@@ -442,7 +434,7 @@ function UpdateGrades(source) {
         gradeLabel = gradeLabel.enter().append('text').classed('grade-label', true).classed('button-text', true).text(function (d) {
             return d;
         }).merge(gradeLabel).classed('inactive', function (d) {
-            return !visibleGrades[d];
+            return !gradesObj[d];
         });
     });
     //
@@ -725,9 +717,6 @@ function GraphClass() {
     //
     that.UpdateNodesEdges = function () {
         // TestApp('UpdateNodesEdges', 1);
-        verticesG.attr('transform', function () {
-            return 'translate(' + 0 + ',' + (vs.svg.h - vs.grades.h - vs.map.h) / 2 + ')';
-        });
         //
         var iCount = 0;
         verticeCircles = verticesG.selectAll('circle.vertice-circle').data(mapObj.vertices());
@@ -837,10 +826,6 @@ function GraphClass() {
             }
         });
         //
-        edgesG.attr('transform', function () {
-            return 'translate(' + 0 + ',' + (vs.svg.h - vs.grades.h - vs.map.h) / 2 + ')';
-        });
-        //
         edgeLines = edgesG.selectAll('line.edge-line').data(mapObj.edges());
         edgeLines = edgeLines.enter().append('line').classed('edge-line', true).attr('x1', function (d) {
             return d.source.x;
@@ -941,8 +926,8 @@ function GraphClass() {
         return that;
     };
     //
-    that.UpdateForceSliders = function () {
-        // TestApp('UpdateForceSliders', 1);
+    that.UpdateOptions = function () {
+        // TestApp('UpdateOptions', 1);
         //
         that.optionsData = [that.simulationObj['alpha']];
         Object.keys(that.forcesObj).forEach(function (forceType) {
@@ -973,7 +958,7 @@ function GraphClass() {
                         optionDatum.value = parseFloat(this.value);
                     }
                     that.simulation.alpha(0);
-                    that.UpdateSimulation().UpdateForceSliders();
+                    that.UpdateSimulation().UpdateOptions();
                 });
             }
             if (optionDatum.max !== undefined) {
@@ -992,7 +977,7 @@ function GraphClass() {
         _alphaLabel = optionsContainer.select('label.slider-value');
         _alphaSlider = optionsContainer.select('input[type="range"]');
         //
-        TestApp('UpdateForceSliders');
+        TestApp('UpdateOptions');
         return that;
     };
     //
