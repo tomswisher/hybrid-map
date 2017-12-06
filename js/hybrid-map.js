@@ -22,7 +22,7 @@ var logsLvl1 = 0;
 var logsLvl2 = 0;
 var logsTest = 0 && performance && performance.memory;
 var memWatch = 0 && performance && performance.memory ? MemoryTester() : 0;
-var resizeWait = 200;
+var resizeWait = 150;
 var resizingCounter = 0;
 var stackLvl = 0;
 var nodesCount = 0;
@@ -113,15 +113,17 @@ var vs = {
         margin: 5,
         textRowH: 15
     },
+    filters: {
+        w: null,
+        h: null,
+        hGrades: 0,
+        hCheckBoxes: 0,
+        gradeMargin: 2.5
+    },
     hover: {
         w: null,
         h: null,
         margin: 5
-    },
-    filters: {
-        w: null,
-        h: 0,
-        gradeMargin: 2.5
     },
     statesSelect: {
         w: 100,
@@ -135,6 +137,7 @@ var vs = {
 vs.info.wImage = vs.info.w - 2 * vs.info.margin;
 vs.info.hImage = vs.info.wImage / vs.info.ratioImageWH;
 vs.info.h = vs.info.hImage + 4 * vs.info.textRowH + 3 * vs.info.margin;
+vs.filters.h = vs.filters.hGrades + vs.filters.hCheckBoxes;
 vs.colorScale = d3.scaleQuantize().domain([0, 5]).range(vs.gradeColorArray);
 defs.append('filter').attr('id', 'drop-shadow').attr('height', '130%') // so the shadow is not clipped
 .attr('width', '120%').each(function () {
@@ -394,19 +397,19 @@ function UpdateFilters(source) {
     if (logsLvl2) console.log('UpdateFilters   ' + source);
     //
     filtersG.attr('transform', function () {
-        return 'translate(' + 0 + ',' + (vs.svg.h - vs.filters.h) + ')';
+        return 'translate(' + 0 + ',' + vs.map.h + ')';
     });
     var rectSize = Math.max(0, vs.filters.h - 2 * vs.filters.gradeMargin - 2);
     //
     var filtersText = filtersG.selectAll('text.filters-text').data([null]);
-    filtersText = filtersText.enter().append('text').classed('filters-text', true).merge(filtersText).attr('x', 1 / 2 * vs.filters.w - 130).attr('y', 1 / 2 * vs.filters.h).text('$ Given');
+    filtersText = filtersText.enter().append('text').classed('filters-text', true).merge(filtersText).attr('x', 0.5 * vs.filters.w - 130).attr('y', 0.5 * vs.filters.h).text('$ Given');
     //
     var gradeArray = ['A', 'B', 'C', 'D', 'F'];
     var gradeGs = filtersG.selectAll('g.grade-g').data(gradeArray);
     gradeGs = gradeGs.enter().append('g').classed('grade-g', true).merge(gradeGs);
     gradeGs.attr('transform', function (d, i) {
-        var tx = 1 / 2 * vs.filters.w + (1 / 2 - 1 / 2 * gradeArray.length + i) * vs.filters.h;
-        var ty = 1 / 2 * vs.filters.h;
+        var tx = 0.5 * vs.filters.w + (0.5 - 0.5 * gradeArray.length + i) * vs.filters.h;
+        var ty = 0.5 * vs.filters.h;
         return 'translate(' + tx + ',' + ty + ')';
     }).on('mouseover', function (d) {
         // ToggleGrades(false);
@@ -421,7 +424,7 @@ function UpdateFilters(source) {
         //     .UpdateMap();
     }).each(function (grade) {
         var gradeBG = d3.select(this).selectAll('rect.grade-bg').data([grade]);
-        gradeBG = gradeBG.enter().append('rect').classed('grade-bg', true).merge(gradeBG).attr('x', -1 / 2 * vs.filters.h).attr('y', -1 / 2 * vs.filters.h).attr('width', vs.filters.h).attr('height', vs.filters.h);
+        gradeBG = gradeBG.enter().append('rect').classed('grade-bg', true).merge(gradeBG).attr('x', -0.5 * vs.filters.h).attr('y', -0.5 * vs.filters.h).attr('width', vs.filters.h).attr('height', vs.filters.h);
         //
         var gradeRect = d3.select(this).selectAll('rect.grade-rect').data([grade]);
         gradeRect = gradeRect.enter().append('rect').classed('grade-rect', true).merge(gradeRect).classed('inactive', function (d) {
@@ -1140,7 +1143,7 @@ function MemoryTester() {
         usedRateNode.innerHTML = MakeDiv(minRates[0], 'min', '/s') + MakeDiv(newRates[0], 'new', '/s') + MakeDiv(maxRates[0], 'max', '/s');
         totalRateNode.innerHTML = MakeDiv(minRates[1], 'min', '/s') + MakeDiv(newRates[1], 'new', '/s') + MakeDiv(maxRates[1], 'max', '/s');
         // // if (newRates[0] > 0 && newRates[1] > 0) {
-        //     itersForMean                = itersForMean + 1;
+        //     itersForMean                = itersForMean+1;
         // // }
         // if (itersForMean < 2) { return; }
         // sumRates                        = [sumRates[0]+newRates[0],sumRates[1]+newRates[1]];

@@ -22,7 +22,7 @@ var logsLvl1 = 0;
 var logsLvl2 = 0;
 var logsTest = 0 && performance && performance.memory;
 var memWatch = 0 && performance && performance.memory ? MemoryTester() : 0;
-var resizeWait = 200;
+var resizeWait = 150;
 var resizingCounter = 0;
 var stackLvl = 0;
 var nodesCount = 0;
@@ -130,15 +130,17 @@ var vs = {
         margin: 5,
         textRowH: 15,
     },
+    filters: {
+        w: null,
+        h: null,
+        hGrades: 0,
+        hCheckBoxes: 0,
+        gradeMargin: 2.5,
+    },
     hover: {
         w: null,
         h: null,
         margin: 5,
-    },
-    filters: {
-        w: null,
-        h: 0,
-        gradeMargin: 2.5,
     },
     statesSelect: {
         w: 100,
@@ -154,6 +156,7 @@ var vs = {
 vs.info.wImage = vs.info.w-2*vs.info.margin;
 vs.info.hImage = vs.info.wImage/vs.info.ratioImageWH;
 vs.info.h = vs.info.hImage+4*vs.info.textRowH+3*vs.info.margin;
+vs.filters.h = vs.filters.hGrades+vs.filters.hCheckBoxes;
 vs.colorScale = d3.scaleQuantize()
     .domain([0, 5])
     .range(vs.gradeColorArray);
@@ -433,13 +436,13 @@ function UpdateHover(source) {
                 tx = mapObj.width()/2;
                 ty = mapObj.height()/2;
             }
-            if (tx < vs.hover.w/2 + 1) {
-                tx = vs.hover.w/2 + 1;
-            } else if (tx > parseInt(mainSVG.style('width')) - vs.hover.w/2 - 1) {
-                tx = parseInt(mainSVG.style('width')) - vs.hover.w/2 - 1;
+            if (tx < vs.hover.w/2+1) {
+                tx = vs.hover.w/2+1;
+            } else if (tx > parseInt(mainSVG.style('width'))-vs.hover.w/2-1) {
+                tx = parseInt(mainSVG.style('width'))-vs.hover.w/2-1;
             }
-            if (ty < vs.hover.h + 5 + 1) {
-                ty = vs.hover.h + 5 + 1;
+            if (ty < vs.hover.h+5+1) {
+                ty = vs.hover.h+5+1;
             }
             return 'translate('+tx+','+ty+')';
         });
@@ -458,17 +461,17 @@ function UpdateFilters(source) {
     //
     filtersG
         .attr('transform', function() {
-            return 'translate('+(0)+','+(vs.svg.h-vs.filters.h)+')';
+            return 'translate('+(0)+','+(vs.map.h)+')';
         });
-    var rectSize = Math.max(0, vs.filters.h - 2*vs.filters.gradeMargin - 2);
+    var rectSize = Math.max(0, vs.filters.h-2*vs.filters.gradeMargin-2);
     //
     var filtersText = filtersG.selectAll('text.filters-text')
         .data([null]);
     filtersText = filtersText.enter().append('text')
         .classed('filters-text', true)
         .merge(filtersText)
-        .attr('x', (1/2)*vs.filters.w - 130)
-        .attr('y', (1/2)*vs.filters.h)
+        .attr('x', 0.5*vs.filters.w-130)
+        .attr('y', 0.5*vs.filters.h)
         .text('$ Given');
     //
     var gradeArray = ['A','B','C','D','F'];
@@ -479,8 +482,8 @@ function UpdateFilters(source) {
         .merge(gradeGs);
     gradeGs
         .attr('transform', function(d,i) {
-            var tx = (1/2)*vs.filters.w + (1/2-1/2*gradeArray.length+i)*vs.filters.h;
-            var ty = (1/2)*vs.filters.h;
+            var tx = 0.5*vs.filters.w+(0.5-0.5*gradeArray.length+i)*vs.filters.h;
+            var ty = 0.5*vs.filters.h;
             return 'translate('+tx+','+ty+')';
         })
         .on('mouseover', function(d) {
@@ -502,8 +505,8 @@ function UpdateFilters(source) {
             gradeBG = gradeBG.enter().append('rect')
                 .classed('grade-bg', true)
                 .merge(gradeBG)
-                .attr('x', (-1/2)*vs.filters.h)
-                .attr('y', (-1/2)*vs.filters.h)
+                .attr('x', (-0.5)*vs.filters.h)
+                .attr('y', (-0.5)*vs.filters.h)
                 .attr('width', vs.filters.h)
                 .attr('height', vs.filters.h);
             //
@@ -653,15 +656,15 @@ function UpdatePageDimensions() {
     //
     var source = 'UpdatePageDimensions';
     var clientWidth = body.node().clientWidth;
-    if (clientWidth >= vs.map.wMin + vs.info.w) {
-        vs.map.w = clientWidth - vs.info.w;
+    if (clientWidth >= vs.map.wMin+vs.info.w) {
+        vs.map.w = clientWidth-vs.info.w;
         vs.svg.w = clientWidth;
     } else {
         vs.map.w = vs.map.wMin;
-        vs.svg.w = vs.map.wMin + vs.info.w;
+        vs.svg.w = vs.map.wMin+vs.info.w;
     }
     vs.map.h = vs.map.w/vs.map.ratioMapWH;
-    vs.svg.h = Math.max(vs.map.h, vs.info.h) + vs.filters.h;
+    vs.svg.h = Math.max(vs.map.h, vs.info.h)+vs.filters.h;
     vs.filters.w = vs.map.w;
     //
     mainSVG
@@ -688,8 +691,8 @@ function UpdatePageDimensions() {
     UpdateInfo();
     //
     statesSelect
-        .style('margin-left', (vs.map.w - vs.statesSelect.w)/2+'px')
-        .style('margin-right', (vs.map.w - vs.statesSelect.w)/2+'px');
+        .style('margin-left', (vs.map.w-vs.statesSelect.w)/2+'px')
+        .style('margin-right', (vs.map.w-vs.statesSelect.w)/2+'px');
     //
     if (vs.filters.h) { UpdateFilters(); }
     //
@@ -1315,7 +1318,7 @@ function MemoryTester() {
     var minMeanRates = [Infinity,Infinity];
     var maxMeanRates = [0,0];
     var myInterval = setInterval(function() {
-        iters                           = iters + 1;
+        iters                           = iters+1;
         elapsedOld                      = elapsed;
         elapsed                         = (Date.now()-start)/1000;
         interval                        = elapsed-elapsedOld;
@@ -1334,7 +1337,7 @@ function MemoryTester() {
         usedRateNode.innerHTML          = MakeDiv(minRates[0],'min','/s')+MakeDiv(newRates[0],'new','/s')+MakeDiv(maxRates[0],'max','/s');
         totalRateNode.innerHTML         = MakeDiv(minRates[1],'min','/s')+MakeDiv(newRates[1],'new','/s')+MakeDiv(maxRates[1],'max','/s');
         // // if (newRates[0] > 0 && newRates[1] > 0) {
-        //     itersForMean                = itersForMean + 1;
+        //     itersForMean                = itersForMean+1;
         // // }
         // if (itersForMean < 2) { return; }
         // sumRates                        = [sumRates[0]+newRates[0],sumRates[1]+newRates[1]];
