@@ -66,8 +66,7 @@ body {
   height: 25px;
 }
 #filters-container {
-  display: inline-block;
-  outline: 1px solid orange;
+  position: absolute;
 }
 #filters-container .filters-year {
   display: inline-block;

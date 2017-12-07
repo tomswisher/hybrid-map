@@ -122,7 +122,7 @@ var vs = {
         wMin: 300,
         h: null,
         ratioMapWH: 1.6,
-        projectionScale: 1.3,
+        projectionScale: 1.25,
         selectedOpacity: 0.3,
     },
     info: {
@@ -150,7 +150,7 @@ var vs = {
     },
     filters: {
         w: null,
-        h: 50,
+        h: 0,
     },
     options: {
 
@@ -654,12 +654,11 @@ function UpdatePageDimensions() {
     if (clientWidth >= vs.map.wMin+vs.info.w) {
         vs.map.w = clientWidth-vs.info.w;
         vs.svg.w = clientWidth;
-        vs.filters.w = clientWidth;
     } else {
         vs.map.w = vs.map.wMin;
         vs.svg.w = vs.map.wMin+vs.info.w;
-        vs.filters.w = clientWidth;
     }
+    vs.filters.w = vs.map.w;
     vs.map.h = vs.map.w/vs.map.ratioMapWH;
     vs.svg.h = Math.max(vs.map.h, vs.info.h)+vs.grades.h;
     vs.grades.w = vs.map.w;
@@ -1078,7 +1077,8 @@ function GraphClass() {
     //
     that.UpdateFilters = function() {
         filtersContainer
-            .style('width', vs.filters.w+'px');
+            .style('width', vs.filters.w+'px')
+            .style('height', vs.filters.h+'px');
         //
         var filtersYears = filtersContainer.selectAll('div.filters-year')
             .data(['2011','2012','2013','2014','2015','2016','2017']);
