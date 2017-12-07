@@ -586,6 +586,37 @@ function HybridMapClass() {
         TestApp('UpdateHover');
     };
 
+    that.UpdateStatesSelect = function() {
+        var statesSelectData = Object.keys(hybridMapObj.$GivenByState());
+        statesSelectData.unshift('');
+        statesSelect
+            .classed('button-object', true)
+            .on('change', function() {
+                var source = 'statesSelect change '+this.value;
+                stateSelected = this.value;
+                if (stateSelected === '') {
+                    hoverText.text('');
+                } else {
+                    var d = mainSVG.selectAll('path.state-path')
+                        .filter(function(d) { return d.properties.ansi === stateSelected; })
+                        .datum();
+                    hoverText.text(stateSelected+': '+d.$Given+' '+d.$Received);
+                }
+                hybridMapObj
+                    .UpdateMap(source);
+                that.UpdateStatesSelect(source);
+                // that.UpdateHover(source);
+            })
+            .selectAll('option.states-select-option')
+                .data(statesSelectData)
+                .enter().append('option')
+                    .classed('states-select-option', true)
+                    .text(function(d) { return d; });
+        statesSelect
+            .property('value', stateSelected);
+        TestApp('UpdateStatesSelect');
+    };
+
     TestApp('HybridMapClass');
     return that;
 }
@@ -1171,37 +1202,6 @@ function GraphClass() {
         // TestApp('_Tick', -1);
     }
     TestApp('GraphClass');
-}
-
-function UpdateStatesSelect() {
-    var statesSelectData = Object.keys(hybridMapObj.$GivenByState());
-    statesSelectData.unshift('');
-    statesSelect
-        .classed('button-object', true)
-        .on('change', function() {
-            var source = 'statesSelect change '+this.value;
-            stateSelected = this.value;
-            if (stateSelected === '') {
-                hoverText.text('');
-            } else {
-                var d = mainSVG.selectAll('path.state-path')
-                    .filter(function(d) { return d.properties.ansi === stateSelected; })
-                    .datum();
-                hoverText.text(stateSelected+': '+d.$Given+' '+d.$Received);
-            }
-            hybridMapObj
-                .UpdateMap(source);
-            UpdateStatesSelect(source);
-            // that.UpdateHover(source);
-        })
-        .selectAll('option.states-select-option')
-            .data(statesSelectData)
-            .enter().append('option')
-                .classed('states-select-option', true)
-                .text(function(d) { return d; });
-    statesSelect
-        .property('value', stateSelected);
-    TestApp('UpdateStatesSelect');
 }
 
 function UpdatePageDimensions() {
