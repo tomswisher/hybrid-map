@@ -67,11 +67,16 @@ body {
 }
 #filters-container {
   position: absolute;
+  background: white;
 }
-#filters-container .filters-year {
+#filters-container .filters-year,
+#filters-container .filters-report {
   display: inline-block;
+  font-size: 14px;
+  text-align: center;
 }
 #options-container {
+  position: absolute;
   display: inline-block;
   width: 100%;
   height: auto;

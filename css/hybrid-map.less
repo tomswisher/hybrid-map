@@ -77,12 +77,16 @@ body {
 }
 #filters-container {
     position: absolute;
-    // outline: 1px solid orange;
-    .filters-year {
+    background: @inactiveColor;
+    .filters-year, .filters-report {
         display: inline-block;
+        font-size: @font1Size;
+        text-align: center;
+        // outline: 1px solid green;
     }
 }
 #options-container {
+    position: absolute;
     display: inline-block;
     width: 100%;
     height: auto;

@@ -57,6 +57,8 @@ var gradeGs = gradesG.selectAll('g.grade-g');
 var defs = gradesG.append('defs');
 var statesSelect = body.select('#states-select');
 var filtersContainer = body.select('#filters-container');
+var filtersYears = filtersContainer.selectAll('div.filters-year');
+var filtersReports = filtersContainer.selectAll('div.filters-report');
 var optionsContainer = body.select('#options-container');
 var infoG = body.select('#info-g');
 var infoImageGs = infoG.selectAll('g.info-image-g');
@@ -90,6 +92,9 @@ var isDragging = false;
 var nodeSelected = null;
 var linksSelected = [];
 var gradesObj = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
+var gradesData = ['A', 'B', 'C', 'D', 'F'];
+var yearsData = ['2011', '2012', '2013', '2014', '2015', '2016', '2017'];
+var reportsData = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 // -------------------------------------------------------------------------------------------------
 // Visual Styles
@@ -132,7 +137,7 @@ var vs = {
     },
     filters: {
         w: null,
-        h: 0
+        h: 70
     },
     options: {},
     // gradeColorArray: ['rgb(50,50,50)','rgb(28,44,160)','rgb(240,6,55)','rgb(251,204,12)','rgb(239,230,221)'], /*BH1*/
@@ -405,10 +410,10 @@ function UpdateGrades(source) {
     //     .attr('y', 0.5*vs.grades.h)
     //     .text('$ Given');
     //
-    gradeGs = gradesG.selectAll('g.grade-g').data(['A', 'B', 'C', 'D', 'F']);
+    gradeGs = gradesG.selectAll('g.grade-g').data(gradesData);
     gradeGs = gradeGs.enter().append('g').classed('grade-g', true).merge(gradeGs);
     gradeGs.attr('transform', function (d, i) {
-        var tx = 0.5 * vs.grades.w + (0.5 - 0.5 * ['A', 'B', 'C', 'D', 'F'].length + i) * vs.grades.h;
+        var tx = 0.5 * vs.grades.w + (0.5 - 0.5 * gradesData.length + i) * vs.grades.h;
         var ty = 0.5 * vs.grades.h - 2;
         return 'translate(' + tx + ',' + ty + ')';
     }).on('mouseover', function (d) {
@@ -547,7 +552,7 @@ function UpdatePageDimensions() {
     //
     mapObj.width(vs.map.w).height(vs.map.h).UpdateMap('UpdatePageDimensions');
     //
-    graphObj.UpdateNodesEdges().UpdateSimulation().UpdateFilters();
+    graphObj.UpdateFilters().UpdateNodesEdges().UpdateSimulation().UpdateOptions();
     //
     UpdateInfo();
     //
@@ -869,15 +874,19 @@ function GraphClass() {
             // }
         })
         // .transition().duration(transitionDuration).ease(transitionEase)
-        .style('opacity', function (d) {
-            if (!nodeSelected) {
-                return 1;
+        .style('display', function (d) {
+            if (!filtersDatum[d.year]) {
+                return 'none';
+            } else if (!filtersDatum[d.report]) {
+                return 'none';
+            } else if (!nodeSelected) {
+                return 'block';
             } else if (nodeSelected.id === d.source.id) {
-                return 1;
+                return 'block';
             } else if (nodeSelected.id === d.target.id) {
-                return 1;
+                return 'block';
             } else {
-                return 0;
+                return 'none';
             }
         });
         //
@@ -933,18 +942,33 @@ function GraphClass() {
     };
     //
     that.UpdateFilters = function () {
-        filtersContainer.style('width', vs.filters.w + 'px').style('height', vs.filters.h + 'px');
+        filtersContainer.style('width', vs.filters.w + 'px').style('height', vs.filters.h + 'px').style('top', vs.map.h + vs.grades.h + 'px').style('left', 0 + 'px');
         //
-        var filtersYears = filtersContainer.selectAll('div.filters-year').data(['2011', '2012', '2013', '2014', '2015', '2016', '2017']);
-        filtersYears = filtersYears.enter().append('div').classed('filters-year', true).each(function (year) {
-            d3.select(this).append('div').style('width', '50px').style('height', '50px').text(year);
-            d3.select(this).append('input').each(function () {
+        filtersYears = filtersContainer.selectAll('div.filters-year').data(yearsData);
+        filtersYears = filtersYears.enter().append('div').classed('filters-year', true).each(function (datum) {
+            d3.select(this).append('div').text(datum);
+            d3.select(this).append('input').attr('type', 'checkbox').each(function (d) {
                 this.checked = true;
-                filtersDatum[year] = this.checked;
-            }).attr('type', 'checkbox').on('change', function () {
-                filtersDatum[year] = this.checked;
+                filtersDatum[d] = this.checked;
+            }).on('change', function (d) {
+                filtersDatum[d] = this.checked;
+                that.UpdateNodesEdges();
             });
-        }).style('width', '14.28%');
+        }).merge(filtersYears).style('width', vs.filters.w / yearsData.length + 'px');
+        //
+        filtersReports = filtersContainer.selectAll('div.filters-report').data(reportsData);
+        filtersReports = filtersReports.enter().append('div').classed('filters-report', true).each(function (datum) {
+            d3.select(this).append('div').text(datum);
+            d3.select(this).append('input').attr('type', 'checkbox').each(function (d) {
+                this.checked = true;
+                filtersDatum[d] = this.checked;
+            }).on('change', function (d) {
+                filtersDatum[d] = this.checked;
+                that.UpdateNodesEdges();
+            });
+        }).merge(filtersReports).style('width', vs.filters.w / reportsData.length + 'px');
+        //
+        return that;
     };
     //
     that.UpdateOptions = function () {
@@ -963,6 +987,8 @@ function GraphClass() {
             });
         });
         //
+        optionsContainer.style('left', '0px').style('top', Math.max(vs.svg.h, vs.map.h + vs.grades.h + vs.filters.h) + 'px');
+        //
         var optionDivs = optionsContainer.selectAll('div.option-div').data(that.optionsData);
         optionDivs = optionDivs.enter().append('div').classed('option-div', true).each(function (optionDatum) {
             d3.select(this).append('label').classed('label-small', true).text(optionDatum.category);
@@ -979,7 +1005,7 @@ function GraphClass() {
                         optionDatum.value = parseFloat(this.value);
                     }
                     that.simulation.alpha(0);
-                    that.UpdateSimulation().UpdateFilters().UpdateOptions();
+                    that.UpdateSimulation().UpdateOptions();
                 });
             }
             if (optionDatum.max !== undefined) {
