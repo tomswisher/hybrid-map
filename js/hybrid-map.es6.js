@@ -4,23 +4,25 @@
 
 // Performance -------------------------------------------------------------------------------------
 
-var logsLvl0 = 0;
-var logsLvl1 = 0;
-var logsLvl2 = 0;
-var logsTest = 1 && performance && performance.memory;
+var logsLvl0 = 0,
+    logsLvl1 = 0,
+    logsLvl2 = 0,
+    logsTest = 1 && performance && performance.memory;
 var memWatch = 0 && performance && performance.memory ? MemoryTester() : 0;
-var resizeWait = 150;
-var resizingCounter = 0;
+var resizeWait = 150,
+    resizeCounter = 0;
 var stackLvl = 0;
 var nodesCount = 0;
-var usedJSHeapSize = 0;
-var totalJSHeapSize = 0;
-var nStr = '';
-var uStr = '';
-var tStr = '';
-var testStr = '';
-var mobileOptions = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-var isMobile = navigator && mobileOptions.test(navigator.userAgent);
+var usedJSHeapSize = 0,
+    totalJSHeapSize = 0;
+var strN = '',
+    strU = '',
+    strT = '',
+    strSource = '',
+    strStats = '';
+var mobileNavigators = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
+    mobileBrowser = navigator && mobileNavigators.test(navigator.userAgent);
+console.log('mobileBrowser', mobileBrowser);
 
 // D3 Selections -----------------------------------------------------------------------------------
 
@@ -28,27 +30,27 @@ var body = d3.select('body');
 var mainSVG = body.select('#main-svg');
 var mainBGRect = body.select('#main-bg-rect');
 var mainClipPathRect = body.select('#main-clip-path-rect');
-var statesG = body.select('#states-g');
-var statePaths = statesG.selectAll('path.state-path');
-var verticesG = body.select('#vertices-g');
-var verticeCircles = verticesG.selectAll('circle.vertice-circle');
-var edgesG = body.select('#edges-g');
-var edgeLines = edgesG.selectAll('line.edge-line');
-var hoverG = body.select('#hover-g');
-var hoverRect = body.select('#hover-rect');
-var hoverText = body.select('#hover-text');
-var gradesG = body.select('#grades-g');
-var gradeGs = gradesG.selectAll('g.grade-g');
+var statesG = body.select('#states-g'),
+    statePaths = statesG.selectAll('path.state-path');
+var verticesG = body.select('#vertices-g'),
+    verticeCircles = verticesG.selectAll('circle.vertice-circle');
+var edgesG = body.select('#edges-g'),
+    edgeLines = edgesG.selectAll('line.edge-line');
+var hoverG = body.select('#hover-g'),
+    hoverRect = body.select('#hover-rect'),
+    hoverText = body.select('#hover-text');
+var gradesG = body.select('#grades-g'),
+    gradeGs = gradesG.selectAll('g.grade-g');
 var defs = gradesG.append('defs');
-var filtersContainer = body.select('#filters-container');
-var filtersYears = filtersContainer.selectAll('div.filters-year');
-var filtersReports = filtersContainer.selectAll('div.filters-report');
+var filtersContainer = body.select('#filters-container'),
+    filtersYears = filtersContainer.selectAll('div.filters-year'),
+    filtersReports = filtersContainer.selectAll('div.filters-report');
 var optionsContainer = body.select('#options-container');
-var infoG = body.select('#info-g');
-var infoImageGs = infoG.selectAll('g.info-image-g');
-var infoTextGs = infoG.selectAll('g.info-text-g');
+var infoG = body.select('#info-g'),
+    infoImageGs = infoG.selectAll('g.info-image-g'),
+    infoTextGs = infoG.selectAll('g.info-text-g');
 
-// Visual Styles -----------------------------------------------------------------------------------
+// Visual Styling ----------------------------------------------------------------------------------
 
 var vs = {
     svg: {
@@ -99,9 +101,7 @@ var vs = {
         w: null,
         h: 70,
     },
-    options: {
-
-    },
+    // options: {},
 };
 vs.info.wImage = vs.info.w - 2 * vs.info.margin;
 vs.info.hImage = vs.info.wImage / vs.info.ratioImageWH;
@@ -175,25 +175,26 @@ window.onload = function() {
         .awaitAll(InitializePage);
 };
 window.onresize = function() {
-    // if (resizingCounter === 0) {
+    // if (resizeCounter === 0) {
     //     if (logsLvl1) console.log('Waiting to resize...');
     // }
-    resizingCounter += 1;
-    if (logsLvl1) console.log(''.padStart(resizingCounter * 2, ' ') + resizingCounter);
+    resizeCounter += 1;
+    if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
     setTimeout(function() {
-        if (resizingCounter > 1) {
-            resizingCounter -= 1;
-        } else if (resizingCounter === 1) {
-            resizingCounter = 0;
+        if (resizeCounter > 1) {
+            resizeCounter -= 1;
+        } else if (resizeCounter === 1) {
+            resizeCounter = 0;
             UpdatePageDimensions();
         }
-        if (logsLvl1) console.log(''.padStart(resizingCounter * 2, ' ') + resizingCounter);
+        if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
     }, resizeWait);
 };
 
 // Functions ---------------------------------------------------------------------------------------
 
 function InitializePage(error, results) {
+    TestApp('InitializePage', 1);
     results[1].nodes.forEach(node => nodesAll.push(node));
     results[1].links.forEach(link => linksAll.push(link));
     hybridMapObj = (new HybridMapClass())
@@ -231,6 +232,7 @@ function InitializePage(error, results) {
 }
 
 function HybridMapClass() {
+    // TestApp('HybridMapClass', 1);
     var that = this;
     var _verticeById = null;
     var _projection = d3.geoAlbersUsa();
@@ -576,7 +578,6 @@ function HybridMapClass() {
             });
         TestApp('UpdateHover');
     };
-
     TestApp('HybridMapClass');
     return that;
 }
@@ -1177,6 +1178,7 @@ function GraphClass() {
 }
 
 function UpdatePageDimensions() {
+    TestApp('UpdatePageDimensions', 1);
     var clientWidth = body.node().clientWidth;
     if (clientWidth >= vs.states.wMin + vs.info.w) {
         vs.states.w = clientWidth - vs.info.w;
@@ -1217,37 +1219,35 @@ function TestApp(source, position) {
     usedJSHeapSize = performance.memory.usedJSHeapSize;
     totalJSHeapSize = performance.memory.totalJSHeapSize;
     if (position === 1) {
-        testStr = (''.padStart(2 * stackLvl, ' ') + '> ' + String(source));
+        strSource = (''.padStart(2 * stackLvl, ' ') + '> ' + String(source));
         stackLvl += 1;
     } else if (position === -1) {
         stackLvl -= 1;
-        testStr = (''.padStart(2 * stackLvl, ' ') + '< ' + String(source));
+        strSource = (''.padStart(2 * stackLvl, ' ') + '< ' + String(source));
     } else if (position === undefined) {
-        testStr = (''.padStart(2 * stackLvl, ' ') + '• ' + String(source));
+        strSource = (''.padStart(2 * stackLvl, ' ') + '• ' + String(source));
     }
-    testStr = testStr.padEnd(25);
+    strSource = strSource.padEnd(27);
     if (nodesCount !== d3.selectAll('*').size()) {
         nodesCount = d3.selectAll('*').size();
-        nStr = 'nodes: ' + String(nodesCount).padStart(3, ' ');
+        strN = 'nodes: ' + String(nodesCount).padStart(3, ' ');
     } else {
-        nStr = '';
+        strN = '';
     }
     if (performance.memory.usedJSHeapSize !== usedJSHeapSize) {
-        uStr = 'used: ' + ((usedJSHeapSize / (1024 * 1024)).toFixed(3) + ' Mb').padStart(9, ' ');
+        strU = 'used: ' + ((usedJSHeapSize / (1024 * 1024)).toFixed(3) + ' Mb').padStart(9, ' ');
     } else {
-        uStr = '';
+        strU = '';
     }
     if (performance.memory.totalJSHeapSize !== totalJSHeapSize) {
-        tStr = 'total: ' + ((totalJSHeapSize / (1024 * 1024)).toFixed(3) + ' Mb').padStart(9, ' ');
+        strT = 'total: ' + ((totalJSHeapSize / (1024 * 1024)).toFixed(3) + ' Mb').padStart(9, ' ');
     } else {
-        tStr = '';
+        strT = '';
     }
-    if (nStr || uStr || tStr) {
-        testStr = testStr + uStr.padEnd(20, ' ') + tStr.padEnd(20, ' ') + nStr.padEnd(14, ' ');
+    if (strN || strU || strT) {
+        strStats = strU.padEnd(20, ' ') + strT.padEnd(20, ' ') + strN.padEnd(14, ' ');
     }
-    // if (position === 0) {
-    console.log(testStr);
-    // }
+    console.log('%c'+strSource, 'color:green', strStats);
 }
 
 // Debug -------------------------------------------------------------------------------------------
