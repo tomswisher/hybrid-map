@@ -40,7 +40,6 @@ var hoverText = body.select('#hover-text');
 var gradesG = body.select('#grades-g');
 var gradeGs = gradesG.selectAll('g.grade-g');
 var defs = gradesG.append('defs');
-var statesSelect = body.select('#states-select');
 var filtersContainer = body.select('#filters-container');
 var filtersYears = filtersContainer.selectAll('div.filters-year');
 var filtersReports = filtersContainer.selectAll('div.filters-report');
@@ -56,7 +55,7 @@ var vs = {
         w: null,
         h: null
     },
-    map: {
+    states: {
         w: null,
         wMin: 300,
         h: null,
@@ -95,10 +94,6 @@ var vs = {
         w: null,
         h: null,
         margin: 5
-    },
-    statesSelect: {
-        w: 100,
-        h: 0
     },
     filters: {
         w: null,
@@ -173,14 +168,13 @@ function InitializePage(error, results) {
     results[1].links.forEach(function (link) {
         return linksAll.push(link);
     });
-    hybridMapObj = new HybridMapClass().mapFeatures(results[0].features).vertices(results[1].nodes).edges(results[1].links);
+    hybridMapObj = new HybridMapClass().statesFeatures(results[0].features).vertices(results[1].nodes).edges(results[1].links);
     graphObj = new GraphClass();
     vs.hover.h = parseFloat(mainSVG.style('font-size')) + 2 * vs.hover.margin;
     hoverRect.attr('height', vs.hover.h).attr('y', -1 * vs.hover.h - vs.hover.margin).style('filter', 'url(#drop-shadow)');
     hoverText.attr('x', 0).attr('y', -0.5 * vs.hover.h - vs.hover.margin);
     mainBGRect.on('mouseover', function () {
         stateSelected = '';
-        // UpdateStatesSelect();
         // hybridMapObj
         //     .UpdateMap();
         // hoverText
@@ -189,7 +183,6 @@ function InitializePage(error, results) {
         // graphObj
         //     .UpdateVerticesEdges();
     });
-    statesSelect.style('width', vs.statesSelect.w + 'px').style('height', vs.statesSelect.h + 'px').style('display', vs.statesSelect.h ? 'inline-block' : 'none');
     UpdatePageDimensions();
     requestAnimationFrame(function () {
         graphObj.UpdateOptions();
@@ -211,9 +204,9 @@ function HybridMapClass() {
     that.height = function (_) {
         return arguments.length ? (_height = _, that) : _height;
     };
-    var _mapFeatures = null;
-    that.mapFeatures = function (_) {
-        return arguments.length ? (_mapFeatures = _, that) : _mapFeatures;
+    var _statesFeatures = null;
+    that.statesFeatures = function (_) {
+        return arguments.length ? (_statesFeatures = _, that) : _statesFeatures;
     };
     var _centroidByState = {};
     that.centroidByState = function (_) {
@@ -308,19 +301,17 @@ function HybridMapClass() {
         }), d3.max(_vertices, function (vertice) {
             return vertice.$Received;
         })]);
-        _projection.scale(_width * vs.map.projectionScale).translate([_width / 2, _height / 2]);
+        _projection.scale(_width * vs.states.projectionScale).translate([_width / 2, _height / 2]);
         _path.projection(_projection);
         //
-        statePaths = statesG.selectAll('path.state-path').data(_mapFeatures, function (d) {
+        statePaths = statesG.selectAll('path.state-path').data(_statesFeatures, function (d) {
             return d.properties.ansi;
         });
         statePaths = statePaths.enter().append('path').classed('state-path', true).each(function (d) {
             d.$Given = parseInt(_$GivenByState[d.properties.ansi]);
             d.$Received = parseInt(_$ReceivedByState[d.properties.ansi]);
         }).on('mouseover', function (d) {
-            // if (isMobile === true) { return; }
             stateSelected = d.properties.ansi;
-            // UpdateStatesSelect();
             // that
             //     .UpdateMap();
             // hoverText.text(d.properties.ansi+': '+d.$Given+' '+d.$Received);
@@ -333,8 +324,8 @@ function HybridMapClass() {
         }).classed('inactive', function (d) {
             return true;
             // return isNaN(d.$Given) && isNaN(d.$Received);
-        }).attr('d', _path).style('stroke-width', vs.map.strokeWidthStates + 'px').style('opacity', function (d) {
-            // if (stateSelected === d.properties.ansi) { return vs.map.selectedOpacity; }
+        }).attr('d', _path).style('stroke-width', vs.states.strokeWidthStates + 'px').style('opacity', function (d) {
+            // if (stateSelected === d.properties.ansi) { return vs.states.selectedOpacity; }
             return 1;
         }).style('fill', function (d) {
             return vs.colorScale(5 * _$GivenByStateScale(d.$Given));
@@ -360,7 +351,7 @@ function HybridMapClass() {
             return that;
         }
         gradesG.attr('transform', function () {
-            return 'translate(' + 0 + ',' + vs.map.h + ')';
+            return 'translate(' + 0 + ',' + vs.states.h + ')';
         });
         // var gradesText = gradesG.selectAll('text.grades-text')
         //     .data([null]);
@@ -415,7 +406,7 @@ function HybridMapClass() {
         })[0]) {
             infoData.push(nodeSelected);
         }
-        infoG.attr('transform', 'translate(' + (vs.map.w + vs.info.margin) + ',' + vs.info.margin + ')');
+        infoG.attr('transform', 'translate(' + (vs.states.w + vs.info.margin) + ',' + vs.info.margin + ')');
         infoImageGs = infoG.selectAll('g.info-image-g').data(infoData);
         infoImageGs = infoImageGs.enter().append('g').classed('info-image-g', true).each(function (datum) {
             d3.select(this).append('image').attr('width', vs.info.wImage).attr('height', vs.info.hImage).attr('xlink:href', function () {
@@ -477,30 +468,6 @@ function HybridMapClass() {
             return 'translate(' + tx + ',' + ty + ')';
         });
         TestApp('UpdateHover');
-    };
-
-    that.UpdateStatesSelect = function () {
-        var statesSelectData = Object.keys(hybridMapObj.$GivenByState());
-        statesSelectData.unshift('');
-        statesSelect.classed('button-object', true).on('change', function () {
-            var source = 'statesSelect change ' + this.value;
-            stateSelected = this.value;
-            if (stateSelected === '') {
-                hoverText.text('');
-            } else {
-                var d = mainSVG.selectAll('path.state-path').filter(function (d) {
-                    return d.properties.ansi === stateSelected;
-                }).datum();
-                hoverText.text(stateSelected + ': ' + d.$Given + ' ' + d.$Received);
-            }
-            hybridMapObj.UpdateMap(source);
-            that.UpdateStatesSelect(source);
-            // that.UpdateHover(source);
-        }).selectAll('option.states-select-option').data(statesSelectData).enter().append('option').classed('states-select-option', true).text(function (d) {
-            return d;
-        });
-        statesSelect.property('value', stateSelected);
-        TestApp('UpdateStatesSelect');
     };
 
     TestApp('HybridMapClass');
@@ -856,10 +823,10 @@ function GraphClass() {
                     var optionValue = optionsObj[optionName].value; // do not mutate original value
                     switch (optionValue) {
                         case 'cx':
-                            optionValue = 0.5 * vs.map.w;
+                            optionValue = 0.5 * vs.states.w;
                             break;
                         case 'cy':
-                            optionValue = 0.5 * vs.map.h;
+                            optionValue = 0.5 * vs.states.h;
                             break;
                     }
                     forceNew[optionName](optionValue);
@@ -873,7 +840,7 @@ function GraphClass() {
     };
 
     that.UpdateFilters = function () {
-        filtersContainer.style('width', vs.filters.w + 'px').style('height', vs.filters.h + 'px').style('top', vs.map.h + vs.grades.h + 'px').style('left', 0 + 'px');
+        filtersContainer.style('width', vs.filters.w + 'px').style('height', vs.filters.h + 'px').style('top', vs.states.h + vs.grades.h + 'px').style('left', 0 + 'px');
         filtersYears = filtersContainer.selectAll('div.filters-year').data(yearsData);
         filtersYears = filtersYears.enter().append('div').classed('filters-year', true).each(function (datum) {
             d3.select(this).append('div').text(datum);
@@ -912,7 +879,7 @@ function GraphClass() {
                 that.optionsData.push(optionsObj[optionName]);
             });
         });
-        optionsContainer.style('left', '0px').style('top', Math.max(vs.svg.h, vs.map.h + vs.grades.h + vs.filters.h) + 'px');
+        optionsContainer.style('left', '0px').style('top', Math.max(vs.svg.h, vs.states.h + vs.grades.h + vs.filters.h) + 'px');
         var optionDivs = optionsContainer.selectAll('div.option-div').data(that.optionsData);
         optionDivs = optionDivs.enter().append('div').classed('option-div', true).each(function (optionDatum) {
             d3.select(this).append('label').classed('label-small', true).text(optionDatum.category);
@@ -1036,24 +1003,22 @@ function GraphClass() {
 
 function UpdatePageDimensions() {
     var clientWidth = body.node().clientWidth;
-    if (clientWidth >= vs.map.wMin + vs.info.w) {
-        vs.map.w = clientWidth - vs.info.w;
+    if (clientWidth >= vs.states.wMin + vs.info.w) {
+        vs.states.w = clientWidth - vs.info.w;
         vs.svg.w = clientWidth;
     } else {
-        vs.map.w = vs.map.wMin;
-        vs.svg.w = vs.map.wMin + vs.info.w;
+        vs.states.w = vs.states.wMin;
+        vs.svg.w = vs.states.wMin + vs.info.w;
     }
-    vs.filters.w = vs.map.w;
-    vs.map.h = vs.map.w / vs.map.ratioMapWH;
-    vs.svg.h = Math.max(vs.map.h, vs.info.h) + vs.grades.h;
-    vs.grades.w = vs.map.w;
+    vs.filters.w = vs.states.w;
+    vs.states.h = vs.states.w / vs.states.ratioMapWH;
+    vs.svg.h = Math.max(vs.states.h, vs.info.h) + vs.grades.h;
+    vs.grades.w = vs.states.w;
     mainSVG.attr('width', vs.svg.w).attr('height', vs.svg.h);
-    mainBGRect.attr('width', vs.map.w).attr('height', vs.map.h);
-    mainClipPathRect.attr('width', vs.map.w).attr('height', vs.svg.h);
-    hybridMapObj.width(vs.map.w).height(vs.map.h).UpdateMap('UpdatePageDimensions').UpdateGrades().UpdateInfo();
+    mainBGRect.attr('width', vs.states.w).attr('height', vs.states.h);
+    mainClipPathRect.attr('width', vs.states.w).attr('height', vs.svg.h);
+    hybridMapObj.width(vs.states.w).height(vs.states.h).UpdateMap('UpdatePageDimensions').UpdateGrades().UpdateInfo();
     graphObj.UpdateFilters().UpdateVerticesEdges().UpdateSimulation().UpdateOptions();
-    statesSelect.style('margin-left', (vs.map.w - vs.statesSelect.w) / 2 + 'px').style('margin-right', (vs.map.w - vs.statesSelect.w) / 2 + 'px');
-    // UpdateStatesSelect();
     TestApp('UpdatePageDimensions', -1);
 }
 
