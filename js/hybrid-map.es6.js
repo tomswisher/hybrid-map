@@ -1,6 +1,6 @@
 // tomswisherlabs@gmail.com     https://github.com/tomswisher
 
-'use strict'; /* globals d3, console, nodes, count *//* jshint -W069, unused:false */
+'use strict'; /* globals d3, console, nodes, count */ /* jshint -W069, unused:false */
 
 // Performance -------------------------------------------------------------------------------------
 
@@ -74,11 +74,11 @@ var vs = {
         strokeWidth: 1,
     },
     info: {
-        w: 396/2,
+        w: 396 / 2,
         h: null,
         wImage: null,
         hImage: null,
-        ratioImageWH: 396/432,
+        ratioImageWH: 396 / 432,
         margin: 5,
         textRowH: 15,
     },
@@ -88,7 +88,8 @@ var vs = {
         margin: 3,
         // colorArray: ['rgb(50,50,50)','rgb(28,44,160)','rgb(240,6,55)','rgb(251,204,12)','rgb(239,230,221)'], /*BH1*/
         // colorArray: ['rgb(240,243,247)','rgb(191,162,26)','rgb(20,65,132)','rgb(153,40,26)','rgb(34,34,34)'], /*BH2*/
-        colorArray: ['#de2d26','#fb6a4a','#fc9272','#fcbba1','#fee5d9'], /*red*/
+        colorArray: ['#de2d26', '#fb6a4a', '#fc9272', '#fcbba1', '#fee5d9'],
+        /*red*/
     },
     hover: {
         w: null,
@@ -107,9 +108,9 @@ var vs = {
 
     },
 };
-vs.info.wImage = vs.info.w-2*vs.info.margin;
-vs.info.hImage = vs.info.wImage/vs.info.ratioImageWH;
-vs.info.h = vs.info.hImage+4*vs.info.textRowH+3*vs.info.margin;
+vs.info.wImage = vs.info.w - 2 * vs.info.margin;
+vs.info.hImage = vs.info.wImage / vs.info.ratioImageWH;
+vs.info.h = vs.info.hImage + 4 * vs.info.textRowH + 3 * vs.info.margin;
 vs.colorScale = d3.scaleQuantize()
     .domain([0, 5])
     .range(vs.grades.colorArray);
@@ -165,10 +166,10 @@ var stateSelected = '';
 var isDragging = false;
 var nodeSelected = null;
 var linksSelected = [];
-var gradesObj = {'A':true,'B':true,'C':true,'D':true,'F':true};
-var gradesData = ['A','B','C','D','F'];
-var yearsData = ['2011','2012','2013','2014','2015','2016','2017'];
-var reportsData = [1,2,3,4,5,6,7,8,9];
+var gradesObj = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
+var gradesData = ['A', 'B', 'C', 'D', 'F'];
+var yearsData = ['2011', '2012', '2013', '2014', '2015', '2016', '2017'];
+var reportsData = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 // Window Events -----------------------------------------------------------------------------------
 
@@ -183,7 +184,7 @@ window.onresize = function() {
     //     if (logsLvl1) console.log('Waiting to resize...');
     // }
     resizingCounter += 1;
-    if (logsLvl1) console.log(''.padStart(resizingCounter*2,' ')+resizingCounter);
+    if (logsLvl1) console.log(''.padStart(resizingCounter * 2, ' ') + resizingCounter);
     setTimeout(function() {
         if (resizingCounter > 1) {
             resizingCounter -= 1;
@@ -191,7 +192,7 @@ window.onresize = function() {
             resizingCounter = 0;
             UpdatePageDimensions();
         }
-        if (logsLvl1) console.log(''.padStart(resizingCounter*2,' ')+resizingCounter);
+        if (logsLvl1) console.log(''.padStart(resizingCounter * 2, ' ') + resizingCounter);
     }, resizeWait);
 };
 
@@ -205,14 +206,14 @@ function InitializePage(error, results) {
         .vertices(results[1].nodes)
         .edges(results[1].links);
     graphObj = (new GraphClass());
-    vs.hover.h = parseFloat(mainSVG.style('font-size'))+2*vs.hover.margin;
+    vs.hover.h = parseFloat(mainSVG.style('font-size')) + 2 * vs.hover.margin;
     hoverRect
         .attr('height', vs.hover.h)
-        .attr('y', -1*vs.hover.h-vs.hover.margin)
+        .attr('y', -1 * vs.hover.h - vs.hover.margin)
         .style('filter', 'url(#drop-shadow)');
     hoverText
         .attr('x', 0)
-        .attr('y', -0.5*vs.hover.h-vs.hover.margin);
+        .attr('y', -0.5 * vs.hover.h - vs.hover.margin);
     mainBGRect
         .on('mouseover', function() {
             stateSelected = '';
@@ -226,8 +227,8 @@ function InitializePage(error, results) {
             //     .UpdateVerticesEdges();
         });
     statesSelect
-        .style('width', vs.statesSelect.w+'px')
-        .style('height', vs.statesSelect.h+'px')
+        .style('width', vs.statesSelect.w + 'px')
+        .style('height', vs.statesSelect.h + 'px')
         .style('display', vs.statesSelect.h ? 'inline-block' : 'none');
     UpdatePageDimensions();
     requestAnimationFrame(function() {
@@ -346,8 +347,8 @@ function HybridMapClass() {
             d3.max(_vertices, function(vertice) { return vertice.$Received; })
         ]);
         _projection
-            .scale(_width*vs.map.projectionScale)
-            .translate([_width/2, _height/2]);
+            .scale(_width * vs.map.projectionScale)
+            .translate([_width / 2, _height / 2]);
         _path
             .projection(_projection);
         //
@@ -382,13 +383,13 @@ function HybridMapClass() {
                 // return isNaN(d.$Given) && isNaN(d.$Received);
             })
             .attr('d', _path)
-            .style('stroke-width', vs.map.strokeWidthStates+'px')
+            .style('stroke-width', vs.map.strokeWidthStates + 'px')
             .style('opacity', function(d) {
                 // if (stateSelected === d.properties.ansi) { return vs.map.selectedOpacity; }
                 return 1;
             })
             .style('fill', function(d) {
-                return vs.colorScale(5*_$GivenByStateScale(d.$Given));
+                return vs.colorScale(5 * _$GivenByStateScale(d.$Given));
             });
         // statePaths.each(function(d) {
         //     var centroid = that.centroidByState()[d.properties.ansi];
@@ -412,7 +413,7 @@ function HybridMapClass() {
         }
         gradesG
             .attr('transform', function() {
-                return 'translate('+(0)+','+(vs.map.h)+')';
+                return 'translate(' + (0) + ',' + (vs.map.h) + ')';
             });
         // var gradesText = gradesG.selectAll('text.grades-text')
         //     .data([null]);
@@ -428,10 +429,10 @@ function HybridMapClass() {
             .classed('grade-g', true)
             .merge(gradeGs);
         gradeGs
-            .attr('transform', function(d,i) {
-                var tx = 0.5*vs.grades.w+(0.5-0.5*gradesData.length+i)*vs.grades.h;
-                var ty = 0.5*vs.grades.h-2;
-                return 'translate('+tx+','+ty+')';
+            .attr('transform', function(d, i) {
+                var tx = 0.5 * vs.grades.w + (0.5 - 0.5 * gradesData.length + i) * vs.grades.h;
+                var ty = 0.5 * vs.grades.h - 2;
+                return 'translate(' + tx + ',' + ty + ')';
             })
             .on('mouseover', function(d) {
                 // gradesObj.A = gradesObj.B = gradesObj.C = gradesObj.D = gradesObj.F = false;
@@ -452,8 +453,8 @@ function HybridMapClass() {
                 gradeBG = gradeBG.enter().append('rect')
                     .classed('grade-bg', true)
                     .merge(gradeBG)
-                    .attr('x', (-0.5)*vs.grades.h)
-                    .attr('y', (-0.5)*vs.grades.h)
+                    .attr('x', (-0.5) * vs.grades.h)
+                    .attr('y', (-0.5) * vs.grades.h)
                     .attr('width', vs.grades.h)
                     .attr('height', vs.grades.h);
                 var gradeRect = d3.select(this).selectAll('rect.grade-rect')
@@ -464,15 +465,15 @@ function HybridMapClass() {
                     .classed('inactive', function(d) {
                         return !gradesObj[d];
                     })
-                    .attr('x', -0.5*Math.max(0, vs.grades.h-2*vs.grades.margin))
-                    .attr('y', -0.5*Math.max(0, vs.grades.h-2*vs.grades.margin))
-                    .attr('width', Math.max(0, vs.grades.h-2*vs.grades.margin))
-                    .attr('height', Math.max(0, vs.grades.h-2*vs.grades.margin))
+                    .attr('x', -0.5 * Math.max(0, vs.grades.h - 2 * vs.grades.margin))
+                    .attr('y', -0.5 * Math.max(0, vs.grades.h - 2 * vs.grades.margin))
+                    .attr('width', Math.max(0, vs.grades.h - 2 * vs.grades.margin))
+                    .attr('height', Math.max(0, vs.grades.h - 2 * vs.grades.margin))
                     .style('filter', function(d) {
                         return gradesObj[d] ? 'url(#drop-shadow)' : null;
                     })
                     .style('fill', function(d) {
-                        return vs.colorScale(['F','D','C','B','A'].indexOf(d));
+                        return vs.colorScale(['F', 'D', 'C', 'B', 'A'].indexOf(d));
                     });
                 var gradeLabel = d3.select(this).selectAll('text.grade-label')
                     .data([grade]);
@@ -493,7 +494,7 @@ function HybridMapClass() {
             infoData.push(nodeSelected);
         }
         infoG
-            .attr('transform', 'translate('+(vs.map.w+vs.info.margin)+','+(vs.info.margin)+')');
+            .attr('transform', 'translate(' + (vs.map.w + vs.info.margin) + ',' + (vs.info.margin) + ')');
         infoImageGs = infoG.selectAll('g.info-image-g')
             .data(infoData);
         infoImageGs = infoImageGs.enter().append('g')
@@ -506,7 +507,7 @@ function HybridMapClass() {
                         if (!topIds.includes(datum.id)) {
                             return 'img/mu.png';
                         } else {
-                            return 'img/'+datum.id+'.jpg';
+                            return 'img/' + datum.id + '.jpg';
                         }
                     });
             })
@@ -524,25 +525,25 @@ function HybridMapClass() {
         infoTextGs = infoTextGs.enter().append('g')
             .classed('info-text-g', true)
             .attr('transform', function() {
-                return 'translate('+(vs.info.wImage/2)+','+(vs.info.hImage+vs.info.margin)+')';
+                return 'translate(' + (vs.info.wImage / 2) + ',' + (vs.info.hImage + vs.info.margin) + ')';
             })
             .each(function(datum) {
                 d3.select(this).append('text')
                     .attr('x', 0)
-                    .attr('y', 0.5*vs.info.textRowH)
+                    .attr('y', 0.5 * vs.info.textRowH)
                     .text(datum.id);
                 d3.select(this).append('text')
                     .attr('x', 0)
-                    .attr('y', 1.5*vs.info.textRowH)
-                    .text('State: '+datum.state);
+                    .attr('y', 1.5 * vs.info.textRowH)
+                    .text('State: ' + datum.state);
                 d3.select(this).append('text')
                     .attr('x', 0)
-                    .attr('y', 2.5*vs.info.textRowH)
-                    .text('Given: '+d3.format('$,')(datum.$Given));
+                    .attr('y', 2.5 * vs.info.textRowH)
+                    .text('Given: ' + d3.format('$,')(datum.$Given));
                 d3.select(this).append('text')
                     .attr('x', 0)
-                    .attr('y', 3.5*vs.info.textRowH)
-                    .text('Received: '+d3.format('$,')(datum.$Received));
+                    .attr('y', 3.5 * vs.info.textRowH)
+                    .text('Received: ' + d3.format('$,')(datum.$Received));
             })
             .style('opacity', 0)
             .merge(infoTextGs);
@@ -557,11 +558,11 @@ function HybridMapClass() {
     that.UpdateHover = function(source) {
         vs.hover.w = 0;
         if (hoverText.text() !== '') {
-            vs.hover.w = hoverText.node().getBBox().width+2*vs.hover.margin;
+            vs.hover.w = hoverText.node().getBBox().width + 2 * vs.hover.margin;
         }
         hoverRect
             .attr('width', vs.hover.w)
-            .attr('x', -0.5*vs.hover.w);
+            .attr('x', -0.5 * vs.hover.w);
         hoverG
             .attr('transform', function() {
                 var tx, ty;
@@ -570,20 +571,20 @@ function HybridMapClass() {
                     ty = d3.mouse(mainSVG.node())[1];
                 } else if (that.centroidByState()[stateSelected]) {
                     tx = that.centroidByState()[stateSelected][0];
-                    ty = that.centroidByState()[stateSelected][1]+0.5*(vs.hover.h+2*vs.hover.margin);
+                    ty = that.centroidByState()[stateSelected][1] + 0.5 * (vs.hover.h + 2 * vs.hover.margin);
                 } else {
-                    tx = that.width()/2;
-                    ty = that.height()/2;
+                    tx = that.width() / 2;
+                    ty = that.height() / 2;
                 }
-                if (tx < vs.hover.w/2+1) {
-                    tx = vs.hover.w/2+1;
-                } else if (tx > parseInt(mainSVG.style('width'))-vs.hover.w/2-1) {
-                    tx = parseInt(mainSVG.style('width'))-vs.hover.w/2-1;
+                if (tx < vs.hover.w / 2 + 1) {
+                    tx = vs.hover.w / 2 + 1;
+                } else if (tx > parseInt(mainSVG.style('width')) - vs.hover.w / 2 - 1) {
+                    tx = parseInt(mainSVG.style('width')) - vs.hover.w / 2 - 1;
                 }
-                if (ty < vs.hover.h+5+1) {
-                    ty = vs.hover.h+5+1;
+                if (ty < vs.hover.h + 5 + 1) {
+                    ty = vs.hover.h + 5 + 1;
                 }
-                return 'translate('+tx+','+ty+')';
+                return 'translate(' + tx + ',' + ty + ')';
             });
         TestApp('UpdateHover');
     };
@@ -594,7 +595,7 @@ function HybridMapClass() {
         statesSelect
             .classed('button-object', true)
             .on('change', function() {
-                var source = 'statesSelect change '+this.value;
+                var source = 'statesSelect change ' + this.value;
                 stateSelected = this.value;
                 if (stateSelected === '') {
                     hoverText.text('');
@@ -602,7 +603,7 @@ function HybridMapClass() {
                     var d = mainSVG.selectAll('path.state-path')
                         .filter(function(d) { return d.properties.ansi === stateSelected; })
                         .datum();
-                    hoverText.text(stateSelected+': '+d.$Given+' '+d.$Received);
+                    hoverText.text(stateSelected + ': ' + d.$Given + ' ' + d.$Received);
                 }
                 hybridMapObj
                     .UpdateMap(source);
@@ -610,10 +611,10 @@ function HybridMapClass() {
                 // that.UpdateHover(source);
             })
             .selectAll('option.states-select-option')
-                .data(statesSelectData)
-                .enter().append('option')
-                    .classed('states-select-option', true)
-                    .text(function(d) { return d; });
+            .data(statesSelectData)
+            .enter().append('option')
+            .classed('states-select-option', true)
+            .text(function(d) { return d; });
         statesSelect
             .property('value', stateSelected);
         TestApp('UpdateStatesSelect');
@@ -672,7 +673,7 @@ function GraphClass() {
             },
             radius: {
                 value: function(node, i, nodes) {
-                    return Math.max(vs.vertices.minRadius, node.r)+0.5*vs.vertices.strokeWidth;
+                    return Math.max(vs.vertices.minRadius, node.r) + 0.5 * vs.vertices.strokeWidth;
                 },
                 // value: 5,
                 // min: 0,
@@ -840,7 +841,7 @@ function GraphClass() {
                 //     d.r = 2+15*Math.sqrt(hybridMapObj.$GivenByVerticeScale()(d.$Given));
                 // }
             })
-            .style('stroke-width', vs.vertices.strokeWidth+'px')
+            .style('stroke-width', vs.vertices.strokeWidth + 'px')
             .style('fill', function(d) {
                 if (topIds.includes(d.id)) {
                     return d3.schemeCategory20[d.i];
@@ -903,7 +904,7 @@ function GraphClass() {
             })
             .merge(edgeLines);
         edgeLines
-            .style('stroke-width', vs.edges.strokeWidth+'px')
+            .style('stroke-width', vs.edges.strokeWidth + 'px')
             .style('stroke', function(d) {
                 if (topIds.includes(d.source.id)) {
                     return d3.schemeCategory20[d.source.i];
@@ -974,7 +975,7 @@ function GraphClass() {
                         forceNew[optionName](optionValue);
                     });
                     that.simulation
-                        .force(forceType+state, forceNew);
+                        .force(forceType + state, forceNew);
                 });
             } else {
                 var forceNew = d3[forceType]();
@@ -983,10 +984,10 @@ function GraphClass() {
                     var optionValue = optionsObj[optionName].value; // do not mutate original value
                     switch (optionValue) {
                         case 'cx':
-                            optionValue = 0.5*vs.map.w;
+                            optionValue = 0.5 * vs.map.w;
                             break;
                         case 'cy':
-                            optionValue = 0.5*vs.map.h;
+                            optionValue = 0.5 * vs.map.h;
                             break;
                     }
                     forceNew[optionName](optionValue);
@@ -1003,10 +1004,10 @@ function GraphClass() {
 
     that.UpdateFilters = function() {
         filtersContainer
-            .style('width', vs.filters.w+'px')
-            .style('height', vs.filters.h+'px')
-            .style('top', (vs.map.h+vs.grades.h)+'px')
-            .style('left', 0+'px');
+            .style('width', vs.filters.w + 'px')
+            .style('height', vs.filters.h + 'px')
+            .style('top', (vs.map.h + vs.grades.h) + 'px')
+            .style('left', 0 + 'px');
         filtersYears = filtersContainer.selectAll('div.filters-year')
             .data(yearsData);
         filtersYears = filtersYears.enter().append('div')
@@ -1028,7 +1029,7 @@ function GraphClass() {
                     });
             })
             .merge(filtersYears)
-            .style('width', (vs.filters.w/yearsData.length)+'px');
+            .style('width', (vs.filters.w / yearsData.length) + 'px');
         filtersReports = filtersContainer.selectAll('div.filters-report')
             .data(reportsData);
         filtersReports = filtersReports.enter().append('div')
@@ -1050,7 +1051,7 @@ function GraphClass() {
                     });
             })
             .merge(filtersReports)
-            .style('width', (vs.filters.w/reportsData.length)+'px');
+            .style('width', (vs.filters.w / reportsData.length) + 'px');
         return that;
     };
 
@@ -1067,7 +1068,7 @@ function GraphClass() {
         });
         optionsContainer
             .style('left', '0px')
-            .style('top', Math.max(vs.svg.h, vs.map.h+vs.grades.h+vs.filters.h)+'px');
+            .style('top', Math.max(vs.svg.h, vs.map.h + vs.grades.h + vs.filters.h) + 'px');
         var optionDivs = optionsContainer.selectAll('div.option-div')
             .data(that.optionsData);
         optionDivs = optionDivs.enter().append('div')
@@ -1220,16 +1221,16 @@ function GraphClass() {
 
 function UpdatePageDimensions() {
     var clientWidth = body.node().clientWidth;
-    if (clientWidth >= vs.map.wMin+vs.info.w) {
-        vs.map.w = clientWidth-vs.info.w;
+    if (clientWidth >= vs.map.wMin + vs.info.w) {
+        vs.map.w = clientWidth - vs.info.w;
         vs.svg.w = clientWidth;
     } else {
         vs.map.w = vs.map.wMin;
-        vs.svg.w = vs.map.wMin+vs.info.w;
+        vs.svg.w = vs.map.wMin + vs.info.w;
     }
     vs.filters.w = vs.map.w;
-    vs.map.h = vs.map.w/vs.map.ratioMapWH;
-    vs.svg.h = Math.max(vs.map.h, vs.info.h)+vs.grades.h;
+    vs.map.h = vs.map.w / vs.map.ratioMapWH;
+    vs.svg.h = Math.max(vs.map.h, vs.info.h) + vs.grades.h;
     vs.grades.w = vs.map.w;
     mainSVG
         .attr('width', vs.svg.w)
@@ -1252,8 +1253,8 @@ function UpdatePageDimensions() {
         .UpdateSimulation()
         .UpdateOptions();
     statesSelect
-        .style('margin-left', (vs.map.w-vs.statesSelect.w)/2+'px')
-        .style('margin-right', (vs.map.w-vs.statesSelect.w)/2+'px');
+        .style('margin-left', (vs.map.w - vs.statesSelect.w) / 2 + 'px')
+        .style('margin-right', (vs.map.w - vs.statesSelect.w) / 2 + 'px');
     // UpdateStatesSelect();
     TestApp('UpdatePageDimensions', -1);
 }
@@ -1263,36 +1264,36 @@ function TestApp(source, position) {
     usedJSHeapSize = performance.memory.usedJSHeapSize;
     totalJSHeapSize = performance.memory.totalJSHeapSize;
     if (position === 1) {
-        testStr = (''.padStart(2*stackLvl,' ')+'> '+String(source));
+        testStr = (''.padStart(2 * stackLvl, ' ') + '> ' + String(source));
         stackLvl += 1;
     } else if (position === -1) {
         stackLvl -= 1;
-        testStr = (''.padStart(2*stackLvl,' ')+'< '+String(source));
+        testStr = (''.padStart(2 * stackLvl, ' ') + '< ' + String(source));
     } else if (position === undefined) {
-        testStr = (''.padStart(2*stackLvl,' ')+'• '+String(source));
+        testStr = (''.padStart(2 * stackLvl, ' ') + '• ' + String(source));
     }
     testStr = testStr.padEnd(25);
     if (nodesCount !== d3.selectAll('*').size()) {
         nodesCount = d3.selectAll('*').size();
-        nStr = 'nodes: '+String(nodesCount).padStart(3,' ');
+        nStr = 'nodes: ' + String(nodesCount).padStart(3, ' ');
     } else {
         nStr = '';
     }
     if (performance.memory.usedJSHeapSize !== usedJSHeapSize) {
-        uStr = 'used: '+((usedJSHeapSize/(1024*1024)).toFixed(3)+' Mb').padStart(9,' ');
+        uStr = 'used: ' + ((usedJSHeapSize / (1024 * 1024)).toFixed(3) + ' Mb').padStart(9, ' ');
     } else {
         uStr = '';
     }
     if (performance.memory.totalJSHeapSize !== totalJSHeapSize) {
-        tStr = 'total: '+((totalJSHeapSize/(1024*1024)).toFixed(3)+' Mb').padStart(9,' ');
+        tStr = 'total: ' + ((totalJSHeapSize / (1024 * 1024)).toFixed(3) + ' Mb').padStart(9, ' ');
     } else {
         tStr = '';
     }
     if (nStr || uStr || tStr) {
-        testStr = testStr+uStr.padEnd(20,' ')+tStr.padEnd(20,' ')+nStr.padEnd(14,' ');
+        testStr = testStr + uStr.padEnd(20, ' ') + tStr.padEnd(20, ' ') + nStr.padEnd(14, ' ');
     }
     // if (position === 0) {
-        console.log(testStr);
+    console.log(testStr);
     // }
 }
 
@@ -1309,13 +1310,13 @@ function MemoryTester() {
             --><br><br><!--
             --><div class="cell"><div>usedRate</div><div id="usedRate"></div></div><!--
             --><div class="cell"><div>totalRate</div><div id="totalRate"></div></div><!--
-            --><br><br><!--`+
-            // --><div class="cell"><div>usedMeanRate</div><div id="usedMeanRate"></div></div><!--
-            // --><div class="cell"><div>totalMeanRate</div><div id="totalMeanRate"></div></div><!--
-            // --><br><br><!--
-            // --><div class="cell"><div>itersForMean</div><div id="itersForMean"></div></div><!--
-            // --><div class="cell"><div>iters</div><div id="iters"></div></div><!--
-           `-->
+            --><br><br><!--` +
+        // --><div class="cell"><div>usedMeanRate</div><div id="usedMeanRate"></div></div><!--
+        // --><div class="cell"><div>totalMeanRate</div><div id="totalMeanRate"></div></div><!--
+        // --><br><br><!--
+        // --><div class="cell"><div>itersForMean</div><div id="itersForMean"></div></div><!--
+        // --><div class="cell"><div>iters</div><div id="iters"></div></div><!--
+        `-->
         </div>`;
     var memoryContainer = d3.select('body')
         .select('#memory-container')
@@ -1342,40 +1343,40 @@ function MemoryTester() {
     var decimals = 7;
     var padding = 15;
     var pad = ' ';
-    var scale = 1/Math.pow(1024,2);
+    var scale = 1 / Math.pow(1024, 2);
     var units = ' MB';
     var elapsedOld = 0;
     var elapsed = 0;
-    var oldVals = [0,0];
-    var newVals = [performance.memory.usedJSHeapSize,performance.memory.totalJSHeapSize];
-    var minVals = [Infinity,Infinity];
-    var maxVals = [0,0];
-    var newRates = [0,0];
-    var minRates = [Infinity,Infinity];
-    var maxRates = [0,0];
-    var sumRates = [0,0];
-    var newMeanRates = [0,0];
-    var minMeanRates = [Infinity,Infinity];
-    var maxMeanRates = [0,0];
+    var oldVals = [0, 0];
+    var newVals = [performance.memory.usedJSHeapSize, performance.memory.totalJSHeapSize];
+    var minVals = [Infinity, Infinity];
+    var maxVals = [0, 0];
+    var newRates = [0, 0];
+    var minRates = [Infinity, Infinity];
+    var maxRates = [0, 0];
+    var sumRates = [0, 0];
+    var newMeanRates = [0, 0];
+    var minMeanRates = [Infinity, Infinity];
+    var maxMeanRates = [0, 0];
     var myInterval = setInterval(function() {
-        iters                           = iters+1;
-        elapsedOld                      = elapsed;
-        elapsed                         = (Date.now()-start)/1000;
-        interval                        = elapsed-elapsedOld;
+        iters = iters + 1;
+        elapsedOld = elapsed;
+        elapsed = (Date.now() - start) / 1000;
+        interval = elapsed - elapsedOld;
         // itersNode.innerHTML             = iters;
-        elapsedNode.innerHTML           = elapsed+' s';
-        intervalNode.innerHTML          = interval+' s';
-        oldVals                         = [newVals[0],newVals[1]];
-        newVals                         = [performance.memory.usedJSHeapSize,performance.memory.totalJSHeapSize];
-        minVals                         = [Math.min(newVals[0],minVals[0]),Math.min(newVals[1],minVals[1])];
-        maxVals                         = [Math.max(newVals[0],maxVals[0]),Math.max(newVals[1],maxVals[1])];
-        newRates                        = [(newVals[0]-oldVals[0])/interval,(newVals[1]-oldVals[1])/interval];
-        minRates                        = [Math.min(newRates[0],minRates[0]),Math.min(newRates[1],minRates[1])];
-        maxRates                        = [Math.max(newRates[0],maxRates[0]),Math.max(newRates[1],maxRates[1])];
-        usedValNode.innerHTML           = MakeDiv(minVals[0],'min')+MakeDiv(newVals[0],'new')+MakeDiv(maxVals[0],'max');
-        totalValNode.innerHTML          = MakeDiv(minVals[1],'min')+MakeDiv(newVals[1],'new')+MakeDiv(maxVals[1],'max');
-        usedRateNode.innerHTML          = MakeDiv(minRates[0],'min','/s')+MakeDiv(newRates[0],'new','/s')+MakeDiv(maxRates[0],'max','/s');
-        totalRateNode.innerHTML         = MakeDiv(minRates[1],'min','/s')+MakeDiv(newRates[1],'new','/s')+MakeDiv(maxRates[1],'max','/s');
+        elapsedNode.innerHTML = elapsed + ' s';
+        intervalNode.innerHTML = interval + ' s';
+        oldVals = [newVals[0], newVals[1]];
+        newVals = [performance.memory.usedJSHeapSize, performance.memory.totalJSHeapSize];
+        minVals = [Math.min(newVals[0], minVals[0]), Math.min(newVals[1], minVals[1])];
+        maxVals = [Math.max(newVals[0], maxVals[0]), Math.max(newVals[1], maxVals[1])];
+        newRates = [(newVals[0] - oldVals[0]) / interval, (newVals[1] - oldVals[1]) / interval];
+        minRates = [Math.min(newRates[0], minRates[0]), Math.min(newRates[1], minRates[1])];
+        maxRates = [Math.max(newRates[0], maxRates[0]), Math.max(newRates[1], maxRates[1])];
+        usedValNode.innerHTML = MakeDiv(minVals[0], 'min') + MakeDiv(newVals[0], 'new') + MakeDiv(maxVals[0], 'max');
+        totalValNode.innerHTML = MakeDiv(minVals[1], 'min') + MakeDiv(newVals[1], 'new') + MakeDiv(maxVals[1], 'max');
+        usedRateNode.innerHTML = MakeDiv(minRates[0], 'min', '/s') + MakeDiv(newRates[0], 'new', '/s') + MakeDiv(maxRates[0], 'max', '/s');
+        totalRateNode.innerHTML = MakeDiv(minRates[1], 'min', '/s') + MakeDiv(newRates[1], 'new', '/s') + MakeDiv(maxRates[1], 'max', '/s');
         // // if (newRates[0] > 0 && newRates[1] > 0) {
         //     itersForMean                = itersForMean+1;
         // // }
@@ -1387,12 +1388,13 @@ function MemoryTester() {
         // usedMeanRateNode.innerHTML      = MakeDiv(minMeanRates[0],'min','/s')+MakeDiv(newMeanRates[0],'new','/s')+MakeDiv(maxMeanRates[0],'max','/s');
         // totalMeanRateNode.innerHTML     = MakeDiv(minMeanRates[1],'min','/s')+MakeDiv(newMeanRates[1],'new','/s')+MakeDiv(maxMeanRates[1],'max','/s');
         // itersForMeanNode.innerHTML      = itersForMean+'/'+iters+' ('+(100*(itersForMean/iters)).toFixed(3)+'%)';
-    }, intervalSetting*1000);
+    }, intervalSetting * 1000);
+
     function MakeDiv(input, classType, suffix) {
         suffix = (suffix !== undefined) ? String(suffix) : '';
-        return '<div class="'+classType+'">'+
-                String((input*scale).toFixed(decimals)).padStart(padding,pad)+units+suffix+
-                '</div>';
+        return '<div class="' + classType + '">' +
+            String((input * scale).toFixed(decimals)).padStart(padding, pad) + units + suffix +
+            '</div>';
     }
     return myInterval;
 }
