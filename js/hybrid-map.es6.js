@@ -4,21 +4,29 @@
 
 // Performance -------------------------------------------------------------------------------------
 
-var logsLvl0 = 0,
+var logsLvl0 = 1,
     logsLvl1 = 0,
     logsLvl2 = 0,
     logsTest = 1 && performance && performance.memory;
 var resizeWait = 150,
     resizeCounter = 0;
 var stackLvl = 0;
-var nodesCount = 0;
-var usedJSHeapSize = 0,
-    totalJSHeapSize = 0;
-var strN = '',
-    strU = '',
-    strT = '',
-    strSource = '',
-    strStats = '';
+var sizeNodesOld = -1,
+    sizeUsedOld = -1,
+    sizeTotalOld = -1;
+var sizeNodesNew = 0,
+    sizeUsedNew = 0,
+    sizeTotalNew = 0;
+var colorSource = 'color:black',
+    colorNodes = 'color:black',
+    colorUsed = 'color:black',
+    colorTotal = 'color:black';
+var stringSource = '',
+    stringNodes = '',
+    stringUsed = '',
+    stringTotal = '',
+    stringCombined = '',
+    stringSymbol = '';
 var mobileNavigators = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
     mobileBrowser = navigator && mobileNavigators.test(navigator.userAgent);
 console.log('mobileBrowser', mobileBrowser);
@@ -103,7 +111,12 @@ var vs = {
         w: null,
         h: 70,
     },
-    // options: {},
+    options: {},
+    test: {
+        colorNeutral: 'black',
+        colorBad: 'firebrick',
+        colorGood: 'green',
+    }
 };
 vs.info.wImage = vs.info.w - 2 * vs.info.margin;
 vs.info.hImage = vs.info.wImage / vs.info.ratioImageWH;
@@ -177,19 +190,17 @@ window.onload = function() {
         .awaitAll(InitializePage);
 };
 window.onresize = function() {
-    // if (resizeCounter === 0) {
-    //     if (logsLvl1) console.log('Waiting to resize...');
-    // }
-    resizeCounter += 1;
     if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
+    resizeCounter += 1;
     setTimeout(function() {
         if (resizeCounter > 1) {
             resizeCounter -= 1;
+            if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
         } else if (resizeCounter === 1) {
-            resizeCounter = 0;
+            resizeCounter -= 1;
+            if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
             UpdatePageDimensions();
         }
-        if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
     }, resizeWait);
 };
 
@@ -1224,36 +1235,46 @@ function UpdatePageDimensions() {
 
 function TestApp(source, position) {
     if (!logsTest) { return; }
-    usedJSHeapSize = performance.memory.usedJSHeapSize;
-    totalJSHeapSize = performance.memory.totalJSHeapSize;
     if (position === 1) {
-        strSource = (''.padStart(2 * stackLvl, ' ') + '> ' + String(source));
+        stringSymbol = '> ';
         stackLvl += 1;
     } else if (position === -1) {
         stackLvl -= 1;
-        strSource = (''.padStart(2 * stackLvl, ' ') + '< ' + String(source));
-    } else if (position === undefined) {
-        strSource = (''.padStart(2 * stackLvl, ' ') + '• ' + String(source));
-    }
-    strSource = strSource.padEnd(27);
-    if (nodesCount !== d3.selectAll('*').size()) {
-        nodesCount = d3.selectAll('*').size();
-        strN = 'nodes: ' + String(nodesCount).padStart(3, ' ');
+        stringSymbol = '< ';
     } else {
-        strN = '';
+        stringSymbol = '• ';
     }
-    if (performance.memory.usedJSHeapSize !== usedJSHeapSize) {
-        strU = 'used: ' + ((usedJSHeapSize / (1024 * 1024)).toFixed(3) + ' Mb').padStart(9, ' ');
+    stringSource = '%c' + (''.padStart(2 * stackLvl) + stringSymbol + String(source)).padEnd(27);
+    sizeNodesOld = sizeNodesNew;
+    sizeUsedOld = sizeUsedNew;
+    sizeTotalOld = sizeTotalNew;
+    sizeNodesNew = d3.selectAll('*').size();
+    sizeUsedNew = performance.memory.usedJSHeapSize;
+    sizeTotalNew = performance.memory.totalJSHeapSize;
+    if (sizeNodesNew !== sizeNodesOld) {
+        stringNodes = (sizeNodesNew + ' n').padStart(6);
+        colorNodes = 'color:' + (sizeNodesNew < sizeNodesOld ? vs.test.colorGood : vs.test.colorBad);
     } else {
-        strU = '';
+        stringNodes = '';
+        colorNodes = 'color:' + vs.test.colorNeutral;
     }
-    if (performance.memory.totalJSHeapSize !== totalJSHeapSize) {
-        strT = 'total: ' + ((totalJSHeapSize / (1024 * 1024)).toFixed(3) + ' Mb').padStart(9, ' ');
+    stringNodes = '%c' + stringNodes.padEnd(8);
+    if (sizeUsedNew !== sizeUsedOld) {
+        stringUsed = ((sizeUsedNew / (1024 * 1024)).toFixed(2) + ' Mb').padStart(8);
+        colorUsed = 'color:' + (sizeUsedNew < sizeUsedOld ? vs.test.colorGood : vs.test.colorBad);
     } else {
-        strT = '';
+        stringUsed = '';
+        colorUsed = 'color:' + vs.test.colorNeutral;
     }
-    if (strN || strU || strT) {
-        strStats = strU.padEnd(20, ' ') + strT.padEnd(20, ' ') + strN.padEnd(14, ' ');
+    stringUsed = '%c' + stringUsed.padEnd(12);
+    if (sizeTotalNew !== sizeTotalOld) {
+        stringTotal = ((sizeTotalNew / (1024 * 1024)).toFixed(2) + ' Mb').padStart(8);
+        colorTotal = 'color:' + (sizeTotalNew < sizeTotalOld ? vs.test.colorGood : vs.test.colorBad);
+    } else {
+        stringTotal = '';
+        colorTotal = 'color:' + vs.test.colorNeutral;
     }
-    console.log('%c' + strSource, 'color:green', strStats);
+    stringTotal = '%c' + stringTotal.padEnd(12);
+    stringCombined = stringSource + stringNodes + stringUsed + stringTotal;
+    console.log(stringCombined, colorSource, colorNodes, colorUsed, colorTotal);
 }
