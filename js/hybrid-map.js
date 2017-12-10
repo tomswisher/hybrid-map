@@ -351,7 +351,7 @@ function HybridMapClass() {
         //     //     value: [],
         //     // },
         //     // id: {
-        //     //     value: function(node) { return node.index; },
+        //     //     value: node => node.index,
         //     // },
         //     iterations: {
         //         value: 1,
@@ -360,7 +360,7 @@ function HybridMapClass() {
         //         step: 1,
         //     },
         //     // strength: {
-        //     //     value: function(link, i, links) { return 1/Math.min(count[link.source.index],count[link.target.index]); },
+        //     //     value: (link, i, links) => 1/Math.min(count[link.source.index],count[link.target.index]),
         //     // },
         //     distance: {
         //         value: 30, // function(link, i, links) { return 30; },
@@ -404,7 +404,7 @@ function HybridMapClass() {
         //         step: 0.01,
         //     },
         //     radius: {
-        //         value: function(node, i, nodes) { return node.r; },
+        //         value: (node, i, nodes) => node.r,
         //     },
         //     x: {
         //         value: 'cx',
@@ -492,7 +492,7 @@ function HybridMapClass() {
             });
             that.UpdateVerticesEdges();
             that.UpdateInfo();
-        }).on('mouseout', function (d) {
+        }).on('mouseout', function () {
             if (isDragging) {
                 return;
             }
@@ -521,9 +521,7 @@ function HybridMapClass() {
             } else {
                 return 'white';
             }
-        }).style('stroke', function (d) {
-            return 'gray';
-        }).attr('r', function (d) {
+        }).style('stroke', 'gray').attr('r', function (d) {
             return d.r;
         })
         // .transition().duration(transitionDuration).ease(transitionEase)

@@ -384,9 +384,7 @@ function HybridMapClass() {
                 step: 0.1,
             },
             radius: {
-                value: function(node, i, nodes) {
-                    return 1.5 + node.r;
-                },
+                value: (node, i, nodes) => 1.5 + node.r,
                 // value: 5,
                 // min: 0,
                 // max: 20,
@@ -398,7 +396,7 @@ function HybridMapClass() {
         //     //     value: [],
         //     // },
         //     // id: {
-        //     //     value: function(node) { return node.index; },
+        //     //     value: node => node.index,
         //     // },
         //     iterations: {
         //         value: 1,
@@ -407,7 +405,7 @@ function HybridMapClass() {
         //         step: 1,
         //     },
         //     // strength: {
-        //     //     value: function(link, i, links) { return 1/Math.min(count[link.source.index],count[link.target.index]); },
+        //     //     value: (link, i, links) => 1/Math.min(count[link.source.index],count[link.target.index]),
         //     // },
         //     distance: {
         //         value: 30, // function(link, i, links) { return 30; },
@@ -451,7 +449,7 @@ function HybridMapClass() {
         //         step: 0.01,
         //     },
         //     radius: {
-        //         value: function(node, i, nodes) { return node.r; },
+        //         value: (node, i, nodes) => node.r,
         //     },
         //     x: {
         //         value: 'cx',
@@ -518,13 +516,13 @@ function HybridMapClass() {
         },
     };
 
-    that.UpdateVerticesEdges = function() {
+    that.UpdateVerticesEdges = () => {
         console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateVerticesEdges = function() {", "color:blue");
         let iCount = 0;
         verticeCircles = verticesG.selectAll('circle.vertice-circle')
             .data(that.vertices());
         verticeCircles = verticeCircles.enter().append('circle')
-            .each(function(d, i) {
+            .each((d, i) => {
                 d.x = that.centroidByState[d.state][0];
                 d.y = that.centroidByState[d.state][1];
                 if (topIds.includes(d.id)) {
@@ -533,7 +531,7 @@ function HybridMapClass() {
                 }
             })
             .classed('vertice-circle', true)
-            .on('mouseover', function(d) {
+            .on('mouseover', d => {
                 if (isDragging) { return; }
                 nodeSelected = d;
                 linksSelected = that.edges().filter(d => {
@@ -544,7 +542,7 @@ function HybridMapClass() {
                 that
                     .UpdateInfo();
             })
-            .on('mouseout', function(d) {
+            .on('mouseout', () => {
                 if (isDragging) { return; }
                 nodeSelected = null;
                 linksSelected = [];
@@ -556,11 +554,11 @@ function HybridMapClass() {
                 .on('start', _DragStarted)
                 .on('drag', _Dragged)
                 .on('end', _DragEnded))
-            .attr('cx', function(d) { return d.x; })
-            .attr('cy', function(d) { return d.y; })
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y)
             .merge(verticeCircles);
         verticeCircles
-            .each(function(d) {
+            .each(d => {
                 let $in = that.$verticeScale(d.$in);
                 let $out = that.$verticeScale(d.$out);
                 if ($in > $out) {
@@ -570,7 +568,7 @@ function HybridMapClass() {
                 }
             })
             .style('stroke-width', vs.vertices.strokeWidth + 'px')
-            .style('fill', function(d) {
+            .style('fill', d => {
                 if (topIds.includes(d.id)) {
                     return d3.schemeCategory20[d.i];
                 } else if (d.$out > 0) {
@@ -579,12 +577,10 @@ function HybridMapClass() {
                     return 'white';
                 }
             })
-            .style('stroke', function(d) {
-                return 'gray';
-            })
-            .attr('r', function(d) { return d.r; })
+            .style('stroke', 'gray')
+            .attr('r', d => d.r)
             // .transition().duration(transitionDuration).ease(transitionEase)
-            .style('opacity', function(d) {
+            .style('opacity', d => {
                 if (!nodeSelected) {
                     return 1;
                 } else if (nodeSelected.id === d.id) {
@@ -601,22 +597,14 @@ function HybridMapClass() {
             .data(that.edges());
         edgeLines = edgeLines.enter().append('line')
             .classed('edge-line', true)
-            .attr('x1', function(d) {
-                return d.source.x;
-            })
-            .attr('y1', function(d) {
-                return d.source.y;
-            })
-            .attr('x2', function(d) {
-                return d.target.x;
-            })
-            .attr('y2', function(d) {
-                return d.target.y;
-            })
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y)
             .merge(edgeLines);
         edgeLines
             .style('stroke-width', vs.edges.strokeWidth + 'px')
-            .style('stroke', function(d) {
+            .style('stroke', d => {
                 if (topIds.includes(d.source.id)) {
                     return d3.schemeCategory20[d.source.i];
                 } else if (topIds.includes(d.target.id)) {
@@ -630,7 +618,7 @@ function HybridMapClass() {
                 }
             })
             // .transition().duration(transitionDuration).ease(transitionEase)
-            .style('display', function(d) {
+            .style('display', d => {
                 if (!filtersDatum[d.year]) {
                     return 'none';
                 } else if (!filtersDatum[d.report]) {
@@ -649,19 +637,17 @@ function HybridMapClass() {
         return that;
     };
 
-    that.UpdateSimulation = function() {
+    that.UpdateSimulation = () => {
         console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateSimulation = function() {", "color:blue");
-        Object.keys(that.forcesObj).forEach(function(forceType) {
+        Object.keys(that.forcesObj).forEach(forceType => {
             if (forceType === 'simulation') { return; }
             let optionsObj = that.forcesObj[forceType];
             if (optionsObj['_IsolateForce'] === true) {
-                Object.keys(that.$outState).forEach(function(state) {
+                Object.keys(that.$outState).forEach(state => {
                     let cx = that.centroidByState[state][0];
                     let cy = that.centroidByState[state][1];
-                    let forceNew = _IsolateForce(d3[forceType](), function(d) {
-                        return d.state === state;
-                    });
-                    Object.keys(optionsObj).forEach(function(optionName) {
+                    let forceNew = _IsolateForce(d3[forceType](), d => d.state === state);
+                    Object.keys(optionsObj).forEach(optionName => {
                         if (optionName[0] === '_') { return; }
                         let optionValue = optionsObj[optionName].value; // do not mutate original value
                         switch (optionValue) {
@@ -679,7 +665,7 @@ function HybridMapClass() {
                 });
             } else {
                 let forceNew = d3[forceType]();
-                Object.keys(optionsObj).forEach(function(optionName) {
+                Object.keys(optionsObj).forEach(optionName => {
                     if (optionName[0] === '_') { return; }
                     let optionValue = optionsObj[optionName].value; // do not mutate original value
                     switch (optionValue) {
@@ -696,16 +682,16 @@ function HybridMapClass() {
                     .force(forceType, forceNew);
             }
         });
-        Object.keys(that.forcesObj.simulation).forEach(function(optionName) {
+        Object.keys(that.forcesObj.simulation).forEach(optionName => {
             that.simulation[optionName](that.forcesObj.simulation[optionName].value);
         });
         that.simulation
             .alpha(1)
             .restart();
         that.optionsData = [];
-        Object.keys(that.forcesObj).forEach(function(forceType) {
+        Object.keys(that.forcesObj).forEach(forceType => {
             let optionsObj = that.forcesObj[forceType];
-            Object.keys(optionsObj).forEach(function(optionName) {
+            Object.keys(optionsObj).forEach(optionName => {
                 if (optionName[0] === '_') { return; }
                 optionsObj[optionName]._category = forceType;
                 optionsObj[optionName]._name = optionName;
@@ -716,7 +702,7 @@ function HybridMapClass() {
         return that;
     };
 
-    that.UpdateFilters = function() {
+    that.UpdateFilters = () => {
         console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateFilters = function() {", "color:blue");
         filtersDiv
             .style('width', vs.filters.w + 'px')
