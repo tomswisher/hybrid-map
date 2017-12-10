@@ -69,6 +69,22 @@ body {
         }
     }
 }
+#info-g {
+    rect.info-bg-rect {
+        stroke: gainsboro;
+        fill: @inactiveColor;
+    }
+    g.info-image-g {
+        image {
+        }
+    }
+    g.info-text-g {
+        text {
+            dominant-baseline: middle;
+            text-anchor: middle;
+        }
+    }
+}
 #filters-div {
     position: absolute;
     background: @inactiveColor;
@@ -81,7 +97,7 @@ body {
 }
 #options-div {
     position: absolute;
-    display: inline-block;
+    background: @inactiveColor;
     width: 100%;
     height: auto;
     .option-row {
@@ -109,22 +125,6 @@ body {
         input[type='Range'] {
             width: @sliderWidth;
             margin: 0px;
-        }
-    }
-}
-#info-g {
-    rect.info-bg-rect {
-        stroke: gainsboro;
-        fill: @inactiveColor;
-    }
-    g.info-image-g {
-        image {
-        }
-    }
-    g.info-text-g {
-        text {
-            dominant-baseline: middle;
-            text-anchor: middle;
         }
     }
 }

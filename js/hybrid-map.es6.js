@@ -1,10 +1,10 @@
 // tomswisherlabs@gmail.com     https://github.com/tomswisher
 
 'use strict'; /* globals d3, console, nodes, count */ /* jshint -W069, unused:false */
+console.log('Loading app...');
 
 // Performance -------------------------------------------------------------------------------------
 
-console.log('Loading app...');
 var isLoaded = false;
 var logsLvl0 = true,
     logsLvl1 = false,
@@ -114,7 +114,6 @@ var vs = {
         w: null,
         h: 70,
     },
-    options: {},
     test: {
         colorNeutral: 'black',
         colorBad: 'firebrick',
@@ -1013,8 +1012,8 @@ function GraphClass() {
         filtersDiv
             .style('width', vs.filters.w + 'px')
             .style('height', vs.filters.h + 'px')
-            .style('top', (vs.states.h + vs.grades.h) + 'px')
-            .style('left', 0 + 'px');
+            .style('left', '0px')
+            .style('top', (vs.states.h + vs.grades.h) + 'px');
         filtersYears = filtersDiv.selectAll('div.filters-year')
             .data(yearsData);
         filtersYears = filtersYears.enter().append('div')
