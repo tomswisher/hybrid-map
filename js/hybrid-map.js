@@ -4,13 +4,16 @@
 
 // Performance -------------------------------------------------------------------------------------
 
-var logsLvl0 = 1,
-    logsLvl1 = 0,
-    logsLvl2 = 0,
-    logsTest = 1 && performance && performance.memory;
+console.log('Loading app...');
+var isLoaded = false;
+var logsLvl0 = true,
+    logsLvl1 = false,
+    logsLvl2 = false,
+    logsTest = true && performance && performance.memory;
 var resizeWait = 150,
     resizeCounter = 0;
-var stackLvl = 0;
+var stackLevel = 0,
+    stackLevelTemp = 0;
 var sizeNodesOld = -1,
     sizeUsedOld = -1,
     sizeTotalOld = -1;
@@ -160,6 +163,9 @@ window.onload = function () {
     d3.queue().defer(d3.json, 'data/us-states-features.json').defer(d3.json, 'data/nodes-links-04-06-2017.json').awaitAll(InitializePage);
 };
 window.onresize = function () {
+    if (!isLoaded) {
+        return;
+    }
     if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
     resizeCounter += 1;
     setTimeout(function () {
@@ -203,6 +209,8 @@ function InitializePage(error, results) {
     requestAnimationFrame(function () {
         graphObj.UpdateOptions();
         body.classed('loading', false);
+        isLoaded = true;
+        console.log('Loading complete.');
     });
     TestApp('InitializePage', -1);
 }
@@ -1051,22 +1059,24 @@ function TestApp(source, position) {
     if (!logsTest) {
         return;
     }
-    if (position === 1) {
-        stringSymbol = '> ';
-        stackLvl += 1;
-    } else if (position === -1) {
-        stackLvl -= 1;
-        stringSymbol = '< ';
-    } else {
-        stringSymbol = '• ';
-    }
-    stringSource = '%c' + (''.padStart(2 * stackLvl) + stringSymbol + String(source)).padEnd(27);
+    stackLevelTemp = stackLevel;
     sizeNodesOld = sizeNodesNew;
     sizeUsedOld = sizeUsedNew;
     sizeTotalOld = sizeTotalNew;
     sizeNodesNew = d3.selectAll('*').size();
     sizeUsedNew = performance.memory.usedJSHeapSize;
     sizeTotalNew = performance.memory.totalJSHeapSize;
+    if (position === 1) {
+        stringSymbol = '> ';
+        stackLevel += 1;
+    } else if (position === -1) {
+        stackLevel -= 1;
+        stringSymbol = '< ';
+        stackLevelTemp = stackLevel;
+    } else {
+        stringSymbol = '• ';
+    }
+    stringSource = '%c' + (''.padStart(2 * stackLevelTemp) + stringSymbol + String(source)).padEnd(27);
     if (sizeNodesNew !== sizeNodesOld) {
         stringNodes = (sizeNodesNew + ' n').padStart(6);
         colorNodes = 'color:' + (sizeNodesNew < sizeNodesOld ? vs.test.colorGood : vs.test.colorBad);
