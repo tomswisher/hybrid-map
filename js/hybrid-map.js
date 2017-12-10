@@ -8,7 +8,6 @@ var logsLvl0 = 0,
     logsLvl1 = 0,
     logsLvl2 = 0,
     logsTest = 1 && performance && performance.memory;
-var memWatch = 0 && performance && performance.memory ? MemoryTester() : 0;
 var resizeWait = 150,
     resizeCounter = 0;
 var stackLvl = 0;
@@ -1073,88 +1072,4 @@ function TestApp(source, position) {
         strStats = strU.padEnd(20, ' ') + strT.padEnd(20, ' ') + strN.padEnd(14, ' ');
     }
     console.log('%c' + strSource, 'color:green', strStats);
-}
-
-// Debug -------------------------------------------------------------------------------------------
-
-function MemoryTester() {
-    var htmlString = '\n        <div id="memory-div"><!--\n            --><div class="cell"><div>elapsed</div><div id="elapsed"></div></div><!--\n            --><div class="cell"><div>interval</div><div id="interval"></div></div><!--\n            --><br><br><!--\n            --><div class="cell"><div>usedVal</div><div id="usedVal"></div></div><!--\n            --><div class="cell"><div>totalVal</div><div id="totalVal"></div></div><!--\n            --><br><br><!--\n            --><div class="cell"><div>usedRate</div><div id="usedRate"></div></div><!--\n            --><div class="cell"><div>totalRate</div><div id="totalRate"></div></div><!--\n            --><br><br><!--' +
-    // --><div class="cell"><div>usedMeanRate</div><div id="usedMeanRate"></div></div><!--
-    // --><div class="cell"><div>totalMeanRate</div><div id="totalMeanRate"></div></div><!--
-    // --><br><br><!--
-    // --><div class="cell"><div>itersForMean</div><div id="itersForMean"></div></div><!--
-    // --><div class="cell"><div>iters</div><div id="iters"></div></div><!--
-    '-->\n        </div>';
-    var memoryDiv = d3.select('body').select('#memory-div').data([null]);
-    memoryDiv.enter().append('div').attr('id', 'memory-div').merge(memoryDiv).property('outerHTML', htmlString);
-    var elapsedNode = document.querySelector('#elapsed');
-    var intervalNode = document.querySelector('#interval');
-    var usedValNode = document.querySelector('#usedVal');
-    var totalValNode = document.querySelector('#totalVal');
-    var usedRateNode = document.querySelector('#usedRate');
-    var totalRateNode = document.querySelector('#totalRate');
-    var usedMeanRateNode = document.querySelector('#usedMeanRate');
-    var totalMeanRateNode = document.querySelector('#totalMeanRate');
-    var itersForMeanNode = document.querySelector('#itersForMean');
-    // var itersNode = document.querySelector('#iters');
-    var start = Date.now();
-    var intervalSetting = 0.5;
-    var interval = 0;
-    var iters = 0;
-    var itersForMean = 0;
-    var decimals = 7;
-    var padding = 15;
-    var pad = ' ';
-    var scale = 1 / Math.pow(1024, 2);
-    var units = ' MB';
-    var elapsedOld = 0;
-    var elapsed = 0;
-    var oldVals = [0, 0];
-    var newVals = [performance.memory.usedJSHeapSize, performance.memory.totalJSHeapSize];
-    var minVals = [Infinity, Infinity];
-    var maxVals = [0, 0];
-    var newRates = [0, 0];
-    var minRates = [Infinity, Infinity];
-    var maxRates = [0, 0];
-    var sumRates = [0, 0];
-    var newMeanRates = [0, 0];
-    var minMeanRates = [Infinity, Infinity];
-    var maxMeanRates = [0, 0];
-    var myInterval = setInterval(function () {
-        iters = iters + 1;
-        elapsedOld = elapsed;
-        elapsed = (Date.now() - start) / 1000;
-        interval = elapsed - elapsedOld;
-        // itersNode.innerHTML             = iters;
-        elapsedNode.innerHTML = elapsed + ' s';
-        intervalNode.innerHTML = interval + ' s';
-        oldVals = [newVals[0], newVals[1]];
-        newVals = [performance.memory.usedJSHeapSize, performance.memory.totalJSHeapSize];
-        minVals = [Math.min(newVals[0], minVals[0]), Math.min(newVals[1], minVals[1])];
-        maxVals = [Math.max(newVals[0], maxVals[0]), Math.max(newVals[1], maxVals[1])];
-        newRates = [(newVals[0] - oldVals[0]) / interval, (newVals[1] - oldVals[1]) / interval];
-        minRates = [Math.min(newRates[0], minRates[0]), Math.min(newRates[1], minRates[1])];
-        maxRates = [Math.max(newRates[0], maxRates[0]), Math.max(newRates[1], maxRates[1])];
-        usedValNode.innerHTML = MakeDiv(minVals[0], 'min') + MakeDiv(newVals[0], 'new') + MakeDiv(maxVals[0], 'max');
-        totalValNode.innerHTML = MakeDiv(minVals[1], 'min') + MakeDiv(newVals[1], 'new') + MakeDiv(maxVals[1], 'max');
-        usedRateNode.innerHTML = MakeDiv(minRates[0], 'min', '/s') + MakeDiv(newRates[0], 'new', '/s') + MakeDiv(maxRates[0], 'max', '/s');
-        totalRateNode.innerHTML = MakeDiv(minRates[1], 'min', '/s') + MakeDiv(newRates[1], 'new', '/s') + MakeDiv(maxRates[1], 'max', '/s');
-        // // if (newRates[0] > 0 && newRates[1] > 0) {
-        //     itersForMean                = itersForMean+1;
-        // // }
-        // if (itersForMean < 2) { return; }
-        // sumRates                        = [sumRates[0]+newRates[0],sumRates[1]+newRates[1]];
-        // newMeanRates                    = [sumRates[0]/(itersForMean-1), sumRates[1]/(itersForMean-1)];
-        // minMeanRates                    = [Math.min(newMeanRates[0],minMeanRates[0]),Math.min(newMeanRates[1],minMeanRates[1])];
-        // maxMeanRates                    = [Math.max(newMeanRates[0],maxMeanRates[0]),Math.max(newMeanRates[1],maxMeanRates[1])];
-        // usedMeanRateNode.innerHTML      = MakeDiv(minMeanRates[0],'min','/s')+MakeDiv(newMeanRates[0],'new','/s')+MakeDiv(maxMeanRates[0],'max','/s');
-        // totalMeanRateNode.innerHTML     = MakeDiv(minMeanRates[1],'min','/s')+MakeDiv(newMeanRates[1],'new','/s')+MakeDiv(maxMeanRates[1],'max','/s');
-        // itersForMeanNode.innerHTML      = itersForMean+'/'+iters+' ('+(100*(itersForMean/iters)).toFixed(3)+'%)';
-    }, intervalSetting * 1000);
-
-    function MakeDiv(input, classType, suffix) {
-        suffix = suffix !== undefined ? String(suffix) : '';
-        return '<div class="' + classType + '">' + String((input * scale).toFixed(decimals)).padStart(padding, pad) + units + suffix + '</div>';
-    }
-    return myInterval;
 }
