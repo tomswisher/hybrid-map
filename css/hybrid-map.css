@@ -83,13 +83,10 @@ body {
 }
 #options-div .option-row {
   display: inline-block;
-  width: 500px;
   outline: 1px solid gainsboro;
 }
 #options-div .option-row > * {
   font-size: 14px;
-  height: 28px;
-  line-height: 28px;
 }
 #options-div .option-row label {
   display: inline-block;
@@ -98,21 +95,8 @@ body {
   white-space: nowrap;
   dominant-baseline: central;
 }
-#options-div .option-row label.label-small {
-  width: 50px;
-}
-#options-div .option-row label.label-medium {
-  width: 90px;
-}
 #options-div .option-row input[type='Range'] {
-  width: 130px;
   margin: 0px;
-}
-.vspacer-10 {
-  height: 10px;
-}
-.vspacer-15 {
-  height: 15px;
 }
 /* General Styles */
 .hovered {

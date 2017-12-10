@@ -8,10 +8,6 @@
 7   1024    768
 */
 @font1Size: 14px;
-@labelSmallWidth: 50px;
-@labelMediumWidth: 90px;
-@sliderWidth: 130px;
-@optionDivWidth: 2*@labelSmallWidth + 3*@labelMediumWidth + @sliderWidth;
 @bgColor: lightblue;
 @inactiveColor: white;
 
@@ -92,7 +88,6 @@ body {
         display: inline-block;
         font-size: @font1Size;
         text-align: center;
-        // outline: 1px solid green;
     }
 }
 #options-div {
@@ -102,12 +97,9 @@ body {
     height: auto;
     .option-row {
         display: inline-block;
-        width: @optionDivWidth;
         outline: 1px solid gainsboro;
         > * {
             font-size: @font1Size;
-            height: 28px;
-            line-height: 28px;
         }
         label {
             display: inline-block;
@@ -116,23 +108,14 @@ body {
             white-space: nowrap;
             dominant-baseline: central;
             &.label-small {
-                width: @labelSmallWidth;
             }
             &.label-medium {
-                width: @labelMediumWidth
             }
         }
         input[type='Range'] {
-            width: @sliderWidth;
             margin: 0px;
         }
     }
-}
-.vspacer-10 {
-    height: 10px;
-}
-.vspacer-15 {
-    height: 15px;
 }
 /* General Styles */
 .hovered {

@@ -115,6 +115,13 @@ var vs = {
         w: null,
         h: 70
     },
+    options: {
+        wSmall: 50,
+        wMedium: 90,
+        wSlider: 130,
+        wRow: null,
+        hRow: 28
+    },
     test: {
         colorNeutral: 'black',
         colorBad: 'firebrick',
@@ -124,6 +131,7 @@ var vs = {
 vs.info.wImage = vs.info.w - 2 * vs.info.margin;
 vs.info.hImage = vs.info.wImage / vs.info.ratioImageWH;
 vs.info.h = vs.info.hImage + 4 * vs.info.textRowH + 3 * vs.info.margin;
+vs.options.wRow = 2 * vs.options.wSmall + 3 * vs.options.wMedium + vs.options.wSlider;
 vs.colorScale = d3.scaleQuantize().domain([0, 5]).range(vs.grades.colorArray);
 defs.append('filter').attr('id', 'drop-shadow').attr('height', '130%') // so the shadow is not clipped
 .attr('width', '120%').each(function () {
@@ -954,7 +962,10 @@ function GraphClass() {
                     return datum.value;
                 }
             });
-        });
+            d3.select(this).selectAll('label.label-small').style('width', vs.options.wSmall + 'px');
+            d3.select(this).selectAll('label.label-medium').style('width', vs.options.wMedium + 'px');
+            d3.select(this).selectAll('input[type=\'Range\']').style('width', vs.options.wSlider + 'px');
+        }).style('width', vs.options.wRow + 'px').selectAll('*').style('height', vs.options.hRow + 'px').style('line-height', vs.options.hRow + 'px');
         optionsAlphaLabel = optionRows.selectAll('label.option-value').filter(function (d) {
             return d._category === 'simulation' && d._name === 'alpha';
         });
