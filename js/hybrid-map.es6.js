@@ -19,10 +19,10 @@ let sizeNodesOld = -1,
 let sizeNodesNew = 0,
     sizeUsedNew = 0,
     sizeTotalNew = 0;
-let colorSource = 'color:black',
-    colorNodes = 'color:black',
-    colorUsed = 'color:black',
-    colorTotal = 'color:black';
+let colorSource = '',
+    colorNodes = '',
+    colorUsed = '',
+    colorTotal = '';
 let stringSource = '',
     stringNodes = '',
     stringUsed = '',
@@ -31,40 +31,40 @@ let stringSource = '',
     stringSymbol = '';
 let mobileNavigators = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
     mobileBrowser = navigator && mobileNavigators.test(navigator.userAgent);
-if (mobileBrowser) { console.log('mobileBrowser', mobileBrowser); }
+if (mobileBrowser) console.log('mobileBrowser', mobileBrowser);
 
 // D3 Selections -----------------------------------------------------------------------------------
 
-let body = d3.select('body');
-let svg = body.select('#svg');
-let bgRect = body.select('#bg-rect');
-let clipPathRect = body.select('#clip-path-rect');
-let statesG = body.select('#states-g'),
-    statePaths = d3.select(null);
-let verticesG = body.select('#vertices-g'),
-    verticeCircles = d3.select(null);
-let edgesG = body.select('#edges-g'),
-    edgeLines = d3.select(null);
-let hoverG = body.select('#hover-g'),
-    hoverRect = d3.select(null),
-    hoverText = d3.select(null);
-let gradesG = body.select('#grades-g'),
-    gradeGs = d3.select(null);
-let defs = gradesG.append('defs');
-let filtersDiv = body.select('#filters-div'),
-    filtersYears = d3.select(null),
-    filtersReports = d3.select(null);
-let optionsDiv = body.select('#options-div'),
-    optionRows = d3.select(null),
-    optionsAlphaLabel = d3.select(null),
-    optionsAlphaSlider = d3.select(null);
-let infoG = body.select('#info-g'),
-    infoImageGs = d3.select(null),
-    infoTextGs = d3.select(null);
+const body = d3.select('body');
+const svg = body.select('#svg');
+const bgRect = body.select('#bg-rect');
+const clipPathRect = body.select('#clip-path-rect');
+const statesG = body.select('#states-g');
+let statePaths = statesG.select(null);
+const verticesG = body.select('#vertices-g');
+let verticeCircles = verticesG.select(null);
+const edgesG = body.select('#edges-g');
+let edgeLines = edgesG.select(null);
+const hoverG = body.select('#hover-g');
+const hoverRect = body.select('#hover-rect');
+const hoverText = body.select('#hover-text');
+const gradesG = body.select('#grades-g');
+const gradesDefs = body.select('#grades-defs');
+let gradeGs = gradesG.select(null);
+const filtersDiv = body.select('#filters-div');
+let filtersYears = filtersDiv.select(null);
+let filtersReports = filtersDiv.select(null);
+const optionsDiv = body.select('#options-div');
+let optionRows = optionsDiv.select(null);
+let optionsAlphaLabel = optionsDiv.select(null);
+let optionsAlphaSlider = optionsDiv.select(null);
+const infoG = body.select('#info-g');
+let infoImageGs = infoG.select(null);
+let infoTextGs = infoG.select(null);
 
 // Visual Styling ----------------------------------------------------------------------------------
 
-let vs = {
+const vs = {
     svg: {
         w: null,
         h: null,
@@ -133,7 +133,7 @@ vs.options.wRow = 2 * vs.options.wSmall + 3 * vs.options.wMedium + vs.options.wS
 vs.colorScale = d3.scaleQuantize()
     .domain([0, 5])
     .range(vs.grades.colorArray);
-defs.append('filter')
+gradesDefs.append('filter')
     .attr('id', 'drop-shadow')
     .attr('height', '130%') // so the shadow is not clipped
     .attr('width', '120%')
@@ -191,18 +191,18 @@ let reportsData = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 // Window Events -----------------------------------------------------------------------------------
 
-window.onload = function() {
+window.onload = () => {
     TestApp('hybrid-map', 1);
     d3.queue()
         .defer(d3.json, 'data/us-states-features.json')
         .defer(d3.json, 'data/nodes-links-04-06-2017.json')
         .awaitAll(InitializePage);
 };
-window.onresize = function() {
+window.onresize = () => {
     if (!isLoaded) { return; }
     if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
     resizeCounter += 1;
-    setTimeout(function() {
+    setTimeout(() => {
         if (resizeCounter > 1) {
             resizeCounter -= 1;
             if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
@@ -216,7 +216,7 @@ window.onresize = function() {
 
 // Functions ---------------------------------------------------------------------------------------
 
-function InitializePage(error, results) {
+const InitializePage = (error, results) => {
     TestApp('InitializePage', 1);
     results[1].nodes.forEach(node => nodesAll.push(node));
     results[1].links.forEach(link => linksAll.push(link));
@@ -235,21 +235,11 @@ function InitializePage(error, results) {
         .attr('x', 0)
         .attr('y', -0.5 * vs.hover.h - vs.hover.margin);
     bgRect
-        .on('mouseover', function() {
+        .on('mouseover', () => {
             stateSelected = '';
-            // hybridMapObj
-            //     .UpdateStates();
-            // hoverText
-            //     .text('');
-            // that.UpdateHover('mouse');
-            // hybridMapObj
-            //     .UpdateVerticesEdges();
-        })
-        .style('opacity', function(d) {
-            return 1;
         });
     UpdatePageDimensions();
-    requestAnimationFrame(function() {
+    requestAnimationFrame(() => {
         hybridMapObj
             .UpdateOptions();
         body
@@ -258,7 +248,7 @@ function InitializePage(error, results) {
         TestApp('hybrid-map', -1);
     });
     TestApp('InitializePage', -1);
-}
+};
 
 function HybridMapClass() {
     // TestApp('HybridMapClass', 1);
@@ -297,7 +287,7 @@ function HybridMapClass() {
             that.$inState[vertice.state] = 0;
             that.$outState[vertice.state] = 0;
         });
-        that.verticeById = d3.map(_vertices, function(d) { return d.id; });
+        that.verticeById = d3.map(_vertices, d => d.id);
         return that;
     };
     let _edges = null;
@@ -1215,6 +1205,7 @@ function TestApp(source, position) {
         stringSymbol = '• ';
     }
     stringSource = '%c' + (''.padStart(2 * stackLevelTemp) + stringSymbol + String(source)).padEnd(27);
+    colorSource = 'color:black';
     if (sizeNodesNew !== sizeNodesOld) {
         stringNodes = (sizeNodesNew + ' n').padStart(6);
         colorNodes = 'color:' + (sizeNodesNew < sizeNodesOld ? vs.test.colorGood : vs.test.colorBad);

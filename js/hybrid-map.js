@@ -19,10 +19,10 @@ var sizeNodesOld = -1,
 var sizeNodesNew = 0,
     sizeUsedNew = 0,
     sizeTotalNew = 0;
-var colorSource = 'color:black',
-    colorNodes = 'color:black',
-    colorUsed = 'color:black',
-    colorTotal = 'color:black';
+var colorSource = '',
+    colorNodes = '',
+    colorUsed = '',
+    colorTotal = '';
 var stringSource = '',
     stringNodes = '',
     stringUsed = '',
@@ -31,9 +31,7 @@ var stringSource = '',
     stringSymbol = '';
 var mobileNavigators = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
     mobileBrowser = navigator && mobileNavigators.test(navigator.userAgent);
-if (mobileBrowser) {
-    console.log('mobileBrowser', mobileBrowser);
-}
+if (mobileBrowser) console.log('mobileBrowser', mobileBrowser);
 
 // D3 Selections -----------------------------------------------------------------------------------
 
@@ -41,28 +39,28 @@ var body = d3.select('body');
 var svg = body.select('#svg');
 var bgRect = body.select('#bg-rect');
 var clipPathRect = body.select('#clip-path-rect');
-var statesG = body.select('#states-g'),
-    statePaths = d3.select(null);
-var verticesG = body.select('#vertices-g'),
-    verticeCircles = d3.select(null);
-var edgesG = body.select('#edges-g'),
-    edgeLines = d3.select(null);
-var hoverG = body.select('#hover-g'),
-    hoverRect = d3.select(null),
-    hoverText = d3.select(null);
-var gradesG = body.select('#grades-g'),
-    gradeGs = d3.select(null);
-var defs = gradesG.append('defs');
-var filtersDiv = body.select('#filters-div'),
-    filtersYears = d3.select(null),
-    filtersReports = d3.select(null);
-var optionsDiv = body.select('#options-div'),
-    optionRows = d3.select(null),
-    optionsAlphaLabel = d3.select(null),
-    optionsAlphaSlider = d3.select(null);
-var infoG = body.select('#info-g'),
-    infoImageGs = d3.select(null),
-    infoTextGs = d3.select(null);
+var statesG = body.select('#states-g');
+var statePaths = statesG.select(null);
+var verticesG = body.select('#vertices-g');
+var verticeCircles = verticesG.select(null);
+var edgesG = body.select('#edges-g');
+var edgeLines = edgesG.select(null);
+var hoverG = body.select('#hover-g');
+var hoverRect = body.select('#hover-rect');
+var hoverText = body.select('#hover-text');
+var gradesG = body.select('#grades-g');
+var gradesDefs = body.select('#grades-defs');
+var gradeGs = gradesG.select(null);
+var filtersDiv = body.select('#filters-div');
+var filtersYears = filtersDiv.select(null);
+var filtersReports = filtersDiv.select(null);
+var optionsDiv = body.select('#options-div');
+var optionRows = optionsDiv.select(null);
+var optionsAlphaLabel = optionsDiv.select(null);
+var optionsAlphaSlider = optionsDiv.select(null);
+var infoG = body.select('#info-g');
+var infoImageGs = infoG.select(null);
+var infoTextGs = infoG.select(null);
 
 // Visual Styling ----------------------------------------------------------------------------------
 
@@ -133,7 +131,7 @@ vs.info.hImage = vs.info.wImage / vs.info.ratioImageWH;
 vs.info.h = vs.info.hImage + 4 * vs.info.textRowH + 3 * vs.info.margin;
 vs.options.wRow = 2 * vs.options.wSmall + 3 * vs.options.wMedium + vs.options.wSlider;
 vs.colorScale = d3.scaleQuantize().domain([0, 5]).range(vs.grades.colorArray);
-defs.append('filter').attr('id', 'drop-shadow').attr('height', '130%') // so the shadow is not clipped
+gradesDefs.append('filter').attr('id', 'drop-shadow').attr('height', '130%') // so the shadow is not clipped
 .attr('width', '120%').each(function () {
     d3.select(this).append('feGaussianBlur').attr('in', 'SourceAlpha') // opacity of source node
     .attr('stdDeviation', 2) // convolve with Gaussian
@@ -190,7 +188,7 @@ window.onresize = function () {
 
 // Functions ---------------------------------------------------------------------------------------
 
-function InitializePage(error, results) {
+var InitializePage = function InitializePage(error, results) {
     TestApp('InitializePage', 1);
     results[1].nodes.forEach(function (node) {
         return nodesAll.push(node);
@@ -205,15 +203,6 @@ function InitializePage(error, results) {
     hoverText.attr('x', 0).attr('y', -0.5 * vs.hover.h - vs.hover.margin);
     bgRect.on('mouseover', function () {
         stateSelected = '';
-        // hybridMapObj
-        //     .UpdateStates();
-        // hoverText
-        //     .text('');
-        // that.UpdateHover('mouse');
-        // hybridMapObj
-        //     .UpdateVerticesEdges();
-    }).style('opacity', function (d) {
-        return 1;
     });
     UpdatePageDimensions();
     requestAnimationFrame(function () {
@@ -223,7 +212,7 @@ function InitializePage(error, results) {
         TestApp('hybrid-map', -1);
     });
     TestApp('InitializePage', -1);
-}
+};
 
 function HybridMapClass() {
     // TestApp('HybridMapClass', 1);
@@ -1028,6 +1017,7 @@ function TestApp(source, position) {
         stringSymbol = '• ';
     }
     stringSource = '%c' + (''.padStart(2 * stackLevelTemp) + stringSymbol + String(source)).padEnd(27);
+    colorSource = 'color:black';
     if (sizeNodesNew !== sizeNodesOld) {
         stringNodes = (sizeNodesNew + ' n').padStart(6);
         colorNodes = 'color:' + (sizeNodesNew < sizeNodesOld ? vs.test.colorGood : vs.test.colorBad);
