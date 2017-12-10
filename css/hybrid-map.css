@@ -32,20 +32,6 @@ body {
 #svg line.edge-line {
   pointer-events: none;
 }
-#svg #grades-g rect.grade-bg {
-  opacity: 0;
-}
-#svg #grades-g rect.grade-rect {
-  stroke: black;
-  stroke-width: 0px;
-  pointer-events: none;
-}
-#svg #grades-g text.grade-label,
-#svg #grades-g text.grades-text {
-  dominant-baseline: middle;
-  text-anchor: middle;
-  pointer-events: none;
-}
 #info-g rect.info-bg-rect {
   stroke: gainsboro;
   fill: white;

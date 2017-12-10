@@ -45,9 +45,6 @@ const verticesG = body.select('#vertices-g');
 let verticeCircles = verticesG.select(null);
 const edgesG = body.select('#edges-g');
 let edgeLines = edgesG.select(null);
-const gradesG = body.select('#grades-g');
-const gradesDefs = body.select('#grades-defs');
-let gradeGs = gradesG.select(null);
 const filtersDiv = body.select('#filters-div');
 let filtersYears = filtersDiv.select(null);
 let filtersReports = filtersDiv.select(null);
@@ -92,15 +89,6 @@ const vs = {
         margin: 5,
         textRowH: 15,
     },
-    grades: {
-        w: null,
-        h: 0,
-        margin: 3,
-        // colorArray: ['rgb(50,50,50)','rgb(28,44,160)','rgb(240,6,55)','rgb(251,204,12)','rgb(239,230,221)'], /*BH1*/
-        // colorArray: ['rgb(240,243,247)','rgb(191,162,26)','rgb(20,65,132)','rgb(153,40,26)','rgb(34,34,34)'], /*BH2*/
-        colorArray: ['#de2d26', '#fb6a4a', '#fc9272', '#fcbba1', '#fee5d9'],
-        /*red*/
-    },
     filters: {
         w: null,
         h: 70,
@@ -122,31 +110,6 @@ vs.info.wImage = vs.info.w - 2 * vs.info.margin;
 vs.info.hImage = vs.info.wImage / vs.info.ratioImageWH;
 vs.info.h = vs.info.hImage + 4 * vs.info.textRowH + 3 * vs.info.margin;
 vs.options.wRow = 2 * vs.options.wSmall + 3 * vs.options.wMedium + vs.options.wSlider;
-vs.colorScale = d3.scaleQuantize()
-    .domain([0, 5])
-    .range(vs.grades.colorArray);
-gradesDefs.append('filter')
-    .attr('id', 'drop-shadow')
-    .attr('height', '130%') // so the shadow is not clipped
-    .attr('width', '120%')
-    .each(function() {
-        d3.select(this).append('feGaussianBlur')
-            .attr('in', 'SourceAlpha') // opacity of source node
-            .attr('stdDeviation', 2) // convolve with Gaussian
-            .attr('result', 'blur');
-        d3.select(this).append('feOffset')
-            .attr('in', 'blur')
-            .attr('dx', 2)
-            .attr('dy', 2)
-            .attr('result', 'offsetBlur');
-        d3.select(this).append('feMerge')
-            .each(function() {
-                d3.select(this).append('feMergeNode')
-                    .attr('in', 'offsetBlur');
-                d3.select(this).append('feMergeNode')
-                    .attr('in', 'SourceGraphic'); // source node is on top
-            });
-    });
 
 // Global Variables --------------------------------------------------------------------------------
 
@@ -175,8 +138,6 @@ let filtersDatum = {};
 let isDragging = false;
 let nodeSelected = null;
 let linksSelected = [];
-let gradesObj = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
-let gradesData = ['A', 'B', 'C', 'D', 'F'];
 let yearsData = ['2011', '2012', '2013', '2014', '2015', '2016', '2017'];
 let reportsData = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -341,89 +302,6 @@ function HybridMapClass() {
         //     d3.select(this).remove();
         // });
         TestApp('UpdateStates');
-        return that;
-    };
-
-    that.UpdateGrades = function() {
-        console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateGrades = function() {", "color:blue");
-        if (vs.grades.h === 0) {
-            return that;
-        }
-        gradesG
-            .attr('transform', function() {
-                return 'translate(' + (0) + ',' + (vs.states.h) + ')';
-            });
-        // let gradesText = gradesG.selectAll('text.grades-text')
-        //     .data([null]);
-        // gradesText = gradesText.enter().append('text')
-        //     .classed('grades-text', true)
-        //     .merge(gradesText)
-        //     .attr('x', 0.5*vs.grades.w-130)
-        //     .attr('y', 0.5*vs.grades.h)
-        //     .text('$out');
-        gradeGs = gradesG.selectAll('g.grade-g')
-            .data(gradesData);
-        gradeGs = gradeGs.enter().append('g')
-            .classed('grade-g', true)
-            .merge(gradeGs);
-        gradeGs
-            .attr('transform', function(d, i) {
-                let tx = 0.5 * vs.grades.w + (0.5 - 0.5 * gradesData.length + i) * vs.grades.h;
-                let ty = 0.5 * vs.grades.h - 2;
-                return 'translate(' + tx + ',' + ty + ')';
-            })
-            .on('mouseover', function(d) {
-                // gradesObj.A = gradesObj.B = gradesObj.C = gradesObj.D = gradesObj.F = false;
-                // gradesObj[d] = true;
-                // UpdateGrades();
-                // that
-                //     .UpdateStates();
-            })
-            .on('mouseout', function(d) {
-                // gradesObj.A = gradesObj.B = gradesObj.C = gradesObj.D = gradesObj.F = true;
-                // UpdateGrades();
-                // that
-                //     .UpdateStates();
-            })
-            .each(function(grade) {
-                let gradeBG = d3.select(this).selectAll('rect.grade-bg')
-                    .data([grade]);
-                gradeBG = gradeBG.enter().append('rect')
-                    .classed('grade-bg', true)
-                    .merge(gradeBG)
-                    .attr('x', (-0.5) * vs.grades.h)
-                    .attr('y', (-0.5) * vs.grades.h)
-                    .attr('width', vs.grades.h)
-                    .attr('height', vs.grades.h);
-                let gradeRect = d3.select(this).selectAll('rect.grade-rect')
-                    .data([grade]);
-                gradeRect = gradeRect.enter().append('rect')
-                    .classed('grade-rect', true)
-                    .merge(gradeRect)
-                    .classed('inactive', function(d) {
-                        return !gradesObj[d];
-                    })
-                    .attr('x', -0.5 * Math.max(0, vs.grades.h - 2 * vs.grades.margin))
-                    .attr('y', -0.5 * Math.max(0, vs.grades.h - 2 * vs.grades.margin))
-                    .attr('width', Math.max(0, vs.grades.h - 2 * vs.grades.margin))
-                    .attr('height', Math.max(0, vs.grades.h - 2 * vs.grades.margin))
-                    .style('filter', function(d) {
-                        return gradesObj[d] ? 'url(#drop-shadow)' : null;
-                    })
-                    .style('fill', function(d) {
-                        return vs.colorScale(['F', 'D', 'C', 'B', 'A'].indexOf(d));
-                    });
-                let gradeLabel = d3.select(this).selectAll('text.grade-label')
-                    .data([grade]);
-                gradeLabel = gradeLabel.enter().append('text')
-                    .classed('grade-label', true).classed('button-text', true)
-                    .text(function(d) { return d; })
-                    .merge(gradeLabel)
-                    .classed('inactive', function(d) {
-                        return !gradesObj[d];
-                    });
-            });
-        TestApp('UpdateGrades');
         return that;
     };
 
@@ -717,30 +595,9 @@ function HybridMapClass() {
                 } else {
                     return 'white';
                 }
-                // return 'white';
-                // if (topIds.includes(d.id)) {
-                //     return 'white';
-                // }
-                // return vs.colorScale(fillValue);
             })
             .style('stroke', function(d) {
                 return 'gray';
-                // if (topIds.includes(d.id)) {
-                //     return d3.schemeCategory20[d.i];
-                // } else {
-                //     return 'gray';
-                // }
-                // } else if (d.$out > 0) {
-                //     return 'gray';
-                // }
-                // } else {
-                //     return 'black';
-                // }
-                // } else if (d.$out > 0) {
-                //     return null;
-                // } else {
-                //     return 'black';
-                // }
             })
             .attr('r', function(d) { return d.r; })
             // .transition().duration(transitionDuration).ease(transitionEase)
@@ -882,7 +739,7 @@ function HybridMapClass() {
             .style('width', vs.filters.w + 'px')
             .style('height', vs.filters.h + 'px')
             .style('left', '0px')
-            .style('top', (vs.states.h + vs.grades.h) + 'px');
+            .style('top', (vs.states.h) + 'px');
         filtersYears = filtersDiv.selectAll('div.filters-year')
             .data(yearsData);
         filtersYears = filtersYears.enter().append('div')
@@ -936,7 +793,7 @@ function HybridMapClass() {
         console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateOptions = function() {", "color:blue");
         optionsDiv
             .style('left', '0px')
-            .style('top', Math.max(vs.svg.h, vs.states.h + vs.grades.h + vs.filters.h) + 'px');
+            .style('top', Math.max(vs.svg.h, vs.states.h + vs.filters.h) + 'px');
         optionRows = optionsDiv.selectAll('div.option-row')
             .data(that.optionsData);
         optionRows = optionRows.enter().append('div')
@@ -1059,8 +916,6 @@ function HybridMapClass() {
                 return d.y;
             });
         edgeLines
-            // .interrupt('edges-transition')
-            // .transition('edges-transition')
             .attr('x1', function(d) {
                 return d.source.x;
             })
@@ -1097,8 +952,7 @@ function UpdatePageDimensions() {
     }
     vs.filters.w = vs.states.w;
     vs.states.h = vs.states.w / vs.states.ratioMapWH;
-    vs.svg.h = Math.max(vs.states.h, vs.info.h) + vs.grades.h;
-    vs.grades.w = vs.states.w;
+    vs.svg.h = Math.max(vs.states.h, vs.info.h);
     svg
         .attr('width', vs.svg.w)
         .attr('height', vs.svg.h);
@@ -1106,7 +960,6 @@ function UpdatePageDimensions() {
         .width(vs.states.w)
         .height(vs.states.h)
         .UpdateStates()
-        .UpdateGrades()
         .UpdateInfo()
         .UpdateFilters()
         .UpdateVerticesEdges()
