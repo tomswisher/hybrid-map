@@ -328,9 +328,9 @@ function HybridMapClass() {
             return true;
         }).attr('d', that.path).style('stroke-width', vs.states.strokeWidthStates + 'px');
         // statePaths.each(function(d) {
-        //     var centroid = that.centroidByState[d.properties.ansi];
+        //     let centroid = that.centroidByState[d.properties.ansi];
         //     console.log(d.properties.ansi, centroid);
-        //     var rect = d3.select(this.parentNode).append('rect')
+        //     let rect = d3.select(this.parentNode).append('rect')
         //         .attr('x', centroid[0]-20)
         //         .attr('y', centroid[1]-20)
         //         .attr('width', 40)
@@ -351,7 +351,7 @@ function HybridMapClass() {
         gradesG.attr('transform', function () {
             return 'translate(' + 0 + ',' + vs.states.h + ')';
         });
-        // var gradesText = gradesG.selectAll('text.grades-text')
+        // let gradesText = gradesG.selectAll('text.grades-text')
         //     .data([null]);
         // gradesText = gradesText.enter().append('text')
         //     .classed('grades-text', true)
@@ -451,7 +451,8 @@ function HybridMapClass() {
         }
         hoverRect.attr('width', vs.hover.w).attr('x', -0.5 * vs.hover.w);
         hoverG.attr('transform', function () {
-            var tx, ty;
+            var tx = void 0,
+                ty = void 0;
             if (source === 'mouse') {
                 tx = d3.mouse(svg.node())[0];
                 ty = d3.mouse(svg.node())[1];

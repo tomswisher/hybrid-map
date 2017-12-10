@@ -4,67 +4,67 @@
 
 // Performance -------------------------------------------------------------------------------------
 
-var isLoaded = false;
-var logsLvl0 = true,
+let isLoaded = false;
+let logsLvl0 = true,
     logsLvl1 = false,
     logsLvl2 = false,
     logsTest = true && performance && performance.memory;
-var resizeWait = 150,
+let resizeWait = 150,
     resizeCounter = 0;
-var stackLevel = 0,
+let stackLevel = 0,
     stackLevelTemp = 0;
-var sizeNodesOld = -1,
+let sizeNodesOld = -1,
     sizeUsedOld = -1,
     sizeTotalOld = -1;
-var sizeNodesNew = 0,
+let sizeNodesNew = 0,
     sizeUsedNew = 0,
     sizeTotalNew = 0;
-var colorSource = 'color:black',
+let colorSource = 'color:black',
     colorNodes = 'color:black',
     colorUsed = 'color:black',
     colorTotal = 'color:black';
-var stringSource = '',
+let stringSource = '',
     stringNodes = '',
     stringUsed = '',
     stringTotal = '',
     stringCombined = '',
     stringSymbol = '';
-var mobileNavigators = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
+let mobileNavigators = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
     mobileBrowser = navigator && mobileNavigators.test(navigator.userAgent);
 if (mobileBrowser) { console.log('mobileBrowser', mobileBrowser); }
 
 // D3 Selections -----------------------------------------------------------------------------------
 
-var body = d3.select('body');
-var svg = body.select('#svg');
-var bgRect = body.select('#bg-rect');
-var clipPathRect = body.select('#clip-path-rect');
-var statesG = body.select('#states-g'),
+let body = d3.select('body');
+let svg = body.select('#svg');
+let bgRect = body.select('#bg-rect');
+let clipPathRect = body.select('#clip-path-rect');
+let statesG = body.select('#states-g'),
     statePaths = d3.select(null);
-var verticesG = body.select('#vertices-g'),
+let verticesG = body.select('#vertices-g'),
     verticeCircles = d3.select(null);
-var edgesG = body.select('#edges-g'),
+let edgesG = body.select('#edges-g'),
     edgeLines = d3.select(null);
-var hoverG = body.select('#hover-g'),
+let hoverG = body.select('#hover-g'),
     hoverRect = d3.select(null),
     hoverText = d3.select(null);
-var gradesG = body.select('#grades-g'),
+let gradesG = body.select('#grades-g'),
     gradeGs = d3.select(null);
-var defs = gradesG.append('defs');
-var filtersDiv = body.select('#filters-div'),
+let defs = gradesG.append('defs');
+let filtersDiv = body.select('#filters-div'),
     filtersYears = d3.select(null),
     filtersReports = d3.select(null);
-var optionsDiv = body.select('#options-div'),
+let optionsDiv = body.select('#options-div'),
     optionRows = d3.select(null),
     optionsAlphaLabel = d3.select(null),
     optionsAlphaSlider = d3.select(null);
-var infoG = body.select('#info-g'),
+let infoG = body.select('#info-g'),
     infoImageGs = d3.select(null),
     infoTextGs = d3.select(null);
 
 // Visual Styling ----------------------------------------------------------------------------------
 
-var vs = {
+let vs = {
     svg: {
         w: null,
         h: null,
@@ -158,9 +158,9 @@ defs.append('filter')
 
 // Global Variables --------------------------------------------------------------------------------
 
-var transitionDuration = 200;
-var transitionEase = d3.easeLinear;
-var topIds = [
+let transitionDuration = 200;
+let transitionEase = d3.easeLinear;
+let topIds = [
     'Alice Walton',
     'Carrie Walton Penner',
     'Jim Walton',
@@ -175,19 +175,19 @@ var topIds = [
     'John Arnold',
     'Laura Arnold'
 ];
-var hybridMapObj = null;
-var nodesAll = [];
-var linksAll = [];
-var infoData = [];
-var filtersDatum = {};
-var stateSelected = '';
-var isDragging = false;
-var nodeSelected = null;
-var linksSelected = [];
-var gradesObj = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
-var gradesData = ['A', 'B', 'C', 'D', 'F'];
-var yearsData = ['2011', '2012', '2013', '2014', '2015', '2016', '2017'];
-var reportsData = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+let hybridMapObj = null;
+let nodesAll = [];
+let linksAll = [];
+let infoData = [];
+let filtersDatum = {};
+let stateSelected = '';
+let isDragging = false;
+let nodeSelected = null;
+let linksSelected = [];
+let gradesObj = { 'A': true, 'B': true, 'C': true, 'D': true, 'F': true };
+let gradesData = ['A', 'B', 'C', 'D', 'F'];
+let yearsData = ['2011', '2012', '2013', '2014', '2015', '2016', '2017'];
+let reportsData = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 // Window Events -----------------------------------------------------------------------------------
 
@@ -262,7 +262,7 @@ function InitializePage(error, results) {
 
 function HybridMapClass() {
     // TestApp('HybridMapClass', 1);
-    var that = this;
+    let that = this;
     that.centroidByState = {};
     that.$total = 0;
     that.$inState = {};
@@ -271,22 +271,22 @@ function HybridMapClass() {
     that.verticeById = null;
     that.projection = d3.geoAlbersUsa();
     that.path = d3.geoPath();
-    var _width = 0;
+    let _width = 0;
     that.width = function(_) {
         console.log(''.padStart(2 * stackLevel) + "%cthat.width = function(_) {", "color:blue");
         return arguments.length ? (_width = _, that) : _width;
     };
-    var _height = 0;
+    let _height = 0;
     that.height = function(_) {
         console.log(''.padStart(2 * stackLevel) + "%cthat.height = function(_) {", "color:blue");
         return arguments.length ? (_height = _, that) : _height;
     };
-    var _statesFeatures = null;
+    let _statesFeatures = null;
     that.statesFeatures = function(_) {
         console.log(''.padStart(2 * stackLevel) + "%cthat.statesFeatures = function(_) {", "color:blue");
         return arguments.length ? (_statesFeatures = _, that) : _statesFeatures;
     };
-    var _vertices = null;
+    let _vertices = null;
     that.vertices = function(vertices) {
         console.log(''.padStart(2 * stackLevel) + "%cthat.vertices = function(vertices) {", "color:blue");
         if (!arguments.length) { return _vertices; }
@@ -300,7 +300,7 @@ function HybridMapClass() {
         that.verticeById = d3.map(_vertices, function(d) { return d.id; });
         return that;
     };
-    var _edges = null;
+    let _edges = null;
     that.edges = function(edges) {
         console.log(''.padStart(2 * stackLevel) + "%cthat.edges = function(edges) {", "color:blue");
         if (!arguments.length) { return _edges; }
@@ -374,9 +374,9 @@ function HybridMapClass() {
             .attr('d', that.path)
             .style('stroke-width', vs.states.strokeWidthStates + 'px');
         // statePaths.each(function(d) {
-        //     var centroid = that.centroidByState[d.properties.ansi];
+        //     let centroid = that.centroidByState[d.properties.ansi];
         //     console.log(d.properties.ansi, centroid);
-        //     var rect = d3.select(this.parentNode).append('rect')
+        //     let rect = d3.select(this.parentNode).append('rect')
         //         .attr('x', centroid[0]-20)
         //         .attr('y', centroid[1]-20)
         //         .attr('width', 40)
@@ -398,7 +398,7 @@ function HybridMapClass() {
             .attr('transform', function() {
                 return 'translate(' + (0) + ',' + (vs.states.h) + ')';
             });
-        // var gradesText = gradesG.selectAll('text.grades-text')
+        // let gradesText = gradesG.selectAll('text.grades-text')
         //     .data([null]);
         // gradesText = gradesText.enter().append('text')
         //     .classed('grades-text', true)
@@ -413,8 +413,8 @@ function HybridMapClass() {
             .merge(gradeGs);
         gradeGs
             .attr('transform', function(d, i) {
-                var tx = 0.5 * vs.grades.w + (0.5 - 0.5 * gradesData.length + i) * vs.grades.h;
-                var ty = 0.5 * vs.grades.h - 2;
+                let tx = 0.5 * vs.grades.w + (0.5 - 0.5 * gradesData.length + i) * vs.grades.h;
+                let ty = 0.5 * vs.grades.h - 2;
                 return 'translate(' + tx + ',' + ty + ')';
             })
             .on('mouseover', function(d) {
@@ -431,7 +431,7 @@ function HybridMapClass() {
                 //     .UpdateStates();
             })
             .each(function(grade) {
-                var gradeBG = d3.select(this).selectAll('rect.grade-bg')
+                let gradeBG = d3.select(this).selectAll('rect.grade-bg')
                     .data([grade]);
                 gradeBG = gradeBG.enter().append('rect')
                     .classed('grade-bg', true)
@@ -440,7 +440,7 @@ function HybridMapClass() {
                     .attr('y', (-0.5) * vs.grades.h)
                     .attr('width', vs.grades.h)
                     .attr('height', vs.grades.h);
-                var gradeRect = d3.select(this).selectAll('rect.grade-rect')
+                let gradeRect = d3.select(this).selectAll('rect.grade-rect')
                     .data([grade]);
                 gradeRect = gradeRect.enter().append('rect')
                     .classed('grade-rect', true)
@@ -458,7 +458,7 @@ function HybridMapClass() {
                     .style('fill', function(d) {
                         return vs.colorScale(['F', 'D', 'C', 'B', 'A'].indexOf(d));
                     });
-                var gradeLabel = d3.select(this).selectAll('text.grade-label')
+                let gradeLabel = d3.select(this).selectAll('text.grade-label')
                     .data([grade]);
                 gradeLabel = gradeLabel.enter().append('text')
                     .classed('grade-label', true).classed('button-text', true)
@@ -555,7 +555,7 @@ function HybridMapClass() {
             .attr('x', -0.5 * vs.hover.w);
         hoverG
             .attr('transform', function() {
-                var tx, ty;
+                let tx, ty;
                 if (source === 'mouse') {
                     tx = d3.mouse(svg.node())[0];
                     ty = d3.mouse(svg.node())[1];
@@ -739,7 +739,7 @@ function HybridMapClass() {
 
     that.UpdateVerticesEdges = function() {
         console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateVerticesEdges = function() {", "color:blue");
-        var iCount = 0;
+        let iCount = 0;
         verticeCircles = verticesG.selectAll('circle.vertice-circle')
             .data(that.vertices());
         verticeCircles = verticeCircles.enter().append('circle')
@@ -780,8 +780,8 @@ function HybridMapClass() {
             .merge(verticeCircles);
         verticeCircles
             .each(function(d) {
-                var $in = that.$verticeScale(d.$in);
-                var $out = that.$verticeScale(d.$out);
+                let $in = that.$verticeScale(d.$in);
+                let $out = that.$verticeScale(d.$out);
                 if ($in > $out) {
                     d.r = Math.max(vs.vertices.rMin, vs.vertices.rFactor * Math.sqrt($in));
                 } else {
@@ -893,17 +893,17 @@ function HybridMapClass() {
         console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateSimulation = function() {", "color:blue");
         Object.keys(that.forcesObj).forEach(function(forceType) {
             if (forceType === 'simulation') { return; }
-            var optionsObj = that.forcesObj[forceType];
+            let optionsObj = that.forcesObj[forceType];
             if (optionsObj['_IsolateForce'] === true) {
                 Object.keys(that.$outState).forEach(function(state) {
-                    var cx = that.centroidByState[state][0];
-                    var cy = that.centroidByState[state][1];
-                    var forceNew = _IsolateForce(d3[forceType](), function(d) {
+                    let cx = that.centroidByState[state][0];
+                    let cy = that.centroidByState[state][1];
+                    let forceNew = _IsolateForce(d3[forceType](), function(d) {
                         return d.state === state;
                     });
                     Object.keys(optionsObj).forEach(function(optionName) {
                         if (optionName[0] === '_') { return; }
-                        var optionValue = optionsObj[optionName].value; // do not mutate original value
+                        let optionValue = optionsObj[optionName].value; // do not mutate original value
                         switch (optionValue) {
                             case 'cx':
                                 optionValue = cx;
@@ -918,10 +918,10 @@ function HybridMapClass() {
                         .force(forceType + state, forceNew);
                 });
             } else {
-                var forceNew = d3[forceType]();
+                let forceNew = d3[forceType]();
                 Object.keys(optionsObj).forEach(function(optionName) {
                     if (optionName[0] === '_') { return; }
-                    var optionValue = optionsObj[optionName].value; // do not mutate original value
+                    let optionValue = optionsObj[optionName].value; // do not mutate original value
                     switch (optionValue) {
                         case 'cx':
                             optionValue = 0.5 * vs.states.w;
@@ -944,7 +944,7 @@ function HybridMapClass() {
             .restart();
         that.optionsData = [];
         Object.keys(that.forcesObj).forEach(function(forceType) {
-            var optionsObj = that.forcesObj[forceType];
+            let optionsObj = that.forcesObj[forceType];
             Object.keys(optionsObj).forEach(function(optionName) {
                 if (optionName[0] === '_') { return; }
                 optionsObj[optionName]._category = forceType;
@@ -1091,7 +1091,7 @@ function HybridMapClass() {
     };
 
     function _IsolateForce(force, filter) {
-        var initialize = force.initialize;
+        let initialize = force.initialize;
         force.initialize = function() {
             console.log(''.padStart(2 * stackLevel) + "%cforce.initialize = function() {", "color:blue");
             initialize.call(force, that.vertices().filter(filter));
@@ -1167,7 +1167,7 @@ function HybridMapClass() {
 
 function UpdatePageDimensions() {
     TestApp('UpdatePageDimensions', 1);
-    var clientWidth = body.node().clientWidth;
+    let clientWidth = body.node().clientWidth;
     if (clientWidth >= vs.states.wMin + vs.info.w) {
         vs.states.w = clientWidth - vs.info.w;
         vs.svg.w = clientWidth;
