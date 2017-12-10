@@ -221,7 +221,7 @@ function HybridMapClass() {
         console.log(''.padStart(2 * stackLevel) + "%cthat.vertices = function(vertices) {", "color:blue");
         if (!arguments.length) { return _vertices; }
         _vertices = vertices;
-        _vertices.forEach(function(vertice) {
+        _vertices.forEach(vertice => {
             vertice.$in = 0;
             vertice.$out = 0;
             that.$inState[vertice.state] = 0;
@@ -235,7 +235,7 @@ function HybridMapClass() {
         console.log(''.padStart(2 * stackLevel) + "%cthat.edges = function(edges) {", "color:blue");
         if (!arguments.length) { return _edges; }
         _edges = edges;
-        _edges.forEach(function(edge) {
+        _edges.forEach(edge => {
             edge.target = that.verticeById.get(edge.target);
             edge.source = that.verticeById.get(edge.source);
             edge.target.$in += edge.dollars;
@@ -249,18 +249,14 @@ function HybridMapClass() {
             //     edge.target.topId = true;
             // }
         });
-        // _edges = _edges.filter(function(edge) {
-        //     return edge.topId;
-        // });
-        // _vertices = _vertices.filter(function(vertice) {
-        //     return vertice.topId;
-        // });
+        // _edges = _edges.filter(edge => edge.topId);
+        // _vertices = _vertices.filter(vertice => vertice.topId);
         that.$verticeScale
             .domain([0, that.$total]);
         return that;
     };
 
-    that.UpdateStates = function() {
+    that.UpdateStates = () => {
         console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateStates = function() {", "color:blue");
         if (logsLvl2) console.log('UpdateStates');
         bgRect
@@ -275,21 +271,17 @@ function HybridMapClass() {
         that.path
             .projection(that.projection);
         statePaths = statesG.selectAll('path.state-path')
-            .data(_statesFeatures, function(d) { return d.properties.ansi; });
+            .data(_statesFeatures, d => d.properties.ansi);
         statePaths = statePaths.enter().append('path')
             .classed('state-path', true)
             .attr('d', that.path)
             .merge(statePaths);
         statePaths
-            .each(function(d) {
-                that.centroidByState[d.properties.ansi] = that.path.centroid(d);
-            })
-            .classed('inactive', function(d) {
-                return true;
-            })
+            .each(d => that.centroidByState[d.properties.ansi] = that.path.centroid(d))
+            .classed('inactive', true)
             .attr('d', that.path)
             .style('stroke-width', vs.states.strokeWidthStates + 'px');
-        // statePaths.each(function(d) {
+        // statePaths.each(d => {
         //     let centroid = that.centroidByState[d.properties.ansi];
         //     console.log(d.properties.ansi, centroid);
         //     let rect = d3.select(this.parentNode).append('rect')
@@ -305,7 +297,7 @@ function HybridMapClass() {
         return that;
     };
 
-    that.UpdateInfo = function() {
+    that.UpdateInfo = () => {
         console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateInfo = function() {", "color:blue");
         if (nodeSelected && !(infoData.filter(d => d.id === nodeSelected.id)[0])) {
             infoData.push(nodeSelected);
@@ -320,7 +312,7 @@ function HybridMapClass() {
                 d3.select(this).append('image')
                     .attr('width', vs.info.wImage)
                     .attr('height', vs.info.hImage)
-                    .attr('xlink:href', function() {
+                    .attr('xlink:href', () => {
                         if (!topIds.includes(datum.id)) {
                             return null;
                         } else {
@@ -330,20 +322,13 @@ function HybridMapClass() {
             })
             .merge(infoImageGs);
         infoImageGs
-            // .style('pointer-events', function(d) {
-            //     return (nodeSelected && d.id === nodeSelected.id) ? 'all' : 'none';
-            // })
             .transition().duration(transitionDuration).ease(transitionEase)
-            .style('opacity', function(d) {
-                return (nodeSelected && d.id === nodeSelected.id) ? 1 : 0;
-            });
+            .style('opacity', d => +(nodeSelected && d.id === nodeSelected.id));
         infoTextGs = infoG.selectAll('g.info-text-g')
             .data(infoData);
         infoTextGs = infoTextGs.enter().append('g')
             .classed('info-text-g', true)
-            .attr('transform', function() {
-                return 'translate(' + (vs.info.wImage / 2) + ',' + (vs.info.hImage + vs.info.margin) + ')';
-            })
+            .attr('transform', 'translate(' + (vs.info.wImage / 2) + ',' + (vs.info.hImage + vs.info.margin) + ')')
             .each(function(datum) {
                 d3.select(this).append('text')
                     .attr('x', 0)
@@ -370,9 +355,7 @@ function HybridMapClass() {
             .merge(infoTextGs);
         infoTextGs
             .transition().duration(transitionDuration).ease(transitionEase)
-            .style('opacity', function(d) {
-                return (nodeSelected && d.id === nodeSelected.id) ? 1 : 0;
-            });
+            .style('opacity', d => +(nodeSelected && d.id === nodeSelected.id));
         TestApp('UpdateInfo');
         return that;
     };
