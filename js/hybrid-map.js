@@ -711,11 +711,7 @@ function HybridMapClass() {
             }
         }).merge(optionRows).each(function (datum) {
             d3.select(this).selectAll('label.option-value').text(function () {
-                if (typeof datum.value === 'function') {
-                    return 'function';
-                } else {
-                    return datum.value;
-                }
+                return typeof datum.value === 'function' ? 'function' : datum.value;
             });
             d3.select(this).selectAll('label.label-small').style('width', vs.options.wSmall + 'px');
             d3.select(this).selectAll('label.label-medium').style('width', vs.options.wMedium + 'px');

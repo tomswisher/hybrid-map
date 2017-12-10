@@ -758,7 +758,7 @@ function HybridMapClass() {
         return that;
     };
 
-    that.UpdateOptions = function() {
+    that.UpdateOptions = () => {
         console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateOptions = function() {", "color:blue");
         optionsDiv
             .style('left', '0px')
@@ -810,13 +810,7 @@ function HybridMapClass() {
             .merge(optionRows)
             .each(function(datum) {
                 d3.select(this).selectAll('label.option-value')
-                    .text(function() {
-                        if (typeof(datum.value) === 'function') {
-                            return 'function';
-                        } else {
-                            return datum.value;
-                        }
-                    });
+                    .text(() => typeof(datum.value) === 'function' ? 'function' : datum.value);
                 d3.select(this).selectAll('label.label-small')
                     .style('width', vs.options.wSmall + 'px');
                 d3.select(this).selectAll('label.label-medium')
@@ -829,16 +823,16 @@ function HybridMapClass() {
             .style('height', vs.options.hRow + 'px')
             .style('line-height', vs.options.hRow + 'px');
         optionsAlphaLabel = optionsDiv.selectAll('label.option-value')
-            .filter(function(d) { return d._category === 'simulation' && d._name === 'alpha'; });
+            .filter(d => d._category === 'simulation' && d._name === 'alpha');
         optionsAlphaSlider = optionsDiv.selectAll('input[type="range"]')
-            .filter(function(d) { return d._category === 'simulation' && d._name === 'alpha'; });
+            .filter(d => d._category === 'simulation' && d._name === 'alpha');
         TestApp('UpdateOptions');
         return that;
     };
 
     function _IsolateForce(force, filter) {
         let initialize = force.initialize;
-        force.initialize = function() {
+        force.initialize = () => {
             console.log(''.padStart(2 * stackLevel) + "%cforce.initialize = function() {", "color:blue");
             initialize.call(force, that.vertices().filter(filter));
         };
@@ -874,29 +868,17 @@ function HybridMapClass() {
         }
     }
 
-    that.Tick = function() {
+    that.Tick = () => {
         verticeCircles
             // .interrupt('vertices-transition')
             // .transition('vertices-transition')
-            .attr('cx', function(d) {
-                return d.x;
-            })
-            .attr('cy', function(d) {
-                return d.y;
-            });
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y);
         edgeLines
-            .attr('x1', function(d) {
-                return d.source.x;
-            })
-            .attr('y1', function(d) {
-                return d.source.y;
-            })
-            .attr('x2', function(d) {
-                return d.target.x;
-            })
-            .attr('y2', function(d) {
-                return d.target.y;
-            });
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y);
         if (optionsAlphaLabel.empty() || optionsAlphaSlider.empty()) { return; }
         that.forcesObj.simulation.alpha.value = parseFloat(that.simulation.alpha()).toFixed(8);
         optionsAlphaLabel
