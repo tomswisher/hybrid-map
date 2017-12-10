@@ -89,11 +89,11 @@ var vs = {
         strokeWidth: 1
     },
     info: {
-        w: 396 / 2,
+        w: 0.5 * 396,
         h: null,
         wImage: null,
         hImage: null,
-        ratioImageWH: 396 / 432,
+        ratioImageWH: 0.5 * 396 / (0.5 * 432),
         margin: 5,
         textRowH: 15
     },
@@ -120,7 +120,7 @@ var vs = {
         wMedium: 90,
         wSlider: 130,
         wRow: null,
-        hRow: 28
+        hRow: 25
     },
     test: {
         colorNeutral: 'black',
@@ -444,7 +444,7 @@ function HybridMapClass() {
         infoImageGs = infoImageGs.enter().append('g').classed('info-image-g', true).each(function (datum) {
             d3.select(this).append('image').attr('width', vs.info.wImage).attr('height', vs.info.hImage).attr('xlink:href', function () {
                 if (!topIds.includes(datum.id)) {
-                    return 'img/mu.png';
+                    return null;
                 } else {
                     return 'img/' + datum.id + '.jpg';
                 }
@@ -915,7 +915,7 @@ function GraphClass() {
                 filtersDatum[d] = this.checked;
                 that.UpdateVerticesEdges().UpdateSimulation();
             });
-        }).merge(filtersYears).style('width', vs.filters.w / yearsData.length + 'px');
+        }).merge(filtersYears).style('width', vs.filters.w / yearsData.length + 'px').style('height', 0.5 * vs.filters.h + 'px');
         filtersReports = filtersDiv.selectAll('div.filters-report').data(reportsData);
         filtersReports = filtersReports.enter().append('div').classed('filters-report', true).each(function (datum) {
             d3.select(this).append('div').text(datum);
@@ -926,7 +926,7 @@ function GraphClass() {
                 filtersDatum[d] = this.checked;
                 that.UpdateVerticesEdges().UpdateSimulation();
             });
-        }).merge(filtersReports).style('width', vs.filters.w / reportsData.length + 'px');
+        }).merge(filtersReports).style('width', vs.filters.w / reportsData.length + 'px').style('height', 0.5 * vs.filters.h + 'px');
         return that;
     };
 

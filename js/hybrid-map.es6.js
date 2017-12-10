@@ -88,11 +88,11 @@ var vs = {
         strokeWidth: 1,
     },
     info: {
-        w: 396 / 2,
+        w: 0.5 * 396,
         h: null,
         wImage: null,
         hImage: null,
-        ratioImageWH: 396 / 432,
+        ratioImageWH: 0.5 * 396 / (0.5 * 432),
         margin: 5,
         textRowH: 15,
     },
@@ -119,7 +119,7 @@ var vs = {
         wMedium: 90,
         wSlider: 130,
         wRow: null,
-        hRow: 28,
+        hRow: 25,
     },
     test: {
         colorNeutral: 'black',
@@ -521,7 +521,7 @@ function HybridMapClass() {
                     .attr('height', vs.info.hImage)
                     .attr('xlink:href', function() {
                         if (!topIds.includes(datum.id)) {
-                            return 'img/mu.png';
+                            return null;
                         } else {
                             return 'img/' + datum.id + '.jpg';
                         }
@@ -1043,7 +1043,8 @@ function GraphClass() {
                     });
             })
             .merge(filtersYears)
-            .style('width', (vs.filters.w / yearsData.length) + 'px');
+            .style('width', (vs.filters.w / yearsData.length) + 'px')
+            .style('height', (0.5 * vs.filters.h) + 'px');
         filtersReports = filtersDiv.selectAll('div.filters-report')
             .data(reportsData);
         filtersReports = filtersReports.enter().append('div')
@@ -1065,7 +1066,8 @@ function GraphClass() {
                     });
             })
             .merge(filtersReports)
-            .style('width', (vs.filters.w / reportsData.length) + 'px');
+            .style('width', (vs.filters.w / reportsData.length) + 'px')
+            .style('height', (0.5 * vs.filters.h) + 'px');
         return that;
     };
 
@@ -1136,8 +1138,8 @@ function GraphClass() {
             })
             .style('width', vs.options.wRow + 'px')
             .selectAll('*')
-                .style('height', vs.options.hRow + 'px')
-                .style('line-height', vs.options.hRow + 'px');
+            .style('height', vs.options.hRow + 'px')
+            .style('line-height', vs.options.hRow + 'px');
         optionsAlphaLabel = optionRows.selectAll('label.option-value')
             .filter(function(d) { return d._category === 'simulation' && d._name === 'alpha'; });
         optionsAlphaSlider = optionRows.selectAll('input[type="range"]')
