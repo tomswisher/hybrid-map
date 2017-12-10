@@ -45,9 +45,6 @@ var verticesG = body.select('#vertices-g');
 var verticeCircles = verticesG.select(null);
 var edgesG = body.select('#edges-g');
 var edgeLines = edgesG.select(null);
-var hoverG = body.select('#hover-g');
-var hoverRect = body.select('#hover-rect');
-var hoverText = body.select('#hover-text');
 var gradesG = body.select('#grades-g');
 var gradesDefs = body.select('#grades-defs');
 var gradeGs = gradesG.select(null);
@@ -104,11 +101,6 @@ var vs = {
         colorArray: ['#de2d26', '#fb6a4a', '#fc9272', '#fcbba1', '#fee5d9']
         /*red*/
     },
-    hover: {
-        w: null,
-        h: null,
-        margin: 5
-    },
     filters: {
         w: null,
         h: 70
@@ -153,7 +145,6 @@ var nodesAll = [];
 var linksAll = [];
 var infoData = [];
 var filtersDatum = {};
-var stateSelected = '';
 var isDragging = false;
 var nodeSelected = null;
 var linksSelected = [];
@@ -198,12 +189,6 @@ var InitializePage = function InitializePage(error, results) {
     });
     hybridMapObj = new HybridMapClass().statesFeatures(results[0].features).vertices(results[1].nodes).edges(results[1].links);
     hybridMapObj.simulation = d3.forceSimulation(hybridMapObj.vertices()).on('tick', hybridMapObj.Tick);
-    vs.hover.h = parseFloat(svg.style('font-size')) + 2 * vs.hover.margin;
-    hoverRect.attr('height', vs.hover.h).attr('y', -1 * vs.hover.h - vs.hover.margin).style('filter', 'url(#drop-shadow)');
-    hoverText.attr('x', 0).attr('y', -0.5 * vs.hover.h - vs.hover.margin);
-    bgRect.on('mouseover', function () {
-        stateSelected = '';
-    });
     UpdatePageDimensions();
     requestAnimationFrame(function () {
         hybridMapObj.UpdateOptions();
@@ -299,18 +284,7 @@ function HybridMapClass() {
         statePaths = statesG.selectAll('path.state-path').data(_statesFeatures, function (d) {
             return d.properties.ansi;
         });
-        statePaths = statePaths.enter().append('path').classed('state-path', true).each(function (d) {
-            d.$in = parseInt(that.$inState[d.properties.ansi]);
-            d.$out = parseInt(that.$outState[d.properties.ansi]);
-        }).on('mouseover', function (d) {
-            stateSelected = d.properties.ansi;
-            // that
-            //     .UpdateStates();
-            // hoverText.text(d.properties.ansi+': '+d.$out+' '+d.$in);
-            // that.UpdateHover('mouse');
-        }).on('mousemove', function (d) {
-            // that.UpdateHover('mouse');
-        }).attr('d', that.path).merge(statePaths);
+        statePaths = statePaths.enter().append('path').classed('state-path', true).attr('d', that.path).merge(statePaths);
         statePaths.each(function (d) {
             that.centroidByState[d.properties.ansi] = that.path.centroid(d);
         }).classed('inactive', function (d) {
@@ -430,39 +404,6 @@ function HybridMapClass() {
         });
         TestApp('UpdateInfo');
         return that;
-    };
-
-    that.UpdateHover = function (source) {
-        console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateHover = function(source) {", "color:blue");
-        vs.hover.w = 0;
-        if (hoverText.text() !== '') {
-            vs.hover.w = hoverText.node().getBBox().width + 2 * vs.hover.margin;
-        }
-        hoverRect.attr('width', vs.hover.w).attr('x', -0.5 * vs.hover.w);
-        hoverG.attr('transform', function () {
-            var tx = void 0,
-                ty = void 0;
-            if (source === 'mouse') {
-                tx = d3.mouse(svg.node())[0];
-                ty = d3.mouse(svg.node())[1];
-            } else if (that.centroidByState[stateSelected]) {
-                tx = that.centroidByState[stateSelected][0];
-                ty = that.centroidByState[stateSelected][1] + 0.5 * (vs.hover.h + 2 * vs.hover.margin);
-            } else {
-                tx = that.width() / 2;
-                ty = that.height() / 2;
-            }
-            if (tx < vs.hover.w / 2 + 1) {
-                tx = vs.hover.w / 2 + 1;
-            } else if (tx > parseInt(svg.style('width')) - vs.hover.w / 2 - 1) {
-                tx = parseInt(svg.style('width')) - vs.hover.w / 2 - 1;
-            }
-            if (ty < vs.hover.h + 5 + 1) {
-                ty = vs.hover.h + 5 + 1;
-            }
-            return 'translate(' + tx + ',' + ty + ')';
-        });
-        TestApp('UpdateHover');
     };
 
     that.forcesObj = {

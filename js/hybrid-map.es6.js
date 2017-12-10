@@ -45,9 +45,6 @@ const verticesG = body.select('#vertices-g');
 let verticeCircles = verticesG.select(null);
 const edgesG = body.select('#edges-g');
 let edgeLines = edgesG.select(null);
-const hoverG = body.select('#hover-g');
-const hoverRect = body.select('#hover-rect');
-const hoverText = body.select('#hover-text');
 const gradesG = body.select('#grades-g');
 const gradesDefs = body.select('#grades-defs');
 let gradeGs = gradesG.select(null);
@@ -103,11 +100,6 @@ const vs = {
         // colorArray: ['rgb(240,243,247)','rgb(191,162,26)','rgb(20,65,132)','rgb(153,40,26)','rgb(34,34,34)'], /*BH2*/
         colorArray: ['#de2d26', '#fb6a4a', '#fc9272', '#fcbba1', '#fee5d9'],
         /*red*/
-    },
-    hover: {
-        w: null,
-        h: null,
-        margin: 5,
     },
     filters: {
         w: null,
@@ -180,7 +172,6 @@ let nodesAll = [];
 let linksAll = [];
 let infoData = [];
 let filtersDatum = {};
-let stateSelected = '';
 let isDragging = false;
 let nodeSelected = null;
 let linksSelected = [];
@@ -226,18 +217,6 @@ const InitializePage = (error, results) => {
         .edges(results[1].links);
     hybridMapObj.simulation = d3.forceSimulation(hybridMapObj.vertices())
         .on('tick', hybridMapObj.Tick);
-    vs.hover.h = parseFloat(svg.style('font-size')) + 2 * vs.hover.margin;
-    hoverRect
-        .attr('height', vs.hover.h)
-        .attr('y', -1 * vs.hover.h - vs.hover.margin)
-        .style('filter', 'url(#drop-shadow)');
-    hoverText
-        .attr('x', 0)
-        .attr('y', -0.5 * vs.hover.h - vs.hover.margin);
-    bgRect
-        .on('mouseover', () => {
-            stateSelected = '';
-        });
     UpdatePageDimensions();
     requestAnimationFrame(() => {
         hybridMapObj
@@ -338,20 +317,6 @@ function HybridMapClass() {
             .data(_statesFeatures, function(d) { return d.properties.ansi; });
         statePaths = statePaths.enter().append('path')
             .classed('state-path', true)
-            .each(function(d) {
-                d.$in = parseInt(that.$inState[d.properties.ansi]);
-                d.$out = parseInt(that.$outState[d.properties.ansi]);
-            })
-            .on('mouseover', function(d) {
-                stateSelected = d.properties.ansi;
-                // that
-                //     .UpdateStates();
-                // hoverText.text(d.properties.ansi+': '+d.$out+' '+d.$in);
-                // that.UpdateHover('mouse');
-            })
-            .on('mousemove', function(d) {
-                // that.UpdateHover('mouse');
-            })
             .attr('d', that.path)
             .merge(statePaths);
         statePaths
@@ -532,41 +497,6 @@ function HybridMapClass() {
             });
         TestApp('UpdateInfo');
         return that;
-    };
-
-    that.UpdateHover = function(source) {
-        console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateHover = function(source) {", "color:blue");
-        vs.hover.w = 0;
-        if (hoverText.text() !== '') {
-            vs.hover.w = hoverText.node().getBBox().width + 2 * vs.hover.margin;
-        }
-        hoverRect
-            .attr('width', vs.hover.w)
-            .attr('x', -0.5 * vs.hover.w);
-        hoverG
-            .attr('transform', function() {
-                let tx, ty;
-                if (source === 'mouse') {
-                    tx = d3.mouse(svg.node())[0];
-                    ty = d3.mouse(svg.node())[1];
-                } else if (that.centroidByState[stateSelected]) {
-                    tx = that.centroidByState[stateSelected][0];
-                    ty = that.centroidByState[stateSelected][1] + 0.5 * (vs.hover.h + 2 * vs.hover.margin);
-                } else {
-                    tx = that.width() / 2;
-                    ty = that.height() / 2;
-                }
-                if (tx < vs.hover.w / 2 + 1) {
-                    tx = vs.hover.w / 2 + 1;
-                } else if (tx > parseInt(svg.style('width')) - vs.hover.w / 2 - 1) {
-                    tx = parseInt(svg.style('width')) - vs.hover.w / 2 - 1;
-                }
-                if (ty < vs.hover.h + 5 + 1) {
-                    ty = vs.hover.h + 5 + 1;
-                }
-                return 'translate(' + tx + ',' + ty + ')';
-            });
-        TestApp('UpdateHover');
     };
 
     that.forcesObj = {
