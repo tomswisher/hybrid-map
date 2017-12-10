@@ -1,7 +1,6 @@
 // tomswisherlabs@gmail.com     https://github.com/tomswisher
 
 'use strict'; /* globals d3, console, nodes, count */ /* jshint -W069, unused:false */
-console.log('Loading app...');
 
 // Performance -------------------------------------------------------------------------------------
 
@@ -194,6 +193,7 @@ var reportsData = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 // Window Events -----------------------------------------------------------------------------------
 
 window.onload = function() {
+    TestApp('hybrid-map', 1);
     d3.queue()
         .defer(d3.json, 'data/us-states-features.json')
         .defer(d3.json, 'data/nodes-links-04-06-2017.json')
@@ -252,7 +252,7 @@ function InitializePage(error, results) {
         body
             .classed('loading', false);
         isLoaded = true;
-        console.log('Loading complete.');
+        TestApp('hybrid-map', -1);
     });
     TestApp('InitializePage', -1);
 }
