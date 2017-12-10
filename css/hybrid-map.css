@@ -32,18 +32,6 @@ body {
 #svg line.edge-line {
   pointer-events: none;
 }
-#svg #hover-g {
-  pointer-events: none;
-}
-#svg #hover-text {
-  dominant-baseline: middle;
-  text-anchor: middle;
-}
-#svg #hover-rect {
-  stroke: black;
-  stroke-width: 0px;
-  fill: white;
-}
 #svg #grades-g rect.grade-bg {
   opacity: 0;
 }
@@ -100,9 +88,6 @@ body {
   margin: 0px;
 }
 /* General Styles */
-.hovered {
-  opacity: 0.3;
-}
 .button-object {
   cursor: pointer;
 }
