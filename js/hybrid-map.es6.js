@@ -5,9 +5,9 @@
 // Performance -------------------------------------------------------------------------------------
 
 let isLoaded = false;
-let logsLvl1 = false,
-    logsLvl2 = false,
-    logsTest = 'both';
+let logsTest = 'both',
+    logsLvl1 = false,
+    logsLvl2 = false;
 let resizeWait = 150,
     resizeCounter = 0;
 let stackLevel = 0,
@@ -73,7 +73,7 @@ const vs = {
     },
     network: {
         rMin: 3,
-        rFactor: 50,
+        rFactor: 75,
         strokeWidth: 1,
     },
     info: {
@@ -127,6 +127,7 @@ let topIds = [
     'Laura Arnold'
 ];
 let hybridMapObj = null;
+let statesAll = [];
 let nodesAll = [];
 let linksAll = [];
 let infoData = [];
@@ -156,24 +157,52 @@ window.onresize = () => {
         } else if (resizeCounter === 1) {
             resizeCounter -= 1;
             if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
-            UpdatePageDimensions();
+            UpdateVSValues();
+            hybridMapObj
+                .UpdateStates()
+                .UpdateInfo()
+                .UpdateFilters()
+                .UpdateNetwork()
+                .UpdateSimulation()
+                .UpdateOptions();
         }
     }, resizeWait);
 };
 
 // Functions ---------------------------------------------------------------------------------------
 
+function UpdateVSValues() {
+    TestApp('UpdateVSValues', 1);
+    let clientWidth = body.node().clientWidth;
+    if (clientWidth >= vs.states.wMin + vs.info.w) {
+        vs.states.w = clientWidth - vs.info.w;
+        vs.svg.w = clientWidth;
+    } else {
+        vs.states.w = vs.states.wMin;
+        vs.svg.w = vs.states.wMin + vs.info.w;
+    }
+    vs.filters.w = vs.states.w;
+    vs.states.h = vs.states.w / vs.states.ratioMapWH;
+    vs.svg.h = Math.max(vs.states.h, vs.info.h);
+    TestApp('UpdateVSValues', -1);
+}
+
 const InitializePage = (error, results) => {
     TestApp('InitializePage', 1);
-    results[1].nodes.forEach(node => nodesAll.push(node));
-    results[1].links.forEach(link => linksAll.push(link));
+    results[0].features.forEach(d => statesAll.push(d));
+    results[1].nodes.forEach(d => nodesAll.push(d));
+    results[1].links.forEach(d => linksAll.push(d));
+    UpdateVSValues();
     hybridMapObj = (new HybridMapClass())
-        .statesFeatures(results[0].features)
+        .statesFeatures(statesAll)
+        .UpdateStates()
         .nodes(nodesAll)
-        .links(linksAll);
-    hybridMapObj.simulation = d3.forceSimulation(hybridMapObj.nodes())
-        .on('tick', hybridMapObj.Tick);
-    UpdatePageDimensions();
+        .links(linksAll)
+        .UpdateInfo()
+        .UpdateFilters()
+        .UpdateNetwork()
+        .UpdateSimulation()
+        .UpdateOptions();
     requestAnimationFrame(() => {
         body
             .classed('loading', false);
@@ -197,41 +226,61 @@ function HybridMapClass() {
     that.statesFeatures = d => {
         return d !== undefined ? (_statesFeatures = d, that) : _statesFeatures;
     };
-    let _nodes = null;
+    let _nodes = [];
     that.nodes = d => {
         if (d === undefined) { return _nodes; }
+        TestApp('nodes', 1);
         _nodes = d;
-        _nodes.forEach(node => {
-            node.$in = 0;
-            node.$out = 0;
-            that.$inState[node.state] = 0;
-            that.$outState[node.state] = 0;
+        let iCount = 0;
+        _nodes.forEach((d, i) => {
+            d.$in = 0;
+            d.$out = 0;
+            that.$inState[d.state] = 0;
+            that.$outState[d.state] = 0;
+            d.x = that.centroidByState[d.state][0];
+            d.y = that.centroidByState[d.state][1];
+            if (topIds.includes(d.id)) {
+                d.i = iCount;
+                iCount += 1;
+            }
         });
         that.nodeById = d3.map(_nodes, d => d.id);
+        TestApp('nodes', -1);
         return that;
     };
-    let _links = null;
+    let _links = [];
     that.links = d => {
         if (d === undefined) { return _links; }
+        TestApp('links', 1);
         _links = d;
-        _links.forEach(link => {
-            link.target = that.nodeById.get(link.target);
-            link.source = that.nodeById.get(link.source);
-            link.target.$in += link.dollars;
-            link.source.$out += link.dollars;
-            that.$inState[link.target.state] += link.dollars;
-            that.$outState[link.source.state] += link.dollars;
-            that.$total += link.dollars;
-            // link.topId = topIds.includes(link.source.id) || topIds.includes(link.target.id);
-            // if (link.topId) {
-            //     link.source.topId = true;
-            //     link.target.topId = true;
+        _links.forEach(d => {
+            d.target = that.nodeById.get(d.target);
+            d.source = that.nodeById.get(d.source);
+            d.target.$in += d.dollars;
+            d.source.$out += d.dollars;
+            that.$inState[d.target.state] += d.dollars;
+            that.$outState[d.source.state] += d.dollars;
+            that.$total += d.dollars;
+            // d.topId = topIds.includes(d.source.id) || topIds.includes(d.target.id);
+            // if (d.topId) {
+            //     d.source.topId = true;
+            //     d.target.topId = true;
             // }
         });
-        // _links = _links.filter(link => link.topId);
-        // _nodes = _nodes.filter(node => node.topId);
+        // _links = _links.filter(d => d.topId);
+        // _nodes = _nodes.filter(d => d.topId);
         that.$nodeScale
             .domain([0, that.$total]);
+        _nodes.forEach(d => {
+            let $in = that.$nodeScale(d.$in);
+            let $out = that.$nodeScale(d.$out);
+            if ($in > $out) {
+                d.r = Math.max(vs.network.rMin, vs.network.rFactor * Math.sqrt($in));
+            } else {
+                d.r = Math.max(vs.network.rMin, vs.network.rFactor * Math.sqrt($out));
+            }
+        });
+        TestApp('links', -1);
         return that;
     };
 
@@ -254,13 +303,11 @@ function HybridMapClass() {
         statePaths = statesG.selectAll('path.state-path')
             .data(_statesFeatures, d => d.properties.ansi);
         statePaths = statePaths.enter().append('path')
-            .classed('state-path', true)
-            .attr('d', that.path)
+            .classed('state-path', true).classed('inactive', true)
             .merge(statePaths);
         statePaths
-            .each(d => that.centroidByState[d.properties.ansi] = that.path.centroid(d))
-            .classed('inactive', true)
             .attr('d', that.path)
+            .each(d => that.centroidByState[d.properties.ansi] = that.path.centroid(d))
             .style('stroke-width', vs.states.strokeWidthStates + 'px');
         // statePaths.each(d => {
         //     let centroid = that.centroidByState[d.properties.ansi];
@@ -534,18 +581,9 @@ function HybridMapClass() {
 
     that.UpdateNetwork = () => {
         TestApp('UpdateNetwork', 1);
-        let iCount = 0;
         nodeCircles = nodesG.selectAll('circle.node-circle')
             .data(_nodes);
         nodeCircles = nodeCircles.enter().append('circle')
-            .each((d, i) => {
-                d.x = that.centroidByState[d.state][0];
-                d.y = that.centroidByState[d.state][1];
-                if (topIds.includes(d.id)) {
-                    d.i = iCount;
-                    iCount += 1;
-                }
-            })
             .classed('node-circle', true)
             .on('mouseover', d => {
                 if (isDragging) { return; }
@@ -566,23 +604,16 @@ function HybridMapClass() {
                     .UpdateNetwork();
                 that
                     .UpdateInfo();
-            }).call(d3.drag()
+            })
+            .call(d3.drag()
                 .on('start', that.DragStarted)
                 .on('drag', that.Dragged)
-                .on('end', that.DragEnded))
-            .attr('cx', d => d.x)
-            .attr('cy', d => d.y)
+                .on('end', that.DragEnded)
+            )
             .merge(nodeCircles);
         nodeCircles
-            .each(d => {
-                let $in = that.$nodeScale(d.$in);
-                let $out = that.$nodeScale(d.$out);
-                if ($in > $out) {
-                    d.r = Math.max(vs.network.rMin, vs.network.rFactor * Math.sqrt($in));
-                } else {
-                    d.r = Math.max(vs.network.rMin, vs.network.rFactor * Math.sqrt($out));
-                }
-            })
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y)
             .style('stroke-width', vs.network.strokeWidth + 'px')
             .style('fill', d => {
                 if (topIds.includes(d.id)) {
@@ -663,6 +694,12 @@ function HybridMapClass() {
 
     that.UpdateSimulation = () => {
         TestApp('UpdateSimulation', 1);
+        if (that.simulation === undefined) {
+            that.simulation = d3.forceSimulation()
+                .on('tick', that.Tick);
+        }
+        that.simulation
+            .nodes(_nodes);
         Object.keys(that.forcesObj).forEach(forceType => {
             if (forceType === 'simulation') { return; }
             let optionsObj = that.forcesObj[forceType];
@@ -878,52 +915,29 @@ function HybridMapClass() {
     return that;
 }
 
-function UpdatePageDimensions() {
-    TestApp('UpdatePageDimensions', 1);
-    let clientWidth = body.node().clientWidth;
-    if (clientWidth >= vs.states.wMin + vs.info.w) {
-        vs.states.w = clientWidth - vs.info.w;
-        vs.svg.w = clientWidth;
-    } else {
-        vs.states.w = vs.states.wMin;
-        vs.svg.w = vs.states.wMin + vs.info.w;
-    }
-    vs.filters.w = vs.states.w;
-    vs.states.h = vs.states.w / vs.states.ratioMapWH;
-    vs.svg.h = Math.max(vs.states.h, vs.info.h);
-    hybridMapObj
-        .UpdateStates()
-        .UpdateInfo()
-        .UpdateFilters()
-        .UpdateNetwork()
-        .UpdateSimulation()
-        .UpdateOptions();
-    TestApp('UpdatePageDimensions', -1);
-}
-
 function TestApp(source, position) {
     if (!logsTest || !performance || !performance.memory) { return; }
-    stackLevelTemp = stackLevel;
+    if (position === 1) {
+        stackLevel += 1;
+        stackLevelTemp = stackLevel;
+        stringSymbol = '> ';
+        if (logsTest === 'out') { return; }
+    } else if (position === -1) {
+        stackLevelTemp = stackLevel;
+        stackLevel -= 1;
+        stringSymbol = '< ';
+        if (logsTest === 'in') { return; }
+    } else {
+        stringSymbol = '• ';
+    }
+    stringSource = '%c' + (''.padStart(2 * stackLevelTemp) + stringSymbol + String(source)).padEnd(24);
+    colorSource = 'color:black';
     sizeNodesOld = sizeNodesNew;
     sizeUsedOld = sizeUsedNew;
     sizeTotalOld = sizeTotalNew;
     sizeNodesNew = d3.selectAll('*').size();
     sizeUsedNew = performance.memory.usedJSHeapSize;
     sizeTotalNew = performance.memory.totalJSHeapSize;
-    if (position === 1) {
-        stringSymbol = '> ';
-        stackLevel += 1;
-    } else if (position === -1) {
-        stackLevel -= 1;
-        stringSymbol = '< ';
-        stackLevelTemp = stackLevel;
-    } else if (position === 0) {
-        stringSymbol = '• ';
-    } else {
-        stringSymbol = '  ';
-    }
-    stringSource = '%c' + (''.padStart(2 * stackLevelTemp) + stringSymbol + String(source)).padEnd(33);
-    colorSource = 'color:black';
     if (sizeNodesNew !== sizeNodesOld) {
         stringNodes = (sizeNodesNew + ' n').padStart(6);
         colorNodes = 'color:' + (sizeNodesNew < sizeNodesOld ? vs.test.colorGood : vs.test.colorBad);
@@ -949,7 +963,5 @@ function TestApp(source, position) {
     }
     stringTotal = '%c' + stringTotal.padEnd(12);
     stringCombined = stringSource + stringNodes + stringUsed + stringTotal;
-    if (position === 1 && logsTest === 'out') { return; }
-    if (position === -1 && logsTest === 'in') { return; }
     console.log(stringCombined, colorSource, colorNodes, colorUsed, colorTotal);
 }
