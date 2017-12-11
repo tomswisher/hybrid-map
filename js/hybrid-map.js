@@ -4,8 +4,7 @@
 
 // Performance -------------------------------------------------------------------------------------
 
-var isLoaded = false;
-var logsTest = 'both',
+var logsTest = 'in',
     logsLvl1 = false,
     logsLvl2 = false;
 var resizeWait = 150,
@@ -31,6 +30,7 @@ var stringSource = '',
 var mobileNavigators = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
     mobileBrowser = navigator && mobileNavigators.test(navigator.userAgent);
 if (mobileBrowser) console.log('mobileBrowser', mobileBrowser);
+var isLoaded = false;
 
 // D3 Selections -----------------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ var vs = {
         w: null,
         h: null
     },
-    states: {
+    map: {
         w: null,
         wMin: 300,
         h: null,
@@ -73,7 +73,7 @@ var vs = {
     },
     network: {
         rMin: 3,
-        rFactor: 75,
+        rFactor: 50,
         strokeWidth: 1
     },
     info: {
@@ -116,7 +116,6 @@ var hybridMapObj = null;
 var statesAll = [];
 var nodesAll = [];
 var linksAll = [];
-var infoData = [];
 var filtersDatum = {};
 var isDragging = false;
 var nodeSelected = null;
@@ -143,7 +142,7 @@ window.onresize = function () {
             resizeCounter -= 1;
             if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
             UpdateVSValues();
-            hybridMapObj.UpdateStates().UpdateInfo().UpdateFilters().UpdateNetwork().UpdateSimulation().UpdateOptions();
+            hybridMapObj.DrawMap().DrawInfo().DrawFilters().DrawNetwork().UpdateSimulation().DrawOptions();
         }
     }, resizeWait);
 };
@@ -153,16 +152,16 @@ window.onresize = function () {
 function UpdateVSValues() {
     TestApp('UpdateVSValues', 1);
     var clientWidth = body.node().clientWidth;
-    if (clientWidth >= vs.states.wMin + vs.info.w) {
-        vs.states.w = clientWidth - vs.info.w;
+    if (clientWidth >= vs.map.wMin + vs.info.w) {
+        vs.map.w = clientWidth - vs.info.w;
         vs.svg.w = clientWidth;
     } else {
-        vs.states.w = vs.states.wMin;
-        vs.svg.w = vs.states.wMin + vs.info.w;
+        vs.map.w = vs.map.wMin;
+        vs.svg.w = vs.map.wMin + vs.info.w;
     }
-    vs.filters.w = vs.states.w;
-    vs.states.h = vs.states.w / vs.states.ratioMapWH;
-    vs.svg.h = Math.max(vs.states.h, vs.info.h);
+    vs.filters.w = vs.map.w;
+    vs.map.h = vs.map.w / vs.map.ratioMapWH;
+    vs.svg.h = Math.max(vs.map.h, vs.info.h);
     TestApp('UpdateVSValues', -1);
 }
 
@@ -178,7 +177,7 @@ var InitializePage = function InitializePage(error, results) {
         return linksAll.push(d);
     });
     UpdateVSValues();
-    hybridMapObj = new HybridMapClass().statesFeatures(statesAll).UpdateStates().nodes(nodesAll).links(linksAll).UpdateInfo().UpdateFilters().UpdateNetwork().UpdateSimulation().UpdateOptions();
+    hybridMapObj = new HybridMapClass().UpdateStates(statesAll).DrawMap().UpdateNodes(nodesAll).UpdateLinks(linksAll).DrawInfo().DrawFilters().DrawNetwork().UpdateSimulation().DrawOptions();
     requestAnimationFrame(function () {
         body.classed('loading', false);
         isLoaded = true;
@@ -189,6 +188,7 @@ var InitializePage = function InitializePage(error, results) {
 function HybridMapClass() {
     TestApp('HybridMapClass', 1);
     var that = this;
+    that.infoData = [];
     that.centroidByState = {};
     that.$total = 0;
     that.$inState = {};
@@ -197,19 +197,22 @@ function HybridMapClass() {
     that.nodeById = null;
     that.projection = d3.geoAlbersUsa();
     that.path = d3.geoPath();
-    var _statesFeatures = null;
-    that.statesFeatures = function (d) {
-        return d !== undefined ? (_statesFeatures = d, that) : _statesFeatures;
+    that.states = [];
+    that.nodes = [];
+    that.links = [];
+
+    that.UpdateStates = function (d) {
+        TestApp('UpdateStates', 1);
+        that.states = d;
+        TestApp('UpdateStates', -1);
+        return that;
     };
-    var _nodes = [];
-    that.nodes = function (d) {
-        if (d === undefined) {
-            return _nodes;
-        }
-        TestApp('nodes', 1);
-        _nodes = d;
+
+    that.UpdateNodes = function (d) {
+        TestApp('UpdateNodes', 1);
+        that.nodes = d;
         var iCount = 0;
-        _nodes.forEach(function (d, i) {
+        that.nodes.forEach(function (d, i) {
             d.$in = 0;
             d.$out = 0;
             that.$inState[d.state] = 0;
@@ -221,20 +224,17 @@ function HybridMapClass() {
                 iCount += 1;
             }
         });
-        that.nodeById = d3.map(_nodes, function (d) {
+        that.nodeById = d3.map(that.nodes, function (d) {
             return d.id;
         });
-        TestApp('nodes', -1);
+        TestApp('UpdateNodes', -1);
         return that;
     };
-    var _links = [];
-    that.links = function (d) {
-        if (d === undefined) {
-            return _links;
-        }
-        TestApp('links', 1);
-        _links = d;
-        _links.forEach(function (d) {
+
+    that.UpdateLinks = function (d) {
+        TestApp('UpdateLinks', 1);
+        that.links = d;
+        that.links.forEach(function (d) {
             d.target = that.nodeById.get(d.target);
             d.source = that.nodeById.get(d.source);
             d.target.$in += d.dollars;
@@ -248,10 +248,10 @@ function HybridMapClass() {
             //     d.target.topId = true;
             // }
         });
-        // _links = _links.filter(d => d.topId);
-        // _nodes = _nodes.filter(d => d.topId);
+        // that.links = that.links.filter(d => d.topId);
+        // that.nodes = that.nodes.filter(d => d.topId);
         that.$nodeScale.domain([0, that.$total]);
-        _nodes.forEach(function (d) {
+        that.nodes.forEach(function (d) {
             var $in = that.$nodeScale(d.$in);
             var $out = that.$nodeScale(d.$out);
             if ($in > $out) {
@@ -260,24 +260,24 @@ function HybridMapClass() {
                 d.r = Math.max(vs.network.rMin, vs.network.rFactor * Math.sqrt($out));
             }
         });
-        TestApp('links', -1);
+        TestApp('UpdateLinks', -1);
         return that;
     };
 
-    that.UpdateStates = function () {
-        TestApp('UpdateStates', 1);
+    that.DrawMap = function () {
+        TestApp('DrawMap', 1);
         svg.attr('width', vs.svg.w).attr('height', vs.svg.h);
-        bgRect.attr('width', vs.states.w).attr('height', vs.states.h);
-        clipPathRect.attr('width', vs.states.w).attr('height', vs.svg.h);
-        that.projection.scale(vs.states.w * vs.states.projectionScale).translate([vs.states.w / 2, vs.states.h / 2]);
+        bgRect.attr('width', vs.map.w).attr('height', vs.map.h);
+        clipPathRect.attr('width', vs.map.w).attr('height', vs.svg.h);
+        that.projection.scale(vs.map.w * vs.map.projectionScale).translate([vs.map.w / 2, vs.map.h / 2]);
         that.path.projection(that.projection);
-        statePaths = statesG.selectAll('path.state-path').data(_statesFeatures, function (d) {
+        statePaths = statesG.selectAll('path.state-path').data(that.states, function (d) {
             return d.properties.ansi;
         });
         statePaths = statePaths.enter().append('path').classed('state-path', true).classed('inactive', true).merge(statePaths);
         statePaths.attr('d', that.path).each(function (d) {
             return that.centroidByState[d.properties.ansi] = that.path.centroid(d);
-        }).style('stroke-width', vs.states.strokeWidthStates + 'px');
+        }).style('stroke-width', vs.map.strokeWidthStates + 'px');
         // statePaths.each(d => {
         //     let centroid = that.centroidByState[d.properties.ansi];
         //     console.log(d.properties.ansi, centroid);
@@ -290,19 +290,14 @@ function HybridMapClass() {
         //         .style('stroke', 'red');
         //     d3.select(this).remove();
         // });
-        TestApp('UpdateStates', -1);
+        TestApp('DrawMap', -1);
         return that;
     };
 
-    that.UpdateInfo = function () {
-        TestApp('UpdateInfo', 1);
-        if (nodeSelected && !infoData.filter(function (d) {
-            return d.id === nodeSelected.id;
-        })[0]) {
-            infoData.push(nodeSelected);
-        }
-        infoG.attr('transform', 'translate(' + (vs.states.w + vs.info.margin) + ',' + vs.info.margin + ')');
-        infoImageGs = infoG.selectAll('g.info-image-g').data(infoData);
+    that.DrawInfo = function () {
+        TestApp('DrawInfo', 1);
+        infoG.attr('transform', 'translate(' + (vs.map.w + vs.info.margin) + ',' + vs.info.margin + ')');
+        infoImageGs = infoG.selectAll('g.info-image-g').data(that.infoData);
         infoImageGs = infoImageGs.enter().append('g').classed('info-image-g', true).each(function (datum) {
             d3.select(this).append('image').attr('width', vs.info.wImage).attr('height', vs.info.hImage).attr('xlink:href', function () {
                 if (!topIds.includes(datum.id)) {
@@ -315,7 +310,7 @@ function HybridMapClass() {
         infoImageGs.transition().duration(transitionDuration).ease(transitionEase).style('opacity', function (d) {
             return +(nodeSelected && d.id === nodeSelected.id);
         });
-        infoTextGs = infoG.selectAll('g.info-text-g').data(infoData);
+        infoTextGs = infoG.selectAll('g.info-text-g').data(that.infoData);
         infoTextGs = infoTextGs.enter().append('g').classed('info-text-g', true).attr('transform', 'translate(' + vs.info.wImage / 2 + ',' + (vs.info.hImage + vs.info.margin) + ')').each(function (datum) {
             d3.select(this).append('text').attr('x', 0).attr('y', 0.5 * vs.info.textRowH).text(datum.id);
             d3.select(this).append('text').attr('x', 0).attr('y', 1.5 * vs.info.textRowH).text('State: ' + datum.state);
@@ -329,7 +324,7 @@ function HybridMapClass() {
         infoTextGs.transition().duration(transitionDuration).ease(transitionEase).style('opacity', function (d) {
             return +(nodeSelected && d.id === nodeSelected.id);
         });
-        TestApp('UpdateInfo', -1);
+        TestApp('DrawInfo', -1);
         return that;
     };
 
@@ -492,17 +487,17 @@ function HybridMapClass() {
     };
 
     that.DragStarted = function (d) {
-        TestApp('DragStarted', 1);
+        // TestApp('DragStarted', 1);
         isDragging = true;
         // if (!d3.event.active) { that.simulation.alphaTarget(0.3).restart(); }
         d.fx = d.x;
         d.fy = d.y;
         // that.Tick();
-        TestApp('DragStarted', -1);
+        // TestApp('DragStarted', -1);
     };
 
     that.Dragged = function (d) {
-        TestApp('Dragged', 1);
+        // TestApp('Dragged', 1);
         d.fx = d3.event.x;
         d.fy = d3.event.y;
         d.x = d3.event.x;
@@ -510,11 +505,11 @@ function HybridMapClass() {
         d.cx = d3.event.x;
         d.cy = d3.event.y;
         that.Tick();
-        TestApp('Dragged', -1);
+        // TestApp('Dragged', -1);
     };
 
     that.DragEnded = function (d) {
-        TestApp('DragEnded', 1);
+        // TestApp('DragEnded', 1);
         isDragging = false;
         // if (!d3.event.active) { that.simulation.alphaTarget(0); }
         d.fx = null;
@@ -522,30 +517,31 @@ function HybridMapClass() {
         if (!d3.event.active) {
             that.simulation.alpha(1).restart();
         }
-        TestApp('DragEnded', -1);
+        // TestApp('DragEnded', -1);
     };
 
-    that.UpdateNetwork = function () {
-        TestApp('UpdateNetwork', 1);
-        nodeCircles = nodesG.selectAll('circle.node-circle').data(_nodes);
+    that.DrawNetwork = function () {
+        TestApp('DrawNetwork', 1);
+        nodeCircles = nodesG.selectAll('circle.node-circle').data(that.nodes);
         nodeCircles = nodeCircles.enter().append('circle').classed('node-circle', true).on('mouseover', function (d) {
             if (isDragging) {
                 return;
             }
             nodeSelected = d;
-            linksSelected = _links.filter(function (d) {
+            linksSelected = that.links.filter(function (d) {
                 return nodeSelected.id === d.source.id || nodeSelected.id === d.target.id;
             });
-            that.UpdateNetwork();
-            that.UpdateInfo();
+            if (!that.infoData.includes(nodeSelected)) {
+                that.infoData.push(nodeSelected);
+            }
+            that.DrawInfo().DrawNetwork();
         }).on('mouseout', function () {
             if (isDragging) {
                 return;
             }
             nodeSelected = null;
             linksSelected = [];
-            that.UpdateNetwork();
-            that.UpdateInfo();
+            that.DrawInfo().DrawNetwork();
         }).call(d3.drag().on('start', that.DragStarted).on('drag', that.Dragged).on('end', that.DragEnded)).merge(nodeCircles);
         nodeCircles.attr('cx', function (d) {
             return d.x;
@@ -580,7 +576,7 @@ function HybridMapClass() {
                 return 0.05;
             }
         });
-        linkLines = linksG.selectAll('line.link-line').data(_links);
+        linkLines = linksG.selectAll('line.link-line').data(that.links);
         linkLines = linkLines.enter().append('line').classed('link-line', true).attr('x1', function (d) {
             return d.source.x;
         }).attr('y1', function (d) {
@@ -619,14 +615,14 @@ function HybridMapClass() {
                 return 'none';
             }
         });
-        TestApp('UpdateNetwork', -1);
+        TestApp('DrawNetwork', -1);
         return that;
     };
 
     that.IsolateForce = function (force, filter) {
         var initialize = force.initialize;
         force.initialize = function () {
-            initialize.call(force, _nodes.filter(filter));
+            initialize.call(force, that.nodes.filter(filter));
         };
         return force;
     };
@@ -636,7 +632,7 @@ function HybridMapClass() {
         if (that.simulation === undefined) {
             that.simulation = d3.forceSimulation().on('tick', that.Tick);
         }
-        that.simulation.nodes(_nodes);
+        that.simulation.nodes(that.nodes);
         Object.keys(that.forcesObj).forEach(function (forceType) {
             if (forceType === 'simulation') {
                 return;
@@ -675,10 +671,10 @@ function HybridMapClass() {
                     var optionValue = optionsObj[optionName].value; // do not mutate original value
                     switch (optionValue) {
                         case 'cx':
-                            optionValue = 0.5 * vs.states.w;
+                            optionValue = 0.5 * vs.map.w;
                             break;
                         case 'cy':
-                            optionValue = 0.5 * vs.states.h;
+                            optionValue = 0.5 * vs.map.h;
                             break;
                     }
                     forceNew[optionName](optionValue);
@@ -706,9 +702,9 @@ function HybridMapClass() {
         return that;
     };
 
-    that.UpdateFilters = function () {
-        TestApp('UpdateFilters', 1);
-        filtersDiv.style('width', vs.filters.w + 'px').style('height', vs.filters.h + 'px').style('left', '0px').style('top', vs.states.h + 'px');
+    that.DrawFilters = function () {
+        TestApp('DrawFilters', 1);
+        filtersDiv.style('width', vs.filters.w + 'px').style('height', vs.filters.h + 'px').style('left', '0px').style('top', vs.map.h + 'px');
         filtersYears = filtersDiv.selectAll('div.filters-year').data(yearsData);
         filtersYears = filtersYears.enter().append('div').classed('filters-year', true).each(function (datum) {
             d3.select(this).append('div').text(datum);
@@ -717,7 +713,7 @@ function HybridMapClass() {
                 filtersDatum[d] = this.checked;
             }).on('change', function (d) {
                 filtersDatum[d] = this.checked;
-                that.UpdateNetwork().UpdateSimulation();
+                that.DrawNetwork().UpdateSimulation();
             });
         }).merge(filtersYears).style('width', vs.filters.w / yearsData.length + 'px').style('height', 0.5 * vs.filters.h + 'px');
         filtersReports = filtersDiv.selectAll('div.filters-report').data(reportsData);
@@ -728,16 +724,16 @@ function HybridMapClass() {
                 filtersDatum[d] = this.checked;
             }).on('change', function (d) {
                 filtersDatum[d] = this.checked;
-                that.UpdateNetwork().UpdateSimulation();
+                that.DrawNetwork().UpdateSimulation();
             });
         }).merge(filtersReports).style('width', vs.filters.w / reportsData.length + 'px').style('height', 0.5 * vs.filters.h + 'px');
-        TestApp('UpdateFilters', -1);
+        TestApp('DrawFilters', -1);
         return that;
     };
 
-    that.UpdateOptions = function () {
-        TestApp('UpdateOptions', 1);
-        optionsDiv.style('left', '0px').style('top', Math.max(vs.svg.h, vs.states.h + vs.filters.h) + 'px');
+    that.DrawOptions = function () {
+        TestApp('DrawOptions', 1);
+        optionsDiv.style('left', '0px').style('top', Math.max(vs.svg.h, vs.map.h + vs.filters.h) + 'px');
         optionRows = optionsDiv.selectAll('div.option-row').data(that.optionsData);
         optionRows = optionRows.enter().append('div').classed('option-row', true).each(function (datum) {
             d3.select(this).append('label').classed('label-medium', true).text(datum._category);
@@ -754,7 +750,7 @@ function HybridMapClass() {
                         datum.value = parseFloat(this.value);
                     }
                     that.simulation.alpha(0);
-                    that.UpdateSimulation().UpdateOptions();
+                    that.UpdateSimulation().DrawOptions();
                 });
             }
             if (datum.max !== undefined) {
@@ -773,7 +769,7 @@ function HybridMapClass() {
             d3.select(this).selectAll('input[type=\'Range\']').style('width', vs.options.wSlider + 'px');
             d3.select(this).selectAll('*').style('height', vs.options.hRow + 'px').style('line-height', vs.options.hRow + 'px');
         }).style('width', vs.options.wRow + 'px');
-        TestApp('UpdateOptions', -1);
+        TestApp('DrawOptions', -1);
         return that;
     };
 
