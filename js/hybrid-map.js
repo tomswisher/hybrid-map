@@ -98,7 +98,7 @@ var vs = {
         wMedium: 90,
         wSlider: 130,
         wRow: null,
-        hRow: 25
+        hRow: 20
     },
     test: {
         colorNeutral: 'black',
@@ -184,28 +184,17 @@ function HybridMapClass() {
     that.verticeById = null;
     that.projection = d3.geoAlbersUsa();
     that.path = d3.geoPath();
-    var _width = 0;
-    that.width = function (_) {
-        console.log(''.padStart(2 * stackLevel) + "%cthat.width = function(_) {", "color:blue");
-        return arguments.length ? (_width = _, that) : _width;
-    };
-    var _height = 0;
-    that.height = function (_) {
-        console.log(''.padStart(2 * stackLevel) + "%cthat.height = function(_) {", "color:blue");
-        return arguments.length ? (_height = _, that) : _height;
-    };
     var _statesFeatures = null;
-    that.statesFeatures = function (_) {
-        console.log(''.padStart(2 * stackLevel) + "%cthat.statesFeatures = function(_) {", "color:blue");
-        return arguments.length ? (_statesFeatures = _, that) : _statesFeatures;
+    that.statesFeatures = function (d) {
+        return d !== undefined ? (_statesFeatures = d, that) : _statesFeatures;
     };
     var _vertices = null;
-    that.vertices = function (vertices) {
+    that.vertices = function (d) {
         console.log(''.padStart(2 * stackLevel) + "%cthat.vertices = function(vertices) {", "color:blue");
-        if (!arguments.length) {
+        if (d === undefined) {
             return _vertices;
         }
-        _vertices = vertices;
+        _vertices = d;
         _vertices.forEach(function (vertice) {
             vertice.$in = 0;
             vertice.$out = 0;
@@ -218,12 +207,12 @@ function HybridMapClass() {
         return that;
     };
     var _edges = null;
-    that.edges = function (edges) {
+    that.edges = function (d) {
         console.log(''.padStart(2 * stackLevel) + "%cthat.edges = function(edges) {", "color:blue");
-        if (!arguments.length) {
+        if (d === undefined) {
             return _edges;
         }
-        _edges = edges;
+        _edges = d;
         _edges.forEach(function (edge) {
             edge.target = that.verticeById.get(edge.target);
             edge.source = that.verticeById.get(edge.source);
@@ -244,12 +233,18 @@ function HybridMapClass() {
         return that;
     };
 
+    that.UpdateSVG = function () {
+        svg.attr('width', vs.svg.w).attr('height', vs.svg.h);
+        TestApp('UpdateSVG');
+        return that;
+    };
+
     that.UpdateStates = function () {
         console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateStates = function() {", "color:blue");
         if (logsLvl2) console.log('UpdateStates');
         bgRect.attr('width', vs.states.w).attr('height', vs.states.h);
         clipPathRect.attr('width', vs.states.w).attr('height', vs.svg.h);
-        that.projection.scale(_width * vs.states.projectionScale).translate([_width / 2, _height / 2]);
+        that.projection.scale(vs.states.w * vs.states.projectionScale).translate([vs.states.w / 2, vs.states.h / 2]);
         that.path.projection(that.projection);
         statePaths = statesG.selectAll('path.state-path').data(_statesFeatures, function (d) {
             return d.properties.ansi;
@@ -321,7 +316,7 @@ function HybridMapClass() {
         //     y: {
         //         value: 'cy',
         //     },
-        //     _IsolateForce: true,
+        //     _isIsolated: true,
         // },
         forceCollide: {
             iterations: {
@@ -363,7 +358,7 @@ function HybridMapClass() {
         //     //     value: (link, i, links) => 1/Math.min(count[link.source.index],count[link.target.index]),
         //     // },
         //     distance: {
-        //         value: 30, // function(link, i, links) { return 30; },
+        //         value: 30, // (link, i, links) => return 30,
         //         min: 0,
         //         max: 100,
         //         step: 1,
@@ -371,7 +366,7 @@ function HybridMapClass() {
         // },
         // forceManyBody: {
         //     strength: {
-        //         value: -30, // function(node, i, nodes) { return -30; },
+        //         value: -30, // (node, i, nodes) => return -30,
         //         min: -100,
         //         max: 0,
         //         step: 1,
@@ -394,11 +389,11 @@ function HybridMapClass() {
         //     //     max: 1,
         //     //     step: 0.1,
         //     // },
-        //     _IsolateForce: true,
+        //     _isIsolated: true,
         // },
         // forceRadial: {
         //     strength: {
-        //         value: 0.1, // function(node, i, nodes) { return 0.1; },
+        //         value: 0.1, // (node, i, nodes) => return 0.1,
         //         min: 0,
         //         max: 1,
         //         step: 0.01,
@@ -415,27 +410,27 @@ function HybridMapClass() {
         // },
         forceX: {
             strength: {
-                value: 0.1, // function(node, i, nodes) { return 0.1; },
+                value: 0.1, // (node, i, nodes) => return 0.1,
                 min: 0,
                 max: 1,
                 step: 0.05
             },
             x: {
-                value: 'cx' // value: function(node, i, nodes) { return node.x; },
+                value: 'cx' // (node, i, nodes) => return node.x,
             },
-            _IsolateForce: true
+            _isIsolated: true
         },
         forceY: {
             strength: {
-                value: 0.1, // function(node, i, nodes) { return 0.1; },
+                value: 0.1, // (node, i, nodes) => return 0.1,
                 min: 0,
                 max: 1,
                 step: 0.05
             },
             y: {
-                value: 'cy' // value: function(node, i, nodes) { return node.y; },
+                value: 'cy' // (node, i, nodes) => return node.y,
             },
-            _IsolateForce: true
+            _isIsolated: true
         },
         simulation: {
             alpha: {
@@ -445,7 +440,7 @@ function HybridMapClass() {
                 step: 0.01
             },
             alphaMin: {
-                value: 0.4, //0.001,
+                value: 0.4, // 0.001,
                 min: 0,
                 max: 1,
                 step: 0.05
@@ -468,6 +463,34 @@ function HybridMapClass() {
                 max: 1,
                 step: 0.1
             }
+        }
+    };
+
+    that.DragStarted = function (d) {
+        isDragging = true;
+        // if (!d3.event.active) { that.simulation.alphaTarget(0.3).restart(); }
+        d.fx = d.x;
+        d.fy = d.y;
+        // that.Tick();
+    };
+
+    that.Dragged = function (d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+        d.x = d3.event.x;
+        d.y = d3.event.y;
+        d.cx = d3.event.x;
+        d.cy = d3.event.y;
+        that.Tick();
+    };
+
+    that.DragEnded = function (d) {
+        isDragging = false;
+        // if (!d3.event.active) { that.simulation.alphaTarget(0); }
+        d.fx = null;
+        d.fy = null;
+        if (!d3.event.active) {
+            that.simulation.alpha(1).restart();
         }
     };
 
@@ -500,7 +523,7 @@ function HybridMapClass() {
             linksSelected = [];
             that.UpdateVerticesEdges();
             that.UpdateInfo();
-        }).call(d3.drag().on('start', _DragStarted).on('drag', _Dragged).on('end', _DragEnded)).attr('cx', function (d) {
+        }).call(d3.drag().on('start', that.DragStarted).on('drag', that.Dragged).on('end', that.DragEnded)).attr('cx', function (d) {
             return d.x;
         }).attr('cy', function (d) {
             return d.y;
@@ -585,6 +608,15 @@ function HybridMapClass() {
         return that;
     };
 
+    that.IsolateForce = function (force, filter) {
+        var initialize = force.initialize;
+        force.initialize = function () {
+            console.log(''.padStart(2 * stackLevel) + "%cforce.initialize = function() {", "color:blue");
+            initialize.call(force, that.vertices().filter(filter));
+        };
+        return force;
+    };
+
     that.UpdateSimulation = function () {
         console.log(''.padStart(2 * stackLevel) + "%cthat.UpdateSimulation = function() {", "color:blue");
         Object.keys(that.forcesObj).forEach(function (forceType) {
@@ -592,11 +624,11 @@ function HybridMapClass() {
                 return;
             }
             var optionsObj = that.forcesObj[forceType];
-            if (optionsObj['_IsolateForce'] === true) {
+            if (optionsObj['_isIsolated'] === true) {
                 Object.keys(that.$outState).forEach(function (state) {
                     var cx = that.centroidByState[state][0];
                     var cy = that.centroidByState[state][1];
-                    var forceNew = _IsolateForce(d3[forceType](), function (d) {
+                    var forceNew = that.IsolateForce(d3[forceType](), function (d) {
                         return d.state === state;
                     });
                     Object.keys(optionsObj).forEach(function (optionName) {
@@ -709,6 +741,10 @@ function HybridMapClass() {
             if (datum.max !== undefined) {
                 d3.select(this).append('label').classed('label-small', true).text(datum.max);
             }
+            if (datum._category === 'simulation' && datum._name === 'alpha') {
+                optionsAlphaLabel = d3.select(this).selectAll('label.option-value');
+                optionsAlphaSlider = d3.select(this).selectAll('input[type="range"]');
+            }
         }).merge(optionRows).each(function (datum) {
             d3.select(this).selectAll('label.option-value').text(function () {
                 return typeof datum.value === 'function' ? 'function' : datum.value;
@@ -716,53 +752,11 @@ function HybridMapClass() {
             d3.select(this).selectAll('label.label-small').style('width', vs.options.wSmall + 'px');
             d3.select(this).selectAll('label.label-medium').style('width', vs.options.wMedium + 'px');
             d3.select(this).selectAll('input[type=\'Range\']').style('width', vs.options.wSlider + 'px');
-        }).style('width', vs.options.wRow + 'px').selectAll('*').style('height', vs.options.hRow + 'px').style('line-height', vs.options.hRow + 'px');
-        optionsAlphaLabel = optionsDiv.selectAll('label.option-value').filter(function (d) {
-            return d._category === 'simulation' && d._name === 'alpha';
-        });
-        optionsAlphaSlider = optionsDiv.selectAll('input[type="range"]').filter(function (d) {
-            return d._category === 'simulation' && d._name === 'alpha';
-        });
+            d3.select(this).selectAll('*').style('height', vs.options.hRow + 'px').style('line-height', vs.options.hRow + 'px');
+        }).style('width', vs.options.wRow + 'px');
         TestApp('UpdateOptions');
         return that;
     };
-
-    function _IsolateForce(force, filter) {
-        var initialize = force.initialize;
-        force.initialize = function () {
-            console.log(''.padStart(2 * stackLevel) + "%cforce.initialize = function() {", "color:blue");
-            initialize.call(force, that.vertices().filter(filter));
-        };
-        return force;
-    }
-
-    function _DragStarted(d) {
-        isDragging = true;
-        // if (!d3.event.active) { that.simulation.alphaTarget(0.3).restart(); }
-        d.fx = d.x;
-        d.fy = d.y;
-        // that.Tick();
-    }
-
-    function _Dragged(d) {
-        d.fx = d3.event.x;
-        d.fy = d3.event.y;
-        d.x = d3.event.x;
-        d.y = d3.event.y;
-        d.cx = d3.event.x;
-        d.cy = d3.event.y;
-        that.Tick();
-    }
-
-    function _DragEnded(d) {
-        isDragging = false;
-        // if (!d3.event.active) { that.simulation.alphaTarget(0); }
-        d.fx = null;
-        d.fy = null;
-        if (!d3.event.active) {
-            that.simulation.alpha(1).restart();
-        }
-    }
 
     that.Tick = function () {
         verticeCircles
@@ -807,8 +801,7 @@ function UpdatePageDimensions() {
     vs.filters.w = vs.states.w;
     vs.states.h = vs.states.w / vs.states.ratioMapWH;
     vs.svg.h = Math.max(vs.states.h, vs.info.h);
-    svg.attr('width', vs.svg.w).attr('height', vs.svg.h);
-    hybridMapObj.width(vs.states.w).height(vs.states.h).UpdateStates().UpdateInfo().UpdateFilters().UpdateVerticesEdges().UpdateSimulation().UpdateOptions();
+    hybridMapObj.UpdateSVG().UpdateStates().UpdateInfo().UpdateFilters().UpdateVerticesEdges().UpdateSimulation().UpdateOptions();
     TestApp('UpdatePageDimensions', -1);
 }
 
