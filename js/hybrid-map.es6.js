@@ -172,8 +172,8 @@ const InitializePage = (error, results) => {
     results[1].links.forEach(link => linksAll.push(link));
     hybridMapObj = (new HybridMapClass())
         .statesFeatures(results[0].features)
-        .vertices(results[1].nodes)
-        .edges(results[1].links);
+        .vertices(nodesAll)
+        .edges(linksAll);
     hybridMapObj.simulation = d3.forceSimulation(hybridMapObj.vertices())
         .on('tick', hybridMapObj.Tick);
     UpdatePageDimensions();
@@ -539,7 +539,7 @@ function HybridMapClass() {
         TestApp('UpdateVerticesEdges', 1);
         let iCount = 0;
         verticeCircles = verticesG.selectAll('circle.vertice-circle')
-            .data(that.vertices());
+            .data(_vertices);
         verticeCircles = verticeCircles.enter().append('circle')
             .each((d, i) => {
                 d.x = that.centroidByState[d.state][0];
@@ -553,7 +553,7 @@ function HybridMapClass() {
             .on('mouseover', d => {
                 if (isDragging) { return; }
                 nodeSelected = d;
-                linksSelected = that.edges().filter(d => {
+                linksSelected = _edges.filter(d => {
                     return nodeSelected.id === d.source.id || nodeSelected.id === d.target.id;
                 });
                 that
@@ -613,7 +613,7 @@ function HybridMapClass() {
                 }
             });
         edgeLines = edgesG.selectAll('line.edge-line')
-            .data(that.edges());
+            .data(_edges);
         edgeLines = edgeLines.enter().append('line')
             .classed('edge-line', true)
             .attr('x1', d => d.source.x)
@@ -659,7 +659,7 @@ function HybridMapClass() {
     that.IsolateForce = (force, filter) => {
         let initialize = force.initialize;
         force.initialize = () => {
-            initialize.call(force, that.vertices().filter(filter));
+            initialize.call(force, _vertices.filter(filter));
         };
         return force;
     };

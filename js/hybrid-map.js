@@ -159,7 +159,7 @@ var InitializePage = function InitializePage(error, results) {
     results[1].links.forEach(function (link) {
         return linksAll.push(link);
     });
-    hybridMapObj = new HybridMapClass().statesFeatures(results[0].features).vertices(results[1].nodes).edges(results[1].links);
+    hybridMapObj = new HybridMapClass().statesFeatures(results[0].features).vertices(nodesAll).edges(linksAll);
     hybridMapObj.simulation = d3.forceSimulation(hybridMapObj.vertices()).on('tick', hybridMapObj.Tick);
     UpdatePageDimensions();
     requestAnimationFrame(function () {
@@ -491,7 +491,7 @@ function HybridMapClass() {
     that.UpdateVerticesEdges = function () {
         TestApp('UpdateVerticesEdges', 1);
         var iCount = 0;
-        verticeCircles = verticesG.selectAll('circle.vertice-circle').data(that.vertices());
+        verticeCircles = verticesG.selectAll('circle.vertice-circle').data(_vertices);
         verticeCircles = verticeCircles.enter().append('circle').each(function (d, i) {
             d.x = that.centroidByState[d.state][0];
             d.y = that.centroidByState[d.state][1];
@@ -504,7 +504,7 @@ function HybridMapClass() {
                 return;
             }
             nodeSelected = d;
-            linksSelected = that.edges().filter(function (d) {
+            linksSelected = _edges.filter(function (d) {
                 return nodeSelected.id === d.source.id || nodeSelected.id === d.target.id;
             });
             that.UpdateVerticesEdges();
@@ -559,7 +559,7 @@ function HybridMapClass() {
                 return 0.05;
             }
         });
-        edgeLines = edgesG.selectAll('line.edge-line').data(that.edges());
+        edgeLines = edgesG.selectAll('line.edge-line').data(_edges);
         edgeLines = edgeLines.enter().append('line').classed('edge-line', true).attr('x1', function (d) {
             return d.source.x;
         }).attr('y1', function (d) {
@@ -605,7 +605,7 @@ function HybridMapClass() {
     that.IsolateForce = function (force, filter) {
         var initialize = force.initialize;
         force.initialize = function () {
-            initialize.call(force, that.vertices().filter(filter));
+            initialize.call(force, _vertices.filter(filter));
         };
         return force;
     };
