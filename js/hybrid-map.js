@@ -345,7 +345,7 @@ function HybridMapClass() {
         return that;
     };
 
-    that.optionsData = [{
+    that.optionsDataMaster = [{
         _category: 'forceCenter',
         _isDisabled: true,
         x: {
@@ -563,18 +563,7 @@ function HybridMapClass() {
             step: 0.1
         }
     }];
-    that.optionRowsData = [];
-    that.optionsData.forEach(function (optionsObj) {
-        Object.keys(optionsObj).forEach(function (optionName) {
-            if (optionName[0] === '_') {
-                return;
-            }
-            that.optionRowsData.push(optionsObj[optionName]);
-        });
-    });
-    var optionRowDatumAlpha = that.optionsData.filter(function (d) {
-        return d._category === 'simulation';
-    })[0].alpha;
+    that.optionRowDatumAlpha = {};
 
     that.UpdateSimulation = function () {
         TestApp('UpdateSimulation', 1);
@@ -582,17 +571,31 @@ function HybridMapClass() {
             that.simulation = d3.forceSimulation().on('tick', that.Tick);
         }
         that.simulation.nodes(that.nodes).stop();
-        that.optionsData.forEach(function (optionsObj) {
+        that.optionsData = that.optionsDataMaster;
+        that.optionRowsData = [];
+        that.optionsDataMaster.forEach(function (optionsObj) {
+            if (optionsObj._isDisabled) {
+                return;
+            }
+            Object.keys(optionsObj).forEach(function (optionName) {
+                if (optionName[0] === '_') {
+                    return;
+                }
+                if (optionName === 'alpha') {
+                    that.optionRowDatumAlpha = optionsObj[optionName];
+                }
+                that.optionRowsData.push(optionsObj[optionName]);
+            });
+        });
+        that.optionsDataMaster.forEach(function (optionsObj) {
             if (optionsObj._isDisabled) {
                 return;
             } else if (optionsObj._category === 'simulation') {
                 Object.keys(optionsObj).forEach(function (optionName) {
-                    console.log(optionName, optionsObj[optionName]);
                     if (optionName[0] === '_') {
                         return;
-                    } else {
-                        that.simulation[optionName](optionsObj[optionName].value);
                     }
+                    that.simulation[optionName](optionsObj[optionName].value);
                 });
             } else if (optionsObj._isIsolated === true) {
                 Object.keys(that.$outState).forEach(function (state) {
@@ -883,9 +886,9 @@ function HybridMapClass() {
         }).attr('y2', function (d) {
             return d.target.y;
         });
-        optionRowDatumAlpha.value = parseFloat(that.simulation.alpha()).toFixed(8);
-        optionsAlphaLabel.text(optionRowDatumAlpha.value);
-        optionsAlphaSlider.property('value', optionRowDatumAlpha.value);
+        that.optionRowDatumAlpha.value = parseFloat(that.simulation.alpha()).toFixed(8);
+        optionsAlphaLabel.text(that.optionRowDatumAlpha.value);
+        optionsAlphaSlider.property('value', that.optionRowDatumAlpha.value);
         // TestApp('Tick', -1);
     };
 

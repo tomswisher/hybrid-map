@@ -411,8 +411,7 @@ function HybridMapClass() {
         return that;
     };
 
-    that.optionsData = [
-        {
+    that.optionsDataMaster = [{
             _category: 'forceCenter',
             _isDisabled: true,
             x: {
@@ -630,15 +629,7 @@ function HybridMapClass() {
             },
         }
     ];
-    that.optionRowsData = [];
-    that.optionsData.forEach(optionsObj => {
-        Object.keys(optionsObj).forEach(optionName => {
-            if (optionName[0] === '_') { return; }
-            that.optionRowsData.push(optionsObj[optionName]);
-        });
-    });
-    let optionRowDatumAlpha = that.optionsData
-        .filter(d => d._category === 'simulation')[0].alpha;
+    that.optionRowDatumAlpha = {};
 
     that.UpdateSimulation = () => {
         TestApp('UpdateSimulation', 1);
@@ -649,17 +640,31 @@ function HybridMapClass() {
         that.simulation
             .nodes(that.nodes)
             .stop();
-        that.optionsData.forEach(optionsObj => {
+        that.optionsData = that.optionsDataMaster;
+        that.optionRowsData = [];
+        that.optionsDataMaster.forEach(optionsObj => {
+            if (optionsObj._isDisabled) {
+                return;
+            }
+            Object.keys(optionsObj).forEach(optionName => {
+                if (optionName[0] === '_') {
+                    return;
+                }
+                if (optionName === 'alpha') {
+                    that.optionRowDatumAlpha = optionsObj[optionName];
+                }
+                that.optionRowsData.push(optionsObj[optionName]);
+            });
+        });
+        that.optionsDataMaster.forEach(optionsObj => {
             if (optionsObj._isDisabled) {
                 return;
             } else if (optionsObj._category === 'simulation') {
                 Object.keys(optionsObj).forEach(optionName => {
-                    console.log(optionName, optionsObj[optionName]);
                     if (optionName[0] === '_') {
                         return;
-                    } else {
-                        that.simulation[optionName](optionsObj[optionName].value);
                     }
+                    that.simulation[optionName](optionsObj[optionName].value);
                 });
             } else if (optionsObj._isIsolated === true) {
                 Object.keys(that.$outState).forEach(state => {
@@ -1026,11 +1031,11 @@ function HybridMapClass() {
             .attr('y1', d => d.source.y)
             .attr('x2', d => d.target.x)
             .attr('y2', d => d.target.y);
-        optionRowDatumAlpha.value = parseFloat(that.simulation.alpha()).toFixed(8);
+        that.optionRowDatumAlpha.value = parseFloat(that.simulation.alpha()).toFixed(8);
         optionsAlphaLabel
-            .text(optionRowDatumAlpha.value);
+            .text(that.optionRowDatumAlpha.value);
         optionsAlphaSlider
-            .property('value', optionRowDatumAlpha.value);
+            .property('value', that.optionRowDatumAlpha.value);
         // TestApp('Tick', -1);
     };
 
