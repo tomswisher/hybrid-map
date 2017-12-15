@@ -417,10 +417,12 @@ function HybridMapClass() {
             _isDisabled: true,
             x: {
                 _name: 'x',
+                _category: 'forceCenter',
                 value: body.node().clientWidth / 2,
             },
             y: {
                 _name: 'y',
+                _category: 'forceCenter',
                 value: body.node().clientHeight / 2,
             },
         },
@@ -429,6 +431,7 @@ function HybridMapClass() {
             // _isDisabled: true,
             iterations: {
                 _name: 'iterations',
+                _category: 'forceCollide',
                 value: 10, // 1
                 min: 0,
                 max: 10,
@@ -436,6 +439,7 @@ function HybridMapClass() {
             },
             strength: {
                 _name: 'strength',
+                _category: 'forceCollide',
                 value: 1, // 1
                 min: 0,
                 max: 1,
@@ -443,6 +447,7 @@ function HybridMapClass() {
             },
             radius: {
                 _name: 'radius',
+                _category: 'forceCollide',
                 value: (node, i, nodes) => node.r ? 1.5 + node.r : 0,
             },
         },
@@ -451,14 +456,17 @@ function HybridMapClass() {
             _isDisabled: true,
             links: {
                 _name: 'links',
+                _category: 'forceLink',
                 value: [],
             },
             id: {
                 _name: 'id',
+                _category: 'forceLink',
                 value: node => node.index,
             },
             iterations: {
                 _name: 'iterations',
+                _category: 'forceLink',
                 value: 1,
                 min: 0,
                 max: 10,
@@ -466,10 +474,12 @@ function HybridMapClass() {
             },
             strength: {
                 _name: 'strength',
+                _category: 'forceLink',
                 value: (link, i, links) => 1 / Math.min(count[link.source.index], count[link.target.index]),
             },
             distance: {
                 _name: 'distance',
+                _category: 'forceLink',
                 value: 30, // (link, i, links) => return 30,
                 min: 0,
                 max: 100,
@@ -482,6 +492,7 @@ function HybridMapClass() {
             _isIsolated: true,
             strength: {
                 _name: 'strength',
+                _category: 'forceManyBody',
                 value: -30, // (node, i, nodes) => return -30,
                 min: -100,
                 max: 0,
@@ -489,6 +500,7 @@ function HybridMapClass() {
             },
             distanceMin: {
                 _name: 'distanceMin',
+                _category: 'forceManyBody',
                 value: 1,
                 min: 0,
                 max: 10000,
@@ -496,6 +508,7 @@ function HybridMapClass() {
             },
             distanceMax: {
                 _name: 'distanceMax',
+                _category: 'forceManyBody',
                 value: 100, // Infinity
                 min: 0,
                 max: 200,
@@ -503,6 +516,7 @@ function HybridMapClass() {
             },
             theta: {
                 _name: 'theta',
+                _category: 'forceManyBody',
                 value: 0.81,
                 min: 0,
                 max: 1,
@@ -514,6 +528,7 @@ function HybridMapClass() {
             _isDisabled: true,
             strength: {
                 _name: 'strength',
+                _category: 'forceRadial',
                 value: 0.1, // (node, i, nodes) => return 0.1,
                 min: 0,
                 max: 1,
@@ -521,14 +536,17 @@ function HybridMapClass() {
             },
             radius: {
                 _name: 'radius',
+                _category: 'forceRadial',
                 value: (node, i, nodes) => node.r,
             },
             x: {
                 _name: 'x',
+                _category: 'forceRadial',
                 value: 'cx',
             },
             y: {
                 _name: 'y',
+                _category: 'forceRadial',
                 value: 'cy',
             },
         },
@@ -538,6 +556,7 @@ function HybridMapClass() {
             _isIsolated: true,
             strength: {
                 _name: 'strength',
+                _category: 'forceX',
                 value: 0.1, // (node, i, nodes) => return 0.1,
                 min: 0,
                 max: 1,
@@ -545,6 +564,7 @@ function HybridMapClass() {
             },
             x: {
                 _name: 'x',
+                _category: 'forceX',
                 value: 'cx', // (node, i, nodes) => return node.x,
             },
         },
@@ -554,6 +574,7 @@ function HybridMapClass() {
             _isIsolated: true,
             strength: {
                 _name: 'strength',
+                _category: 'forceY',
                 value: 0.1, // (node, i, nodes) => return 0.1,
                 min: 0,
                 max: 1,
@@ -561,6 +582,7 @@ function HybridMapClass() {
             },
             y: {
                 _name: 'y',
+                _category: 'forceY',
                 value: 'cy', // (node, i, nodes) => return node.y,
             },
         },
@@ -568,6 +590,7 @@ function HybridMapClass() {
             _category: 'simulation',
             alpha: {
                 _name: 'alpha',
+                _category: 'simulation',
                 value: 1,
                 min: 0,
                 max: 1,
@@ -575,6 +598,7 @@ function HybridMapClass() {
             },
             alphaMin: {
                 _name: 'alphaMin',
+                _category: 'simulation',
                 value: 0.4, // 0.001,
                 min: 0,
                 max: 1,
@@ -582,6 +606,7 @@ function HybridMapClass() {
             },
             alphaDecay: {
                 _name: 'alphaDecay',
+                _category: 'simulation',
                 value: 0.02276277904418933,
                 min: 0.01,
                 max: 0.2,
@@ -589,6 +614,7 @@ function HybridMapClass() {
             },
             alphaTarget: {
                 _name: 'alphaTarget',
+                _category: 'simulation',
                 value: 0,
                 min: 0,
                 max: 0.19,
@@ -596,6 +622,7 @@ function HybridMapClass() {
             },
             velocityDecay: {
                 _name: 'velocityDecay',
+                _category: 'simulation',
                 value: 0.3,
                 min: 0,
                 max: 1,
