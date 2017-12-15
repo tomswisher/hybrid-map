@@ -350,9 +350,11 @@ function HybridMapClass() {
             _category: 'forceCenter',
             _isDisabled: true,
             x: {
+                _name: 'x',
                 value: body.node().clientWidth / 2
             },
             y: {
+                _name: 'y',
                 value: body.node().clientHeight / 2
             }
         },
@@ -360,18 +362,21 @@ function HybridMapClass() {
             _category: 'forceCollide',
             // _isDisabled: true,
             iterations: {
+                _name: 'iterations',
                 value: 10, // 1
                 min: 0,
                 max: 10,
                 step: 1
             },
             strength: {
+                _name: 'strength',
                 value: 1, // 1
                 min: 0,
                 max: 1,
                 step: 0.01
             },
             radius: {
+                _name: 'radius',
                 value: function value(node, i, nodes) {
                     return node.r ? 1.5 + node.r : 0;
                 }
@@ -381,25 +386,30 @@ function HybridMapClass() {
             _category: 'forceLink',
             _isDisabled: true,
             links: {
+                _name: 'links',
                 value: []
             },
             id: {
+                _name: 'id',
                 value: function value(node) {
                     return node.index;
                 }
             },
             iterations: {
+                _name: 'iterations',
                 value: 1,
                 min: 0,
                 max: 10,
                 step: 1
             },
             strength: {
+                _name: 'strength',
                 value: function value(link, i, links) {
                     return 1 / Math.min(count[link.source.index], count[link.target.index]);
                 }
             },
             distance: {
+                _name: 'distance',
                 value: 30, // (link, i, links) => return 30,
                 min: 0,
                 max: 100,
@@ -411,24 +421,28 @@ function HybridMapClass() {
             _isDisabled: true,
             _isIsolated: true,
             strength: {
+                _name: 'strength',
                 value: -30, // (node, i, nodes) => return -30,
                 min: -100,
                 max: 0,
                 step: 1
             },
             distanceMin: {
+                _name: 'distanceMin',
                 value: 1,
                 min: 0,
                 max: 10000,
                 step: 1
             },
             distanceMax: {
+                _name: 'distanceMax',
                 value: 100, // Infinity
                 min: 0,
                 max: 200,
                 step: 1
             },
             theta: {
+                _name: 'theta',
                 value: 0.81,
                 min: 0,
                 max: 1,
@@ -439,20 +453,24 @@ function HybridMapClass() {
             _category: 'forceRadial',
             _isDisabled: true,
             strength: {
+                _name: 'strength',
                 value: 0.1, // (node, i, nodes) => return 0.1,
                 min: 0,
                 max: 1,
                 step: 0.01
             },
             radius: {
+                _name: 'radius',
                 value: function value(node, i, nodes) {
                     return node.r;
                 }
             },
             x: {
+                _name: 'x',
                 value: 'cx'
             },
             y: {
+                _name: 'y',
                 value: 'cy'
             }
         },
@@ -461,12 +479,14 @@ function HybridMapClass() {
             _isDisabled: false,
             _isIsolated: true,
             strength: {
+                _name: 'strength',
                 value: 0.1, // (node, i, nodes) => return 0.1,
                 min: 0,
                 max: 1,
                 step: 0.05
             },
             x: {
+                _name: 'x',
                 value: 'cx' // (node, i, nodes) => return node.x,
             }
         },
@@ -475,48 +495,136 @@ function HybridMapClass() {
             // _isDisabled: true,
             _isIsolated: true,
             strength: {
+                _name: 'strength',
                 value: 0.1, // (node, i, nodes) => return 0.1,
                 min: 0,
                 max: 1,
                 step: 0.05
             },
             y: {
+                _name: 'y',
                 value: 'cy' // (node, i, nodes) => return node.y,
             }
         },
         simulation: {
             _category: 'simulation',
             alpha: {
+                _name: 'alpha',
                 value: 1,
                 min: 0,
                 max: 1,
                 step: 0.01
             },
             alphaMin: {
+                _name: 'alphaMin',
                 value: 0.4, // 0.001,
                 min: 0,
                 max: 1,
                 step: 0.05
             },
             alphaDecay: {
+                _name: 'alphaDecay',
                 value: 0.02276277904418933,
                 min: 0.01,
                 max: 0.2,
                 step: 0.01
             },
             alphaTarget: {
+                _name: 'alphaTarget',
                 value: 0,
                 min: 0,
                 max: 0.19,
                 step: 0.01
             },
             velocityDecay: {
+                _name: 'velocityDecay',
                 value: 0.3,
                 min: 0,
                 max: 1,
                 step: 0.1
             }
         }
+    };
+
+    that.UpdateSimulation = function () {
+        TestApp('UpdateSimulation', 1);
+        if (that.simulation === undefined) {
+            that.simulation = d3.forceSimulation().on('tick', that.Tick);
+        }
+        that.simulation.nodes(that.nodes).stop();
+        Object.keys(that.forcesObj).forEach(function (forceType) {
+            var optionsObj = that.forcesObj[forceType];
+            if (optionsObj._isDisabled) {
+                return;
+            }
+            if (forceType === 'simulation') {
+                Object.keys(optionsObj).forEach(function (optionName) {
+                    if (optionName[0] === '_') {
+                        return;
+                    }
+                    that.simulation[optionName](optionsObj[optionName].value);
+                });
+            } else if (optionsObj['_isIsolated'] === true) {
+                Object.keys(that.$outState).forEach(function (state) {
+                    var cx = that.centroidByState[state][0];
+                    var cy = that.centroidByState[state][1];
+                    var forceNew = d3[forceType]();
+                    var initialize = forceNew.initialize;
+                    forceNew.initialize = function () {
+                        initialize.call(forceNew, that.nodes.filter(function (d) {
+                            return d.state === state;
+                        }));
+                    };
+                    Object.keys(optionsObj).forEach(function (optionName) {
+                        if (optionName[0] === '_') {
+                            return;
+                        }
+                        var optionValue = optionsObj[optionName].value; // do not mutate original
+                        switch (optionValue) {
+                            case 'cx':
+                                optionValue = cx;
+                                break;
+                            case 'cy':
+                                optionValue = cy;
+                                break;
+                        }
+                        forceNew[optionName](optionValue);
+                    });
+                    that.simulation.force(forceType + state, forceNew).stop();
+                });
+            } else {
+                var forceNew = d3[forceType]();
+                Object.keys(optionsObj).forEach(function (optionName) {
+                    if (optionName[0] === '_') {
+                        return;
+                    }
+                    var optionValue = optionsObj[optionName].value; // do not mutate original
+                    switch (optionValue) {
+                        case 'cx':
+                            optionValue = 0.5 * vs.map.w;
+                            break;
+                        case 'cy':
+                            optionValue = 0.5 * vs.map.h;
+                            break;
+                    }
+                    forceNew[optionName](optionValue);
+                });
+                that.simulation.force(forceType, forceNew).stop();
+            }
+        });
+        that.simulation.stop().alpha(1).restart();
+        that.optionsData = [];
+        Object.keys(that.forcesObj).forEach(function (forceType) {
+            var optionsObj = that.forcesObj[forceType];
+            Object.keys(optionsObj).forEach(function (optionName) {
+                if (optionName[0] === '_') {
+                    return;
+                }
+                that.optionsData.push(optionsObj[optionName]);
+            });
+        });
+        TestApp('UpdateSimulation', -1);
+        return that;
     };
 
     that.DragStarted = function (d) {
@@ -670,88 +778,6 @@ function HybridMapClass() {
         return that;
     };
 
-    that.UpdateSimulation = function () {
-        TestApp('UpdateSimulation', 1);
-        if (that.simulation === undefined) {
-            that.simulation = d3.forceSimulation().on('tick', that.Tick);
-        }
-        that.simulation.nodes(that.nodes);
-        Object.keys(that.forcesObj).forEach(function (forceType) {
-            var optionsObj = that.forcesObj[forceType];
-            if (optionsObj._isDisabled) {
-                return;
-            }
-            if (forceType === 'simulation') {
-                Object.keys(optionsObj).forEach(function (optionName) {
-                    if (optionName[0] === '_') {
-                        return;
-                    }
-                    that.simulation[optionName](optionsObj[optionName].value);
-                });
-            } else if (optionsObj['_isIsolated'] === true) {
-                Object.keys(that.$outState).forEach(function (state) {
-                    var cx = that.centroidByState[state][0];
-                    var cy = that.centroidByState[state][1];
-                    var forceNew = d3[forceType]();
-                    var initialize = forceNew.initialize;
-                    forceNew.initialize = function () {
-                        initialize.call(forceNew, that.nodes.filter(function (d) {
-                            return d.state === state;
-                        }));
-                    };
-                    Object.keys(optionsObj).forEach(function (optionName) {
-                        if (optionName[0] === '_') {
-                            return;
-                        }
-                        var optionValue = optionsObj[optionName].value; // do not mutate original
-                        switch (optionValue) {
-                            case 'cx':
-                                optionValue = cx;
-                                break;
-                            case 'cy':
-                                optionValue = cy;
-                                break;
-                        }
-                        forceNew[optionName](optionValue);
-                    });
-                    that.simulation.force(forceType + state, forceNew).stop();
-                });
-            } else {
-                var forceNew = d3[forceType]();
-                Object.keys(optionsObj).forEach(function (optionName) {
-                    if (optionName[0] === '_') {
-                        return;
-                    }
-                    var optionValue = optionsObj[optionName].value; // do not mutate original
-                    switch (optionValue) {
-                        case 'cx':
-                            optionValue = 0.5 * vs.map.w;
-                            break;
-                        case 'cy':
-                            optionValue = 0.5 * vs.map.h;
-                            break;
-                    }
-                    forceNew[optionName](optionValue);
-                });
-                that.simulation.force(forceType, forceNew).stop();
-            }
-        });
-        that.simulation.stop().alpha(1).restart();
-        that.optionsData = [];
-        Object.keys(that.forcesObj).forEach(function (forceType) {
-            var optionsObj = that.forcesObj[forceType];
-            Object.keys(optionsObj).forEach(function (optionName) {
-                if (optionName[0] === '_') {
-                    return;
-                }
-                optionsObj[optionName]._name = optionName;
-                that.optionsData.push(optionsObj[optionName]);
-            });
-        });
-        TestApp('UpdateSimulation', -1);
-        return that;
-    };
-
     that.DrawFilters = function () {
         TestApp('DrawFilters', 1);
         filtersDiv.style('width', vs.filters.w + 'px').style('height', vs.filters.h + 'px').style('left', '0px').style('top', vs.map.h + 'px');
@@ -803,7 +829,7 @@ function HybridMapClass() {
             if (datum.max !== undefined) {
                 d3.select(this).append('label').classed('label-small', true).text(datum.max);
             }
-            if (datum._category === 'simulation' && datum._name === 'alpha') {
+            if (datum._name === 'alpha') {
                 optionsAlphaLabel = d3.select(this).selectAll('label.option-value');
                 optionsAlphaSlider = d3.select(this).selectAll('input[type="range"]');
             }
