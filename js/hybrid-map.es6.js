@@ -411,8 +411,8 @@ function HybridMapClass() {
         return that;
     };
 
-    that.forcesObj = {
-        forceCenter: { // visual centering based on mass
+    that.optionsData = [
+        {
             _category: 'forceCenter',
             _isDisabled: true,
             x: {
@@ -424,7 +424,7 @@ function HybridMapClass() {
                 value: body.node().clientHeight / 2,
             },
         },
-        forceCollide: {
+        {
             _category: 'forceCollide',
             // _isDisabled: true,
             iterations: {
@@ -446,7 +446,7 @@ function HybridMapClass() {
                 value: (node, i, nodes) => node.r ? 1.5 + node.r : 0,
             },
         },
-        forceLink: {
+        {
             _category: 'forceLink',
             _isDisabled: true,
             links: {
@@ -476,7 +476,7 @@ function HybridMapClass() {
                 step: 1,
             },
         },
-        forceManyBody: {
+        {
             _category: 'forceManyBody',
             _isDisabled: true,
             _isIsolated: true,
@@ -509,7 +509,7 @@ function HybridMapClass() {
                 step: 0.1,
             },
         },
-        forceRadial: {
+        {
             _category: 'forceRadial',
             _isDisabled: true,
             strength: {
@@ -532,7 +532,7 @@ function HybridMapClass() {
                 value: 'cy',
             },
         },
-        forceX: {
+        {
             _category: 'forceX',
             _isDisabled: false,
             _isIsolated: true,
@@ -548,7 +548,7 @@ function HybridMapClass() {
                 value: 'cx', // (node, i, nodes) => return node.x,
             },
         },
-        forceY: {
+        {
             _category: 'forceY',
             // _isDisabled: true,
             _isIsolated: true,
@@ -564,7 +564,7 @@ function HybridMapClass() {
                 value: 'cy', // (node, i, nodes) => return node.y,
             },
         },
-        simulation: {
+        {
             _category: 'simulation',
             alpha: {
                 _name: 'alpha',
@@ -601,8 +601,17 @@ function HybridMapClass() {
                 max: 1,
                 step: 0.1,
             },
-        },
-    };
+        }
+    ];
+    that.optionRowsData = [];
+    that.optionsData.forEach(optionsObj => {
+        Object.keys(optionsObj).forEach(optionName => {
+            if (optionName[0] === '_') { return; }
+            that.optionRowsData.push(optionsObj[optionName]);
+        });
+    });
+    let optionRowDatumAlpha = that.optionsData
+        .filter(d => d._category === 'simulation')[0].alpha;
 
     that.UpdateSimulation = () => {
         TestApp('UpdateSimulation', 1);
@@ -613,42 +622,49 @@ function HybridMapClass() {
         that.simulation
             .nodes(that.nodes)
             .stop();
-        Object.keys(that.forcesObj).forEach(forceType => {
-            let optionsObj = that.forcesObj[forceType];
-            if (optionsObj._isDisabled) { return; }
-            if (forceType === 'simulation') {
+        that.optionsData.forEach(optionsObj => {
+            if (optionsObj._isDisabled) {
+                return;
+            } else if (optionsObj._category === 'simulation') {
                 Object.keys(optionsObj).forEach(optionName => {
-                    if (optionName[0] === '_') { return; }
-                    that.simulation[optionName](optionsObj[optionName].value);
+                    console.log(optionName, optionsObj[optionName]);
+                    if (optionName[0] === '_') {
+                        return;
+                    } else {
+                        that.simulation[optionName](optionsObj[optionName].value);
+                    }
                 });
-            } else if (optionsObj['_isIsolated'] === true) {
+            } else if (optionsObj._isIsolated === true) {
                 Object.keys(that.$outState).forEach(state => {
                     let cx = that.centroidByState[state][0];
                     let cy = that.centroidByState[state][1];
-                    let forceNew = d3[forceType]();
+                    let forceNew = d3[optionsObj._category]();
                     let initialize = forceNew.initialize;
                     forceNew.initialize = () => {
                         initialize.call(forceNew, that.nodes.filter(d => d.state === state));
                     };
                     Object.keys(optionsObj).forEach(optionName => {
-                        if (optionName[0] === '_') { return; }
-                        let optionValue = optionsObj[optionName].value; // do not mutate original
-                        switch (optionValue) {
-                            case 'cx':
-                                optionValue = cx;
-                                break;
-                            case 'cy':
-                                optionValue = cy;
-                                break;
+                        if (optionName[0] === '_') {
+                            return;
+                        } else {
+                            let optionValue = optionsObj[optionName].value; // do not mutate original
+                            switch (optionValue) {
+                                case 'cx':
+                                    optionValue = cx;
+                                    break;
+                                case 'cy':
+                                    optionValue = cy;
+                                    break;
+                            }
+                            forceNew[optionName](optionValue);
                         }
-                        forceNew[optionName](optionValue);
                     });
                     that.simulation
-                        .force(forceType + state, forceNew)
+                        .force(optionsObj._category + state, forceNew)
                         .stop();
                 });
             } else {
-                let forceNew = d3[forceType]();
+                let forceNew = d3[optionsObj._category]();
                 Object.keys(optionsObj).forEach(optionName => {
                     if (optionName[0] === '_') { return; }
                     let optionValue = optionsObj[optionName].value; // do not mutate original
@@ -663,7 +679,7 @@ function HybridMapClass() {
                     forceNew[optionName](optionValue);
                 });
                 that.simulation
-                    .force(forceType, forceNew)
+                    .force(optionsObj._category, forceNew)
                     .stop();
             }
         });
@@ -671,14 +687,6 @@ function HybridMapClass() {
             .stop()
             .alpha(1)
             .restart();
-        that.optionsData = [];
-        Object.keys(that.forcesObj).forEach(forceType => {
-            let optionsObj = that.forcesObj[forceType];
-            Object.keys(optionsObj).forEach(optionName => {
-                if (optionName[0] === '_') { return; }
-                that.optionsData.push(optionsObj[optionName]);
-            });
-        });
         TestApp('UpdateSimulation', -1);
         return that;
     };
@@ -917,7 +925,7 @@ function HybridMapClass() {
             .style('left', '0px')
             .style('top', Math.max(vs.svg.h, vs.map.h + vs.filters.h) + 'px');
         optionRows = optionsDiv.selectAll('div.option-row')
-            .data(that.optionsData);
+            .data(that.optionRowsData);
         optionRows = optionRows.enter().append('div')
             .classed('option-row', true)
             .each(function(datum) {
@@ -991,12 +999,11 @@ function HybridMapClass() {
             .attr('y1', d => d.source.y)
             .attr('x2', d => d.target.x)
             .attr('y2', d => d.target.y);
-        if (optionsAlphaLabel.empty() || optionsAlphaSlider.empty()) { return; }
-        that.forcesObj.simulation.alpha.value = parseFloat(that.simulation.alpha()).toFixed(8);
+        optionRowDatumAlpha.value = parseFloat(that.simulation.alpha()).toFixed(8);
         optionsAlphaLabel
-            .text(that.forcesObj.simulation.alpha.value);
+            .text(optionRowDatumAlpha.value);
         optionsAlphaSlider
-            .property('value', that.forcesObj.simulation.alpha.value);
+            .property('value', optionRowDatumAlpha.value);
         // TestApp('Tick', -1);
     };
 
