@@ -346,16 +346,19 @@ function HybridMapClass() {
     };
 
     that.forcesObj = {
-        // forceCenter: { // visual centering based on mass
-        //     x: {
-        //         value: body.node().clientWidth/2,
-        //     },
-        //     y: {
-        //         value: body.node().clientHeight/2,
-        //     },
-        //     // _isIsolated: true,
-        // },
+        forceCenter: { // visual centering based on mass
+            _category: 'forceCenter',
+            _isDisabled: true,
+            x: {
+                value: body.node().clientWidth / 2
+            },
+            y: {
+                value: body.node().clientHeight / 2
+            }
+        },
         forceCollide: {
+            _category: 'forceCollide',
+            // _isDisabled: true,
             iterations: {
                 value: 10, // 1
                 min: 0,
@@ -372,80 +375,91 @@ function HybridMapClass() {
                 value: function value(node, i, nodes) {
                     return node.r ? 1.5 + node.r : 0;
                 }
-                // value: 5,
-                // min: 0,
-                // max: 20,
-                // step: 0.5,
             }
         },
-        // forceLink: {
-        //     links: {
-        //         value: [],
-        //     },
-        //     id: {
-        //         value: node => node.index,
-        //     },
-        //     iterations: {
-        //         value: 1,
-        //         min: 0,
-        //         max: 10,
-        //         step: 1,
-        //     },
-        //     strength: {
-        //         value: (link, i, links) => 1/Math.min(count[link.source.index],count[link.target.index]),
-        //     },
-        //     distance: {
-        //         value: 30, // (link, i, links) => return 30,
-        //         min: 0,
-        //         max: 100,
-        //         step: 1,
-        //     },
-        // },
-        // forceManyBody: {
-        //     strength: {
-        //         value: -30, // (node, i, nodes) => return -30,
-        //         min: -100,
-        //         max: 0,
-        //         step: 1,
-        //     },
-        //     // distanceMin: {
-        //     //     value: 1,
-        //     //     min: 0,
-        //     //     max: 10000,
-        //     //     step: 1,
-        //     // },
-        //     // distanceMax: {
-        //     //     value: 100, // Infinity
-        //     //     min: 0,
-        //     //     max: 200,
-        //     //     step: 1,
-        //     // },
-        //     // theta: {
-        //     //     value: 0.81,
-        //     //     min: 0,
-        //     //     max: 1,
-        //     //     step: 0.1,
-        //     // },
-        //     _isIsolated: true,
-        // },
-        // forceRadial: {
-        //     strength: {
-        //         value: 0.1, // (node, i, nodes) => return 0.1,
-        //         min: 0,
-        //         max: 1,
-        //         step: 0.01,
-        //     },
-        //     radius: {
-        //         value: (node, i, nodes) => node.r,
-        //     },
-        //     x: {
-        //         value: 'cx',
-        //     },
-        //     y: {
-        //         value: 'cy',
-        //     },
-        // },
+        forceLink: {
+            _category: 'forceLink',
+            _isDisabled: true,
+            links: {
+                value: []
+            },
+            id: {
+                value: function value(node) {
+                    return node.index;
+                }
+            },
+            iterations: {
+                value: 1,
+                min: 0,
+                max: 10,
+                step: 1
+            },
+            strength: {
+                value: function value(link, i, links) {
+                    return 1 / Math.min(count[link.source.index], count[link.target.index]);
+                }
+            },
+            distance: {
+                value: 30, // (link, i, links) => return 30,
+                min: 0,
+                max: 100,
+                step: 1
+            }
+        },
+        forceManyBody: {
+            _category: 'forceManyBody',
+            _isDisabled: true,
+            _isIsolated: true,
+            strength: {
+                value: -30, // (node, i, nodes) => return -30,
+                min: -100,
+                max: 0,
+                step: 1
+            },
+            distanceMin: {
+                value: 1,
+                min: 0,
+                max: 10000,
+                step: 1
+            },
+            distanceMax: {
+                value: 100, // Infinity
+                min: 0,
+                max: 200,
+                step: 1
+            },
+            theta: {
+                value: 0.81,
+                min: 0,
+                max: 1,
+                step: 0.1
+            }
+        },
+        forceRadial: {
+            _category: 'forceRadial',
+            _isDisabled: true,
+            strength: {
+                value: 0.1, // (node, i, nodes) => return 0.1,
+                min: 0,
+                max: 1,
+                step: 0.01
+            },
+            radius: {
+                value: function value(node, i, nodes) {
+                    return node.r;
+                }
+            },
+            x: {
+                value: 'cx'
+            },
+            y: {
+                value: 'cy'
+            }
+        },
         forceX: {
+            _category: 'forceX',
+            _isDisabled: false,
+            _isIsolated: true,
             strength: {
                 value: 0.1, // (node, i, nodes) => return 0.1,
                 min: 0,
@@ -454,10 +468,12 @@ function HybridMapClass() {
             },
             x: {
                 value: 'cx' // (node, i, nodes) => return node.x,
-            },
-            _isIsolated: true
+            }
         },
         forceY: {
+            _category: 'forceY',
+            // _isDisabled: true,
+            _isIsolated: true,
             strength: {
                 value: 0.1, // (node, i, nodes) => return 0.1,
                 min: 0,
@@ -466,10 +482,10 @@ function HybridMapClass() {
             },
             y: {
                 value: 'cy' // (node, i, nodes) => return node.y,
-            },
-            _isIsolated: true
+            }
         },
         simulation: {
+            _category: 'simulation',
             alpha: {
                 value: 1,
                 min: 0,
@@ -654,37 +670,40 @@ function HybridMapClass() {
         return that;
     };
 
-    that.IsolateForce = function (force, filter) {
-        var initialize = force.initialize;
-        force.initialize = function () {
-            initialize.call(force, that.nodes.filter(filter));
-        };
-        return force;
-    };
-
     that.UpdateSimulation = function () {
         TestApp('UpdateSimulation', 1);
         if (that.simulation === undefined) {
             that.simulation = d3.forceSimulation().on('tick', that.Tick);
         }
-        that.simulation.stop().nodes(that.nodes);
+        that.simulation.nodes(that.nodes);
         Object.keys(that.forcesObj).forEach(function (forceType) {
-            if (forceType === 'simulation') {
+            var optionsObj = that.forcesObj[forceType];
+            if (optionsObj._isDisabled) {
                 return;
             }
-            var optionsObj = that.forcesObj[forceType];
-            if (optionsObj['_isIsolated'] === true) {
+            if (forceType === 'simulation') {
+                Object.keys(optionsObj).forEach(function (optionName) {
+                    if (optionName[0] === '_') {
+                        return;
+                    }
+                    that.simulation[optionName](optionsObj[optionName].value);
+                });
+            } else if (optionsObj['_isIsolated'] === true) {
                 Object.keys(that.$outState).forEach(function (state) {
                     var cx = that.centroidByState[state][0];
                     var cy = that.centroidByState[state][1];
-                    var forceNew = that.IsolateForce(d3[forceType](), function (d) {
-                        return d.state === state;
-                    });
+                    var forceNew = d3[forceType]();
+                    var initialize = forceNew.initialize;
+                    forceNew.initialize = function () {
+                        initialize.call(forceNew, that.nodes.filter(function (d) {
+                            return d.state === state;
+                        }));
+                    };
                     Object.keys(optionsObj).forEach(function (optionName) {
                         if (optionName[0] === '_') {
                             return;
                         }
-                        var optionValue = optionsObj[optionName].value; // do not mutate original value
+                        var optionValue = optionsObj[optionName].value; // do not mutate original
                         switch (optionValue) {
                             case 'cx':
                                 optionValue = cx;
@@ -695,7 +714,7 @@ function HybridMapClass() {
                         }
                         forceNew[optionName](optionValue);
                     });
-                    that.simulation.force(forceType + state, forceNew);
+                    that.simulation.force(forceType + state, forceNew).stop();
                 });
             } else {
                 var forceNew = d3[forceType]();
@@ -703,7 +722,7 @@ function HybridMapClass() {
                     if (optionName[0] === '_') {
                         return;
                     }
-                    var optionValue = optionsObj[optionName].value; // do not mutate original value
+                    var optionValue = optionsObj[optionName].value; // do not mutate original
                     switch (optionValue) {
                         case 'cx':
                             optionValue = 0.5 * vs.map.w;
@@ -714,13 +733,10 @@ function HybridMapClass() {
                     }
                     forceNew[optionName](optionValue);
                 });
-                that.simulation.force(forceType, forceNew);
+                that.simulation.force(forceType, forceNew).stop();
             }
         });
-        Object.keys(that.forcesObj.simulation).forEach(function (optionName) {
-            that.simulation[optionName](that.forcesObj.simulation[optionName].value);
-        });
-        that.simulation.alpha(1).restart();
+        that.simulation.stop().alpha(1).restart();
         that.optionsData = [];
         Object.keys(that.forcesObj).forEach(function (forceType) {
             var optionsObj = that.forcesObj[forceType];
@@ -728,7 +744,6 @@ function HybridMapClass() {
                 if (optionName[0] === '_') {
                     return;
                 }
-                optionsObj[optionName]._category = forceType;
                 optionsObj[optionName]._name = optionName;
                 that.optionsData.push(optionsObj[optionName]);
             });
