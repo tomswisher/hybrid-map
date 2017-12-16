@@ -137,6 +137,15 @@ var vs = {
             val: 20
         }
     },
+    transition: {
+        duration: {
+            val: 200,
+            inputType: 'range'
+        },
+        ease: {
+            val: d3.easeLinear
+        }
+    },
     test: {
         colorNeutral: {
             val: 'black'
@@ -152,8 +161,6 @@ var vs = {
 
 // Global Variables --------------------------------------------------------------------------------
 
-var transitionDuration = 200;
-var transitionEase = d3.easeLinear;
 var topIds = ['Alice Walton', 'Carrie Walton Penner', 'Jim Walton', 'Dorris Fisher', 'Eli Broad', 'Greg Penner', 'Jonathan Sackler', 'Laurene Powell Jobs', 'Michael Bloomberg', 'Reed Hastings', 'Stacy Schusterman', 'John Arnold', 'Laura Arnold'];
 var mapObj = null;
 var isDragging = false;
@@ -383,7 +390,7 @@ function HybridMapClass() {
                 }
             });
         }).merge(infoImageGs);
-        infoImageGs.transition().duration(transitionDuration).ease(transitionEase).style('opacity', function (d) {
+        infoImageGs.transition().duration(vs.transition.duration.val).ease(vs.transition.ease.val).style('opacity', function (d) {
             return +(that.nodeSelected && d.id === that.nodeSelected.id);
         });
         infoTextGs = infoG.selectAll('g.info-text-g').data(that.infoData);
@@ -409,7 +416,7 @@ function HybridMapClass() {
             //             return 'Years: [' + yearsArray + ']';
             //         }
             //     });
-        }).transition().duration(transitionDuration).ease(transitionEase).style('opacity', function (d) {
+        }).transition().duration(vs.transition.duration.val).ease(vs.transition.ease.val).style('opacity', function (d) {
             return +(that.nodeSelected && d.id === that.nodeSelected.id);
         });
         TestApp('DrawInfo', -1);
@@ -800,7 +807,7 @@ function HybridMapClass() {
         }).style('stroke', 'gray').attr('r', function (d) {
             return d.r;
         })
-        // .transition().duration(transitionDuration).ease(transitionEase)
+        // .transition().duration(vs.transition.duration.val).ease(vs.transition.ease.val)
         .style('opacity', function (d) {
             if (!that.nodeSelected) {
                 return 1;
@@ -859,7 +866,7 @@ function HybridMapClass() {
                 return 'gainsboro';
             }
         })
-        // .transition().duration(transitionDuration).ease(transitionEase)
+        // .transition().duration(vs.transition.duration.val).ease(vs.transition.ease.val)
         .style('display', function (d) {
             if (that.filteredOutObj.year[d.year]) {
                 return 'none';
@@ -938,14 +945,8 @@ function HybridMapClass() {
                     optionsAlphaLabel = d3.select(this).selectAll('label.option-value');
                     optionsAlphaSlider = d3.select(this).selectAll('input[type="range"]');
                 }
-                d3.select(this).selectAll('label.label-small').style('width', vs.options.wSmall.val + 'px');
-                d3.select(this).selectAll('label.label-medium').style('width', vs.options.wMedium.val + 'px');
-                d3.select(this).selectAll('input[type=\'Range\']').style('width', vs.options.wSlider.val + 'px');
-                d3.select(this).selectAll('*').style('height', vs.options.hRow.val + 'px').style('line-height', vs.options.hRow.val + 'px');
             }).style('width', vs.options.wGroup.val - vs.options.wMedium.val + 'px');
-        }).merge(optionGroups).style('width', vs.options.wGroup.val + 'px')
-        // .style('margin-left', vs.options.marginLeft.val + 'px')
-        ;
+        }).merge(optionGroups).style('width', vs.options.wGroup.val + 'px');
         optionGroups.selectAll('label.option-value').text(function (d) {
             return typeof d.val !== 'number' ? '' : d.val;
         });

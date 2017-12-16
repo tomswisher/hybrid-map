@@ -137,6 +137,15 @@ const vs = {
             val: 20,
         },
     },
+    transition: {
+        duration: {
+            val: 200,
+            inputType: 'range',
+        },
+        ease: {
+            val: d3.easeLinear,
+        },
+    },
     test: {
         colorNeutral: {
             val: 'black',
@@ -152,8 +161,6 @@ const vs = {
 
 // Global Variables --------------------------------------------------------------------------------
 
-let transitionDuration = 200;
-let transitionEase = d3.easeLinear;
 let topIds = [
     'Alice Walton',
     'Carrie Walton Penner',
@@ -438,7 +445,7 @@ function HybridMapClass() {
             })
             .merge(infoImageGs);
         infoImageGs
-            .transition().duration(transitionDuration).ease(transitionEase)
+            .transition().duration(vs.transition.duration.val).ease(vs.transition.ease.val)
             .style('opacity', d => +(that.nodeSelected && d.id === that.nodeSelected.id));
         infoTextGs = infoG.selectAll('g.info-text-g')
             .data(that.infoData);
@@ -483,7 +490,7 @@ function HybridMapClass() {
                 //         }
                 //     });
             })
-            .transition().duration(transitionDuration).ease(transitionEase)
+            .transition().duration(vs.transition.duration.val).ease(vs.transition.ease.val)
             .style('opacity', d => +(that.nodeSelected && d.id === that.nodeSelected.id));
         TestApp('DrawInfo', -1);
         return that;
@@ -916,7 +923,7 @@ function HybridMapClass() {
             })
             .style('stroke', 'gray')
             .attr('r', d => d.r)
-            // .transition().duration(transitionDuration).ease(transitionEase)
+            // .transition().duration(vs.transition.duration.val).ease(vs.transition.ease.val)
             .style('opacity', d => {
                 if (!that.nodeSelected) {
                     return 1;
@@ -983,7 +990,7 @@ function HybridMapClass() {
                     return 'gainsboro';
                 }
             })
-            // .transition().duration(transitionDuration).ease(transitionEase)
+            // .transition().duration(vs.transition.duration.val).ease(vs.transition.ease.val)
             .style('display', d => {
                 if (that.filteredOutObj.year[d.year]) {
                     return 'none';
@@ -1121,22 +1128,11 @@ function HybridMapClass() {
                             optionsAlphaLabel = d3.select(this).selectAll('label.option-value');
                             optionsAlphaSlider = d3.select(this).selectAll('input[type="range"]');
                         }
-                        d3.select(this).selectAll('label.label-small')
-                            .style('width', vs.options.wSmall.val + 'px');
-                        d3.select(this).selectAll('label.label-medium')
-                            .style('width', vs.options.wMedium.val + 'px');
-                        d3.select(this).selectAll('input[type=\'Range\']')
-                            .style('width', vs.options.wSlider.val + 'px');
-                        d3.select(this).selectAll('*')
-                            .style('height', vs.options.hRow.val + 'px')
-                            .style('line-height', vs.options.hRow.val + 'px');
                     })
                     .style('width', (vs.options.wGroup.val - vs.options.wMedium.val) + 'px');
             })
             .merge(optionGroups)
-            .style('width', vs.options.wGroup.val + 'px')
-        // .style('margin-left', vs.options.marginLeft.val + 'px')
-        ;
+            .style('width', vs.options.wGroup.val + 'px');
         optionGroups.selectAll('label.option-value')
             .text(d => typeof(d.val) !== 'number' ? '' : d.val);
         optionGroups.selectAll('label.label-small')
