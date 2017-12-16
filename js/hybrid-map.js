@@ -61,52 +61,92 @@ var infoTextGs = infoG.select(null);
 
 var vs = {
     svg: {
-        _inputType: 'none'
-        // w: null,
-        // h: null,
+        w: {},
+        h: {}
     },
     map: {
-        _inputType: 'range',
-        // w: null,
-        // h: null,
-        wMin: 300,
-        ratioMapWH: 1.6,
-        projectionScale: 1.2,
-        rMin: 4,
-        rFactor: 60,
-        strokeWidthState: 1,
-        strokeWidthNode: 1,
-        strokeWidthLink: 1.5
+        w: {},
+        h: {},
+        wMin: {
+            val: 300
+        },
+        ratioMapWH: {
+            val: 1.6
+        },
+        projectionScale: {
+            val: 1.2
+        },
+        strokeWidthState: {
+            val: 1,
+            inputType: 'range'
+        }
+    },
+    network: {
+        rMin: {
+            val: 4,
+            inputType: 'range'
+        },
+        rFactor: {
+            val: 60,
+            inputType: 'range'
+        },
+        strokeWidthNode: {
+            val: 1,
+            inputType: 'range'
+        },
+        strokeWidthLink: {
+            val: 1.5,
+            inputType: 'range'
+        }
     },
     info: {
-        _inputType: 'none',
-        w: 0.5 * 396,
-        // h: null,
-        // wImage: null,
-        // hImage: null,
-        ratioImageWH: 0.5 * 396 / (0.5 * 432),
-        margin: 5,
-        textRowH: 15
+        w: {
+            val: 0.5 * 396
+        },
+        h: {},
+        wImage: {},
+        hImage: {},
+        ratioImageWH: {
+            val: 0.5 * 396 / (0.5 * 432)
+        },
+        margin: {
+            val: 5
+        },
+        textRowH: {
+            val: 15
+        }
     },
     filters: {
-        _inputType: 'none',
-        // w: null,
-        h: 70
+        w: {},
+        h: {
+            val: 70
+        }
     },
     options: {
-        _inputType: 'none',
-        wSmall: 50,
-        wMedium: 110,
-        wSlider: 100,
-        // wGroup: null,
-        hRow: 20
-        // columns: null,
+        wSmall: {
+            val: 58
+        },
+        wMedium: {
+            val: 110
+        },
+        wSlider: {
+            val: 100
+        },
+        wGroup: {},
+        hRow: {
+            val: 20
+        }
     },
     test: {
-        _inputType: 'none',
-        colorNeutral: 'black',
-        colorBad: 'firebrick',
-        colorGood: 'green'
+        colorNeutral: {
+            val: 'black'
+        },
+        colorBad: {
+            val: 'firebrick'
+        },
+        colorGood: {
+            val: 'green'
+        }
     }
 };
 
@@ -148,23 +188,21 @@ window.onresize = function () {
 
 function UpdateVSValues() {
     TestApp('UpdateVSValues', 1);
-    vs.info.wImage = vs.info.w - 2 * vs.info.margin;
-    vs.info.hImage = vs.info.wImage / vs.info.ratioImageWH;
-    vs.info.h = vs.info.hImage + 4 * vs.info.textRowH + 3 * vs.info.margin;
-    vs.options.wGroup = 2 * vs.options.wSmall + 3 * vs.options.wMedium + vs.options.wSlider;
-    vs.options.columns = vs.map.w >= 2 * vs.options.wGroup ? 2 : 1;
-    // vs.options.marginLeft = 0.5 * (vs.map.w - vs.options.columns * vs.options.wGroup);
+    vs.info.wImage.val = vs.info.w.val - 2 * vs.info.margin.val;
+    vs.info.hImage.val = vs.info.wImage.val / vs.info.ratioImageWH.val;
+    vs.info.h.val = vs.info.hImage.val + 4 * vs.info.textRowH.val + 3 * vs.info.margin.val;
+    vs.options.wGroup.val = 2 * vs.options.wMedium.val + 3 * vs.options.wSmall.val + vs.options.wSlider.val;
     var clientWidth = body.node().clientWidth;
-    if (clientWidth >= vs.map.wMin + vs.info.w) {
-        vs.map.w = clientWidth - vs.info.w;
-        vs.svg.w = clientWidth;
+    if (clientWidth >= vs.map.wMin.val + vs.info.w.val) {
+        vs.map.w.val = clientWidth - vs.info.w.val;
+        vs.svg.w.val = clientWidth;
     } else {
-        vs.map.w = vs.map.wMin;
-        vs.svg.w = vs.map.wMin + vs.info.w;
+        vs.map.w.val = vs.map.wMin.val;
+        vs.svg.w.val = vs.map.wMin.val + vs.info.w.val;
     }
-    vs.filters.w = vs.map.wMin;
-    vs.map.h = vs.map.w / vs.map.ratioMapWH;
-    vs.svg.h = Math.max(vs.map.h, vs.info.h);
+    vs.filters.w.val = vs.map.wMin.val;
+    vs.map.h.val = vs.map.w.val / vs.map.ratioMapWH.val;
+    vs.svg.h.val = Math.max(vs.map.h.val, vs.info.h.val);
     TestApp('UpdateVSValues', -1);
 }
 
@@ -293,9 +331,9 @@ function HybridMapClass() {
             if ($in === 0 && $out === 0) {
                 d.r = 0;
             } else if ($in > $out) {
-                d.r = Math.max(vs.map.rMin, vs.map.rFactor * Math.sqrt($in));
+                d.r = Math.max(vs.network.rMin.val, vs.network.rFactor.val * Math.sqrt($in));
             } else {
-                d.r = Math.max(vs.map.rMin, vs.map.rFactor * Math.sqrt($out));
+                d.r = Math.max(vs.network.rMin.val, vs.network.rFactor.val * Math.sqrt($out));
             }
         });
         TestApp('UpdateData', -1);
@@ -304,17 +342,17 @@ function HybridMapClass() {
 
     that.DrawMap = function () {
         TestApp('DrawMap', 1);
-        svg.attr('width', vs.svg.w).attr('height', vs.svg.h);
-        bgRect.attr('width', vs.map.w).attr('height', vs.map.h);
-        clipPathRect.attr('width', vs.map.w).attr('height', vs.svg.h);
-        that.projection.scale(vs.map.w * vs.map.projectionScale).translate([vs.map.w / 2, vs.map.h / 2]);
+        svg.attr('width', vs.svg.w.val).attr('height', vs.svg.h.val);
+        bgRect.attr('width', vs.map.w.val).attr('height', vs.map.h.val);
+        clipPathRect.attr('width', vs.map.w.val).attr('height', vs.svg.h.val);
+        that.projection.scale(vs.map.w.val * vs.map.projectionScale.val).translate([vs.map.w.val / 2, vs.map.h.val / 2]);
         that.path.projection(that.projection);
         statePaths = statePathsG.selectAll('path.state-path').data(that.states, function (d) {
             return d.properties.ansi;
         });
         statePaths = statePaths.enter().append('path').classed('state-path', true).classed('inactive', true).merge(statePaths).attr('d', that.path).each(function (d) {
             return that.centroidByState[d.properties.ansi] = that.path.centroid(d);
-        }).style('stroke-width', vs.map.strokeWidthState + 'px')
+        }).style('stroke-width', vs.map.strokeWidthState.val + 'px')
         // .each(function(d) {
         //     let centroid = that.centroidByState[d.properties.ansi];
         //     let rect = d3.select(this.parentNode).append('rect')
@@ -334,10 +372,10 @@ function HybridMapClass() {
 
     that.DrawInfo = function () {
         TestApp('DrawInfo', 1);
-        infoG.attr('transform', 'translate(' + (vs.map.w + vs.info.margin) + ',' + vs.info.margin + ')');
+        infoG.attr('transform', 'translate(' + (vs.map.w.val + vs.info.margin.val) + ',' + vs.info.margin.val + ')');
         infoImageGs = infoG.selectAll('g.info-image-g').data(that.infoData);
         infoImageGs = infoImageGs.enter().append('g').classed('info-image-g', true).each(function (datum) {
-            d3.select(this).append('image').attr('width', vs.info.wImage).attr('height', vs.info.hImage).attr('xlink:href', function () {
+            d3.select(this).append('image').attr('width', vs.info.wImage.val).attr('height', vs.info.hImage.val).attr('xlink:href', function () {
                 if (!topIds.includes(datum.id)) {
                     return null;
                 } else {
@@ -349,20 +387,20 @@ function HybridMapClass() {
             return +(that.nodeSelected && d.id === that.nodeSelected.id);
         });
         infoTextGs = infoG.selectAll('g.info-text-g').data(that.infoData);
-        infoTextGs = infoTextGs.enter().append('g').classed('info-text-g', true).attr('transform', 'translate(' + vs.info.wImage / 2 + ',' + (vs.info.hImage + vs.info.margin) + ')').style('opacity', 0).merge(infoTextGs);
+        infoTextGs = infoTextGs.enter().append('g').classed('info-text-g', true).attr('transform', 'translate(' + vs.info.wImage.val / 2 + ',' + (vs.info.hImage.val + vs.info.margin.val) + ')').style('opacity', 0).merge(infoTextGs);
         infoTextGs.selectAll('text').remove();
         infoTextGs.each(function (datum) {
-            d3.select(this).append('text').attr('x', 0).attr('y', 0.5 * vs.info.textRowH).text(datum.id);
-            d3.select(this).append('text').attr('x', 0).attr('y', 1.5 * vs.info.textRowH).text('State: ' + datum.state);
+            d3.select(this).append('text').attr('x', 0).attr('y', 0.5 * vs.info.textRowH.val).text(datum.id);
+            d3.select(this).append('text').attr('x', 0).attr('y', 1.5 * vs.info.textRowH.val).text('State: ' + datum.state);
             // if (that.$inById[datum.id] > 0) {
-            d3.select(this).append('text').attr('x', 0).attr('y', 2.5 * vs.info.textRowH).text('Received: ' + d3.format('$,')(that.$inById[datum.id]));
+            d3.select(this).append('text').attr('x', 0).attr('y', 2.5 * vs.info.textRowH.val).text('Received: ' + d3.format('$,')(that.$inById[datum.id]));
             // }
             // if (that.$outById[datum.id] > 0) {
-            d3.select(this).append('text').attr('x', 0).attr('y', 3.5 * vs.info.textRowH).text('Donated: ' + d3.format('$,')(that.$outById[datum.id]));
+            d3.select(this).append('text').attr('x', 0).attr('y', 3.5 * vs.info.textRowH.val).text('Donated: ' + d3.format('$,')(that.$outById[datum.id]));
             // }
             // d3.select(this).append('text')
             //     .attr('x', 0)
-            //     .attr('y', 4.5 * vs.info.textRowH)
+            //     .attr('y', 4.5 * vs.info.textRowH.val)
             //     .text(() => {
             //         let yearsArray = yearsData.filter(d => !(that.filteredOutObj.year[d]));
             //         if (yearsArray.length === 0) {
@@ -378,18 +416,16 @@ function HybridMapClass() {
         return that;
     };
 
-    that.optionsDataMaster = [{
+    that.forcesData = [{
         category: 'forceCenter',
         isEnabled: false,
         isIsolated: false,
         rows: [{
             name: 'x',
-            inputType: 'none',
-            value: 'cx'
+            val: 'cx'
         }, {
             name: 'y',
-            inputType: 'none',
-            value: 'cy'
+            val: 'cy'
         }]
     }, {
         category: 'forceCollide',
@@ -398,7 +434,7 @@ function HybridMapClass() {
         rows: [{
             name: 'iterations',
             inputType: 'range',
-            value: 10,
+            val: 10,
             min: 0,
             max: 10,
             step: 1,
@@ -406,15 +442,14 @@ function HybridMapClass() {
         }, {
             name: 'strength',
             inputType: 'range',
-            value: 1,
+            val: 1,
             min: 0,
             max: 1,
             step: 0.01,
             _default: 1
         }, {
             name: 'radius',
-            inputType: 'none',
-            value: function value(node, i, nodes) {
+            val: function val(node, i, nodes) {
                 return node.r ? 1.5 + node.r : 0;
             }
         }]
@@ -424,20 +459,18 @@ function HybridMapClass() {
         isIsolated: false,
         rows: [{
             name: 'links',
-            inputType: 'none',
-            value: [],
+            val: [],
             _default: []
         }, {
             name: 'id',
-            inputType: 'none',
-            value: function value(node) {
+            val: function val(node) {
                 return node.index;
             }
 
         }, {
             name: 'iterations',
             inputType: 'range',
-            value: 1,
+            val: 1,
             min: 0,
             max: 10,
             step: 1,
@@ -445,7 +478,7 @@ function HybridMapClass() {
         }, {
             name: 'strength',
             inputType: 'range',
-            value: 0.5,
+            val: 0.5,
             min: 0,
             max: 1,
             step: 0.01,
@@ -455,7 +488,7 @@ function HybridMapClass() {
         }, {
             name: 'distance',
             inputType: 'range',
-            value: 30,
+            val: 30,
             min: 0,
             max: 100,
             step: 1,
@@ -470,7 +503,7 @@ function HybridMapClass() {
         rows: [{
             name: 'strength',
             inputType: 'range',
-            value: -30,
+            val: -30,
             min: -100,
             max: 0,
             step: 1,
@@ -480,14 +513,14 @@ function HybridMapClass() {
         }, {
             name: 'distanceMin',
             inputType: 'range',
-            value: 1,
+            val: 1,
             min: 0,
             max: 10000,
             step: 1
         }, {
             name: 'distanceMax',
             inputType: 'range',
-            value: 100,
+            val: 100,
             min: 0,
             max: 200,
             step: 1,
@@ -495,7 +528,7 @@ function HybridMapClass() {
         }, {
             name: 'theta',
             inputType: 'range',
-            value: 0.81,
+            val: 0.81,
             min: 0,
             max: 1,
             step: 0.1
@@ -507,7 +540,7 @@ function HybridMapClass() {
         rows: [{
             name: 'strength',
             inputType: 'range',
-            value: 0.1,
+            val: 0.1,
             min: 0,
             max: 1,
             step: 0.01,
@@ -516,18 +549,15 @@ function HybridMapClass() {
             }
         }, {
             name: 'radius',
-            inputType: 'none',
-            value: function value(node, i, nodes) {
+            val: function val(node, i, nodes) {
                 return node.r;
             }
         }, {
             name: 'x',
-            inputType: 'none',
-            value: 'cx'
+            val: 'cx'
         }, {
             name: 'y',
-            inputType: 'none',
-            value: 'cy'
+            val: 'cy'
         }]
     }, {
         category: 'forceX',
@@ -536,7 +566,7 @@ function HybridMapClass() {
         rows: [{
             name: 'strength',
             inputType: 'range',
-            value: 0.1,
+            val: 0.1,
             min: 0,
             max: 1,
             step: 0.05,
@@ -545,8 +575,7 @@ function HybridMapClass() {
             }
         }, {
             name: 'x',
-            inputType: 'none',
-            value: 'cx',
+            val: 'cx',
             _default: function _default(node, i, nodes) {
                 return node.x;
             }
@@ -558,7 +587,7 @@ function HybridMapClass() {
         rows: [{
             name: 'strength',
             inputType: 'range',
-            value: 0.1,
+            val: 0.1,
             min: 0,
             max: 1,
             step: 0.05,
@@ -567,8 +596,7 @@ function HybridMapClass() {
             }
         }, {
             name: 'y',
-            inputType: 'none',
-            value: 'cy',
+            val: 'cy',
             _default: function _default(node, i, nodes) {
                 return node.y;
             }
@@ -579,14 +607,14 @@ function HybridMapClass() {
         rows: [{
             name: 'alpha',
             inputType: 'range',
-            value: 1,
+            val: 1,
             min: 0,
             max: 1,
             step: 0.01
         }, {
             name: 'alphaMin',
             inputType: 'range',
-            value: 0.4,
+            val: 0.4,
             min: 0,
             max: 1,
             step: 0.05,
@@ -594,64 +622,64 @@ function HybridMapClass() {
         }, {
             name: 'alphaDecay',
             inputType: 'range',
-            value: 0.02276277904418933,
+            val: 0.02276277904418933,
             min: 0.01,
             max: 0.2,
             step: 0.01
         }, {
             name: 'alphaTarget',
             inputType: 'range',
-            value: 0,
+            val: 0,
             min: 0,
             max: 0.19,
             step: 0.01
         }, {
             name: 'velocityDecay',
             inputType: 'range',
-            value: 0.3,
+            val: 0.3,
             min: 0,
             max: 1,
             step: 0.1
         }]
     }];
-    that.optionDatumAlpha = that.optionsDataMaster[that.optionsDataMaster.length - 1];
+    that.optionsData = that.forcesData.filter(function (d) {
+        return d.isEnabled;
+    });
+    that.optionDatumAlpha = that.optionsData[that.optionsData.length - 1];
     Object.keys(vs).forEach(function (category) {
-        if (vs[category]._inputType === 'none') {
-            return;
-        }
         var optionsObj = {
             category: category,
-            isEnabled: true,
             rows: []
         };
-        Object.keys(vs[category]).forEach(function (name) {
-            if (name[0] === '_') {
+        Object.keys(vs[category]).forEach(function (categoryKey) {
+            if (categoryKey[0] === '_') {
                 return;
             }
+            var rowOld = vs[category][categoryKey];
+            console.log(category, categoryKey, rowOld);
             optionsObj.rows.push({
-                name: name,
-                inputType: vs[category]._inputType,
-                value: vs[category][name],
-                min: 0,
-                max: 2 * vs[category][name],
-                step: 2 * vs[category][name] / 100
+                name: categoryKey,
+                inputType: rowOld.inputType,
+                val: rowOld.val,
+                min: rowOld.min !== undefined ? rowOld.min : 0,
+                max: rowOld.max !== undefined ? rowOld.max : 5 * rowOld.val,
+                step: 5 * rowOld.val / 100
             });
         });
-        that.optionsDataMaster.push(optionsObj);
+        that.optionsData.push(optionsObj);
     });
 
     that.UpdateSimulation = function () {
         TestApp('UpdateSimulation', 1);
         that.simulation = d3.forceSimulation().nodes(that.nodes).on('tick', that.Tick).stop();
-        that.optionsData = that.optionsDataMaster.filter(function (d) {
-            return d.isEnabled;
-        });
         that.optionsData.forEach(function (optionsObj) {
             if (optionsObj.category === 'simulation') {
                 optionsObj.rows.forEach(function (row) {
-                    that.simulation[row.name](row.value);
+                    that.simulation[row.name](row.val);
                 });
-            }if (optionsObj.category.substring(0, 5) !== 'force') {
+            } else if (optionsObj.isEnabled !== true) {
+                return;
+            } else if (optionsObj.category.substring(0, 5) !== 'force') {
                 return;
             } else if (optionsObj.isIsolated === true) {
                 Object.keys(that.$outByState).forEach(function (state) {
@@ -665,7 +693,7 @@ function HybridMapClass() {
                         }));
                     };
                     optionsObj.rows.forEach(function (row) {
-                        var rowValue = row.value; // do not mutate original
+                        var rowValue = row.val; // do not mutate original
                         switch (rowValue) {
                             case 'cx':
                                 rowValue = cx;
@@ -681,13 +709,13 @@ function HybridMapClass() {
             } else {
                 var forceNew = d3[optionsObj.category]();
                 optionsObj.rows.forEach(function (row) {
-                    var rowValue = row.value; // do not mutate original
+                    var rowValue = row.val; // do not mutate original
                     switch (rowValue) {
                         case 'cx':
-                            rowValue = 0.5 * vs.map.w;
+                            rowValue = 0.5 * vs.map.w.val;
                             break;
                         case 'cy':
-                            rowValue = 0.5 * vs.map.h;
+                            rowValue = 0.5 * vs.map.h.val;
                             break;
                     }
                     forceNew[row.name](rowValue);
@@ -761,7 +789,7 @@ function HybridMapClass() {
             return d.x;
         }).attr('cy', function (d) {
             return d.y;
-        }).style('stroke-width', vs.map.strokeWidthNode + 'px').style('fill', function (d) {
+        }).style('stroke-width', vs.network.strokeWidthNode.val + 'px').style('fill', function (d) {
             if (topIds.includes(d.id)) {
                 return d3.schemeCategory20[d.i];
             } else if (d.$out > 0) {
@@ -818,7 +846,7 @@ function HybridMapClass() {
             } else {
                 return 'url(#arrowhead-id' + topIds.length + ')';
             }
-        }).style('stroke-width', vs.map.strokeWidthLink + 'px').style('stroke', function (d) {
+        }).style('stroke-width', vs.network.strokeWidthLink.val + 'px').style('stroke', function (d) {
             if (topIds.includes(d.source.id)) {
                 return d3.schemeCategory20[d.source.i];
             } else if (topIds.includes(d.target.id)) {
@@ -853,7 +881,7 @@ function HybridMapClass() {
 
     that.DrawFilters = function () {
         TestApp('DrawFilters', 1);
-        filtersDiv.style('width', vs.filters.w + 'px').style('height', vs.filters.h + 'px').style('left', 0.5 * (vs.map.w - vs.filters.w) + 'px').style('top', vs.map.h + 'px');
+        filtersDiv.style('width', vs.filters.w.val + 'px').style('height', vs.filters.h.val + 'px').style('left', 0.5 * (vs.map.w.val - vs.filters.w.val) + 'px').style('top', vs.map.h.val + 'px');
         filtersYears = filtersDiv.selectAll('div.filters-year').data(yearsData);
         filtersYears = filtersYears.enter().append('div').classed('filters-year', true).each(function (datum) {
             d3.select(this).append('div').text(datum);
@@ -863,7 +891,7 @@ function HybridMapClass() {
                 that.filteredOutObj.year[d] = !this.checked;
                 that.UpdateData().DrawNetwork().UpdateSimulation();
             });
-        }).merge(filtersYears).style('width', vs.filters.w / yearsData.length + 'px').style('height', 0.5 * vs.filters.h + 'px');
+        }).merge(filtersYears).style('width', vs.filters.w.val / yearsData.length + 'px').style('height', 0.5 * vs.filters.h.val + 'px');
         filtersReports = filtersDiv.selectAll('div.filters-report').data(reportsData);
         filtersReports = filtersReports.enter().append('div').classed('filters-report', true).each(function (datum) {
             d3.select(this).append('div').text(datum);
@@ -873,34 +901,33 @@ function HybridMapClass() {
                 that.filteredOutObj.report[d] = !this.checked;
                 that.UpdateData().DrawNetwork().UpdateSimulation();
             });
-        }).merge(filtersReports).style('width', vs.filters.w / reportsData.length + 'px').style('height', 0.5 * vs.filters.h + 'px');
+        }).merge(filtersReports).style('width', vs.filters.w.val / reportsData.length + 'px').style('height', 0.5 * vs.filters.h.val + 'px');
         TestApp('DrawFilters', -1);
         return that;
     };
 
     that.DrawOptions = function () {
         TestApp('DrawOptions', 1);
-        optionsDiv.style('top', Math.max(vs.svg.h, vs.map.h + vs.filters.h) + 'px').style('width', Math.max(vs.options.wGroup, vs.map.w) + 'px');
+        optionsDiv.style('top', Math.max(vs.svg.h.val, vs.map.h.val + vs.filters.h.val) + 'px').style('width', Math.max(vs.options.wGroup.val, vs.map.w.val) + 'px');
         optionGroups = optionsDiv.selectAll('div.option-group').data(that.optionsData);
         optionGroups = optionGroups.enter().append('div').classed('option-group', true).each(function (optionsObj) {
             d3.select(this).append('div').classed('option-category', true).append('label').classed('label-medium', true).text(optionsObj.category);
             d3.select(this).selectAll('div.option-row').data(function (d) {
-                return d.rows;
+                return d.rows.filter(function (row) {
+                    return row.inputType;
+                });
             }).enter().append('div').classed('option-row', true).each(function (row) {
                 d3.select(this).append('label').classed('label-medium', true).text(row.name);
-                d3.select(this).append('label').classed('label-medium', true).classed('option-value', true);
-                if (row.inputType === 'none') {
-                    return;
-                }
+                d3.select(this).append('label').classed('label-small', true).classed('option-value', true);
                 d3.select(this).append('label').classed('label-small', true).text(row.min);
-                d3.select(this).append('input').attr('type', 'range').attr('min', row.min).attr('max', row.max).attr('step', row.step).attr('value', row.value).on('change', function () {
+                d3.select(this).append('input').attr('type', 'range').attr('min', row.min).attr('max', row.max).attr('step', row.step).attr('value', row.val).on('change', function () {
                     if (row.step === parseInt(row.step)) {
-                        row.value = parseInt(this.value);
+                        row.val = parseInt(this.value);
                     } else {
-                        row.value = parseFloat(this.value);
+                        row.val = parseFloat(this.value);
                     }
                     if (Object.keys(vs).includes(optionsObj.category)) {
-                        vs[optionsObj.category][row.name] = row.value;
+                        vs[optionsObj.category][row.name].val = row.val;
                         that.UpdateData().UpdateSimulation().DrawMap().DrawNetwork().DrawOptions();
                     } else {
                         that.UpdateSimulation().DrawOptions();
@@ -911,21 +938,21 @@ function HybridMapClass() {
                     optionsAlphaLabel = d3.select(this).selectAll('label.option-value');
                     optionsAlphaSlider = d3.select(this).selectAll('input[type="range"]');
                 }
-                d3.select(this).selectAll('label.label-small').style('width', vs.options.wSmall + 'px');
-                d3.select(this).selectAll('label.label-medium').style('width', vs.options.wMedium + 'px');
-                d3.select(this).selectAll('input[type=\'Range\']').style('width', vs.options.wSlider + 'px');
-                d3.select(this).selectAll('*').style('height', vs.options.hRow + 'px').style('line-height', vs.options.hRow + 'px');
-            }).style('width', vs.options.wGroup - vs.options.wMedium + 'px');
-        }).merge(optionGroups).style('width', vs.options.wGroup + 'px')
-        // .style('margin-left', vs.options.marginLeft + 'px')
+                d3.select(this).selectAll('label.label-small').style('width', vs.options.wSmall.val + 'px');
+                d3.select(this).selectAll('label.label-medium').style('width', vs.options.wMedium.val + 'px');
+                d3.select(this).selectAll('input[type=\'Range\']').style('width', vs.options.wSlider.val + 'px');
+                d3.select(this).selectAll('*').style('height', vs.options.hRow.val + 'px').style('line-height', vs.options.hRow.val + 'px');
+            }).style('width', vs.options.wGroup.val - vs.options.wMedium.val + 'px');
+        }).merge(optionGroups).style('width', vs.options.wGroup.val + 'px')
+        // .style('margin-left', vs.options.marginLeft.val + 'px')
         ;
         optionGroups.selectAll('label.option-value').text(function (d) {
-            return typeof d.value !== 'number' ? '' : d.value;
+            return typeof d.val !== 'number' ? '' : d.val;
         });
-        optionGroups.selectAll('label.label-small').style('width', vs.options.wSmall + 'px');
-        optionGroups.selectAll('label.label-medium').style('width', vs.options.wMedium + 'px');
-        optionGroups.selectAll('input[type=\'Range\']').style('width', vs.options.wSlider + 'px');
-        optionGroups.selectAll('*').style('height', vs.options.hRow + 'px').style('line-height', vs.options.hRow + 'px');
+        optionGroups.selectAll('label.label-small').style('width', vs.options.wSmall.val + 'px');
+        optionGroups.selectAll('label.label-medium').style('width', vs.options.wMedium.val + 'px');
+        optionGroups.selectAll('input[type=\'Range\']').style('width', vs.options.wSlider.val + 'px');
+        optionGroups.selectAll('options-row *').style('height', vs.options.hRow.val + 'px').style('line-height', vs.options.hRow.val + 'px');
         TestApp('DrawOptions', -1);
         return that;
     };
@@ -946,9 +973,9 @@ function HybridMapClass() {
         }).attr('y2', function (d) {
             return d.target.y;
         });
-        that.optionDatumAlpha.value = parseFloat(that.simulation.alpha()).toFixed(8);
-        optionsAlphaLabel.text(that.optionDatumAlpha.value);
-        optionsAlphaSlider.property('value', that.optionDatumAlpha.value);
+        that.optionDatumAlpha.val = parseFloat(that.simulation.alpha()).toFixed(8);
+        optionsAlphaLabel.text(that.optionDatumAlpha.val);
+        optionsAlphaSlider.property('value', that.optionDatumAlpha.val);
         // TestApp('Tick', -1);
     };
 
@@ -987,26 +1014,26 @@ function TestApp(source, position) {
     sizeTotalNew = performance.memory.totalJSHeapSize;
     if (sizeNodesNew !== sizeNodesOld) {
         stringNodes = (sizeNodesNew + ' n').padStart(6);
-        colorNodes = 'color:' + (sizeNodesNew < sizeNodesOld ? vs.test.colorGood : vs.test.colorBad);
+        colorNodes = 'color:' + (sizeNodesNew < sizeNodesOld ? vs.test.colorGood.val : vs.test.colorBad.val);
     } else {
         stringNodes = '';
-        colorNodes = 'color:' + vs.test.colorNeutral;
+        colorNodes = 'color:' + vs.test.colorNeutral.val;
     }
     stringNodes = '%c' + stringNodes.padEnd(8);
     if (sizeUsedNew !== sizeUsedOld) {
         stringUsed = ((sizeUsedNew / (1024 * 1024)).toFixed(2) + ' Mb').padStart(8);
-        colorUsed = 'color:' + (sizeUsedNew < sizeUsedOld ? vs.test.colorGood : vs.test.colorBad);
+        colorUsed = 'color:' + (sizeUsedNew < sizeUsedOld ? vs.test.colorGood.val : vs.test.colorBad.val);
     } else {
         stringUsed = '';
-        colorUsed = 'color:' + vs.test.colorNeutral;
+        colorUsed = 'color:' + vs.test.colorNeutral.val;
     }
     stringUsed = '%c' + stringUsed.padEnd(12);
     if (sizeTotalNew !== sizeTotalOld) {
         stringTotal = ((sizeTotalNew / (1024 * 1024)).toFixed(2) + ' Mb').padStart(8);
-        colorTotal = 'color:' + (sizeTotalNew < sizeTotalOld ? vs.test.colorGood : vs.test.colorBad);
+        colorTotal = 'color:' + (sizeTotalNew < sizeTotalOld ? vs.test.colorGood.val : vs.test.colorBad.val);
     } else {
         stringTotal = '';
-        colorTotal = 'color:' + vs.test.colorNeutral;
+        colorTotal = 'color:' + vs.test.colorNeutral.val;
     }
     stringTotal = '%c' + stringTotal.padEnd(12);
     stringCombined = stringSource + stringNodes + stringUsed + stringTotal;

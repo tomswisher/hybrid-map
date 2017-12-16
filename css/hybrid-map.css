@@ -60,6 +60,7 @@ body {
 #options-div .option-group {
   display: inline-block;
   vertical-align: top;
+  overflow: hidden;
   outline: 1px solid gainsboro;
 }
 #options-div .option-group > * {
@@ -68,6 +69,7 @@ body {
 #options-div .option-category {
   display: inline-block;
   float: left;
+  height: 0px;
 }
 #options-div .option-row {
   display: inline-block;
