@@ -55,6 +55,7 @@ body {
   background: white;
   width: 100%;
   height: auto;
+  text-align: center;
 }
 #options-div .option-group {
   display: inline-block;
@@ -71,6 +72,7 @@ body {
 #options-div .option-row {
   display: inline-block;
   float: right;
+  text-align: left;
 }
 #options-div label {
   display: inline-block;
