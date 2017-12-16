@@ -77,7 +77,7 @@ const vs = {
         rMin: 4,
         rFactor: 60,
         strokeWidthNode: 1,
-        strokeWidthLink: 3,
+        strokeWidthLink: 1.5,
     },
     info: {
         w: 0.5 * 396,
@@ -179,7 +179,7 @@ function UpdateVSValues() {
         vs.map.w = vs.map.wMin;
         vs.svg.w = vs.map.wMin + vs.info.w;
     }
-    vs.filters.w = vs.map.w;
+    vs.filters.w = vs.map.wMin;
     vs.map.h = vs.map.w / vs.map.ratioMapWH;
     vs.svg.h = Math.max(vs.map.h, vs.info.h);
     TestApp('UpdateVSValues', -1);
@@ -351,8 +351,7 @@ function HybridMapClass() {
             .data(that.states, d => d.properties.ansi);
         statePaths = statePaths.enter().append('path')
             .classed('state-path', true).classed('inactive', true)
-            .merge(statePaths);
-        statePaths
+            .merge(statePaths)
             .attr('d', that.path)
             .each(d => that.centroidByState[d.properties.ansi] = that.path.centroid(d))
             .style('stroke-width', vs.map.strokeWidthState + 'px');
@@ -948,7 +947,7 @@ function HybridMapClass() {
         filtersDiv
             .style('width', vs.filters.w + 'px')
             .style('height', vs.filters.h + 'px')
-            .style('left', '0px')
+            .style('left', 0.5*(vs.map.w-vs.filters.w)+'px')
             .style('top', (vs.map.h) + 'px');
         filtersYears = filtersDiv.selectAll('div.filters-year')
             .data(yearsData);
