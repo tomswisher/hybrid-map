@@ -40,8 +40,8 @@ var svgDefs = body.select('#svg-defs');
 var svgDefsArrowheads = svgDefs.selectAll('marker.arrowhead');
 var bgRect = body.select('#bg-rect');
 var clipPathRect = body.select('#clip-path-rect');
-var statesG = body.select('#states-g');
-var statePaths = statesG.select(null);
+var statePathsG = body.select('#state-paths-g');
+var statePaths = statePathsG.select(null);
 var nodesG = body.select('#nodes-g');
 var nodeCircles = nodesG.select(null);
 var linksG = body.select('#links-g');
@@ -96,7 +96,7 @@ var vs = {
         wSmall: 50,
         wMedium: 90,
         wSlider: 130,
-        wRow: null,
+        wGroup: null,
         hRow: 20
     },
     test: {
@@ -108,7 +108,7 @@ var vs = {
 vs.info.wImage = vs.info.w - 2 * vs.info.margin;
 vs.info.hImage = vs.info.wImage / vs.info.ratioImageWH;
 vs.info.h = vs.info.hImage + 4 * vs.info.textRowH + 3 * vs.info.margin;
-vs.options.wRow = 2 * vs.options.wSmall + 2 * vs.options.wMedium + vs.options.wSlider;
+vs.options.wGroup = 2 * vs.options.wSmall + 3 * vs.options.wMedium + vs.options.wSlider;
 
 // Global Variables --------------------------------------------------------------------------------
 
@@ -303,16 +303,16 @@ function HybridMapClass() {
         clipPathRect.attr('width', vs.map.w).attr('height', vs.svg.h);
         that.projection.scale(vs.map.w * vs.map.projectionScale).translate([vs.map.w / 2, vs.map.h / 2]);
         that.path.projection(that.projection);
-        statePaths = statesG.selectAll('path.state-path').data(that.states, function (d) {
+        statePaths = statePathsG.selectAll('path.state-path').data(that.states, function (d) {
             return d.properties.ansi;
         });
         statePaths = statePaths.enter().append('path').classed('state-path', true).classed('inactive', true).merge(statePaths).attr('d', that.path).each(function (d) {
             return that.centroidByState[d.properties.ansi] = that.path.centroid(d);
-        }).style('stroke-width', vs.map.strokeWidthState + 'px');
-        // statePaths.each(d => {
+        }).style('stroke-width', vs.map.strokeWidthState + 'px')
+        // .each(function(d) {
         //     let centroid = that.centroidByState[d.properties.ansi];
-        //     console.log(d.properties.ansi, centroid);
         //     let rect = d3.select(this.parentNode).append('rect')
+        //         .classed('path-rect', true)
         //         .attr('x', centroid[0]-20)
         //         .attr('y', centroid[1]-20)
         //         .attr('width', 40)
@@ -320,7 +320,8 @@ function HybridMapClass() {
         //         .attr('fill', 'white')
         //         .style('stroke', 'red');
         //     d3.select(this).remove();
-        // });
+        // })
+        ;
         TestApp('DrawMap', -1);
         return that;
     };
@@ -879,8 +880,8 @@ function HybridMapClass() {
                 d3.select(this).selectAll('label.label-medium').style('width', vs.options.wMedium + 'px');
                 d3.select(this).selectAll('input[type=\'Range\']').style('width', vs.options.wSlider + 'px');
                 d3.select(this).selectAll('*').style('height', vs.options.hRow + 'px').style('line-height', vs.options.hRow + 'px');
-            }).style('width', vs.options.wRow + 'px');
-        }).merge(optionGroups).style('width', vs.options.wRow + vs.options.wMedium + 'px');
+            }).style('width', vs.options.wGroup - vs.options.wMedium + 'px');
+        }).merge(optionGroups).style('width', vs.options.wGroup + 'px').style('margin-left', Math.max(0, 0.5 * (vs.map.w - vs.options.wGroup)) + 'px');
         optionGroups.selectAll('label.option-value').text(function (d) {
             return typeof d.value === 'function' ? 'function' : d.value;
         });
