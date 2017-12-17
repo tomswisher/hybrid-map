@@ -60,107 +60,184 @@ const debugDiv = body.select('#debug-div');
 
 // Visual Styling ----------------------------------------------------------------------------------
 
-const vs = {
-    svg: {
-        w: {},
-        h: {},
+const vsData = [
+    {
+        category: 'svg',
+        rows: [
+            {
+                name: 'w',
+            },
+            {
+                name: 'h',
+            }
+        ],
     },
-    map: {
-        w: {},
-        h: {},
-        wMin: {},
-        whRatioMap: {
-            val: 1.7,
-        },
-        projectionScale: {
-            val: 1.2,
-        },
-        strokeWidthState: {
-            val: 1,
-            // inputType: 'range',
-        },
+    {
+        category: 'map',
+        rows: [
+            {
+                name: 'w',
+            },
+            {
+                name: 'h',
+            },
+            {
+                name: 'wMin',
+            },
+            {
+                name: 'whRatioMap',
+                val: 1.7,
+            },
+            {
+                name: 'projectionScale',
+                val: 1.2,
+            },
+            {
+                name: 'strokeWidthState',
+                val: 1,
+                // inputType: 'range',
+            }
+        ],
     },
-    network: {
-        rMin: {
-            val: 4,
-            inputType: 'range',
-        },
-        rFactor: {
-            val: 60,
-            inputType: 'range',
-        },
-        strokeWidthNode: {
-            val: 1,
-            inputType: 'range',
-        },
-        strokeWidthLink: {
-            val: 1.5,
-            inputType: 'range',
-        },
+    {
+        category: 'network',
+        rows: [
+            {
+                name: 'rMin',
+                val: 4,
+                inputType: 'range',
+            },
+            {
+                name: 'rFactor',
+                val: 60,
+                inputType: 'range',
+            },
+            {
+                name: 'strokeWidthNode',
+                val: 1,
+                inputType: 'range',
+            },
+            {
+                name: 'strokeWidthLink',
+                val: 1.5,
+                inputType: 'range',
+            }
+        ],
     },
-    info: {
-        w: {
-            val: 0.5 * 396,
-        },
-        h: {},
-        wImage: {},
-        hImage: {},
-        whRatioImage: {
-            val: 396 / 432,
-        },
-        margin: {
-            val: 10,
-        },
-        textRowH: {
-            val: 15,
-        },
+    {
+        category: 'info',
+        rows: [
+            {
+                name: 'w',
+                val: 0.5 * 396,
+            },
+            {
+                name: 'h',
+            },
+            {
+                name: 'wImage',
+            },
+            {
+                name: 'hImage',
+            },
+            {
+                name: 'whRatioImage',
+                val: 396 / 432,
+            },
+            {
+                name: 'margin',
+                val: 10,
+            },
+            {
+                name: 'textRowH',
+                val: 15,
+                inputType: 'range',
+            }
+        ],
     },
-    filters: {
-        w: {},
-        h: {
-            val: 70,
-        },
-        wBox: {
-            val: 40,
-        }
+    {
+        category: 'filters',
+        rows: [
+            {
+                name: 'w',
+            },
+            {
+                name: 'h',
+                val: 70,
+            },
+            {
+                name: 'wBox',
+                val: 40,
+            }
+        ],
     },
-    options: {
-        w: {},
-        wSmall: {
-            val: 58,
-        },
-        wMedium: {
-            val: 110,
-        },
-        wSlider: {
-            val: 100,
-        },
-        wGroup: {},
-        hRow: {
-            val: 20,
-        },
+    {
+        category: 'options',
+        rows: [
+            {
+                name: 'w',
+            },
+            {
+                name: 'wSmall',
+                val: 58,
+            },
+            {
+                name: 'wMedium',
+                val: 110,
+            },
+            {
+                name: 'wSlider',
+                val: 100,
+            },
+            {
+                name: 'wGroup',
+            },
+            {
+                name: 'hRow',
+                val: 20,
+            }
+        ],
     },
-    transition: {
-        duration: {
-            val: 200,
-            // inputType: 'range',
-        },
-        ease: {
-            val: d3.easeLinear,
-        },
+    {
+        category: 'transition',
+        rows: [
+            {
+                name: 'duration',
+                val: 200,
+                // inputType: 'range',
+            },
+            {
+                name: 'ease',
+                val: d3.easeLinear,
+            }
+        ],
     },
-    test: {
-        colorNeutral: {
-            val: 'black',
-        },
-        colorBad: {
-            val: 'firebrick',
-        },
-        colorGood: {
-            val: 'green',
-        },
+    {
+        category: 'test',
+        rows: [
+            {
+                name: 'colorNeutral',
+                val: 'black',
+            },
+            {
+                name: 'colorBad',
+                val: 'firebrick',
+            },
+            {
+                name: 'colorGood',
+                val: 'green',
+            }
+        ],
     }
-};
+];
+const vs = {};
+vsData.forEach(optionsObj => {
+    vs[optionsObj.category] = {};
+    optionsObj.rows.forEach(row => {
+        vs[optionsObj.category][row.name] = row;
+    });
+});
+// const vs = (category, name) => vs[category][name].val;
 
 // Global Variables --------------------------------------------------------------------------------
 
@@ -768,7 +845,6 @@ function HybridMapClass() {
                 return;
             }
             let rowOld = vs[category][categoryKey];
-            console.log(category, categoryKey, rowOld);
             optionsObj.rows.push({
                 name: categoryKey,
                 inputType: rowOld.inputType,
@@ -1123,10 +1199,11 @@ function HybridMapClass() {
                                     vs[optionsObj.category][row.name].val = row.val;
                                     UpdateVSValues();
                                     that
+                                        .DrawMap()
                                         .UpdateData()
                                         .UpdateSimulation()
-                                        .DrawMap()
                                         .DrawNetwork()
+                                        .DrawInfo()
                                         .DrawOptions();
                                 } else {
                                     that
