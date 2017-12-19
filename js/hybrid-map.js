@@ -2,42 +2,12 @@
 
 'use strict'; /* globals d3, console, nodes, count */ /* jshint -W069, unused:false */
 
-// Performance -------------------------------------------------------------------------------------
-
-var logsTest = 'in',
-    logsLvl1 = false,
-    logsLvl2 = false;
-var resizeWait = 150,
-    resizeCounter = 0;
-var stackLevel = 0,
-    stackLevelTemp = 0;
-var sizeNodesOld = -1,
-    sizeUsedOld = -1,
-    sizeTotalOld = -1;
-var sizeNodesNew = 0,
-    sizeUsedNew = 0,
-    sizeTotalNew = 0;
-var colorSource = '',
-    colorNodes = '',
-    colorUsed = '',
-    colorTotal = '';
-var stringSource = '',
-    stringNodes = '',
-    stringUsed = '',
-    stringTotal = '',
-    stringCombined = '',
-    stringSymbol = '';
-var mobileUserAgents = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
-    mobileBrowser = navigator && mobileUserAgents.test(navigator.userAgent);
-if (mobileBrowser) console.log('mobileBrowser', mobileBrowser);
-var isLoaded = false;
-
-// D3 Selections -----------------------------------------------------------------------------------
+// Selections --------------------------------------------------------------------------------------
 
 var body = d3.select('body');
 var svg = body.select('#svg');
 var svgDefs = body.select('#svg-defs');
-var svgDefsArrowheads = svgDefs.selectAll('marker.arrowhead');
+var svgDefsArrowheads = svgDefs.select(null);
 var bgRect = body.select('#bg-rect');
 var clipPathRect = body.select('#clip-path-rect');
 var statePathsG = body.select('#state-paths-g');
@@ -58,8 +28,38 @@ var optionsAlphaLabel = optionsDiv.select(null);
 var optionsAlphaSlider = optionsDiv.select(null);
 var debugDiv = body.select('#debug-div');
 
-// Visual Styling ----------------------------------------------------------------------------------
+// Variables ---------------------------------------------------------------------------------------
 
+var mapObj = null;
+var isLoaded = false;
+var isDragging = false;
+var mobileUserAgents = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
+    mobileBrowser = navigator && mobileUserAgents.test(navigator.userAgent);
+if (mobileBrowser) console.log('mobile browser detected: ' + navigator.userAgent);
+var topIds = ['Alice Walton', 'Carrie Walton Penner', 'Jim Walton', 'Dorris Fisher', 'Eli Broad', 'Greg Penner', 'Jonathan Sackler', 'Laurene Powell Jobs', 'Michael Bloomberg', 'Reed Hastings', 'Stacy Schusterman', 'John Arnold', 'Laura Arnold'];
+var logsTest = 'in',
+    logsLvl1 = false;
+var resizeWait = 150;
+var resizeCounter = 0;
+var stackLevel = 0,
+    stackLevelTemp = 0;
+var sizeNodesOld = -1,
+    sizeUsedOld = -1,
+    sizeTotalOld = -1;
+var sizeNodesNew = 0,
+    sizeUsedNew = 0,
+    sizeTotalNew = 0;
+var colorSource = '',
+    colorNodes = '',
+    colorUsed = '',
+    colorTotal = '';
+var stringSource = '',
+    stringNodes = '',
+    stringUsed = '',
+    stringTotal = '',
+    stringCombined = '',
+    stringSymbol = '';
+var r = {};
 var rData = [{
     category: 'svg',
     rows: [{
@@ -178,25 +178,12 @@ var rData = [{
         value: d3.easeLinear
     }]
 }];
-
-var r = {};
 rData.forEach(function (optionsObj) {
     r[optionsObj.category] = {};
     optionsObj.rows.forEach(function (row) {
         r[optionsObj.category][row.name] = row.value;
     });
 });
-
-function SetRData(category, name, value) {
-    var row = rData.filter(function (optionsObj) {
-        return optionsObj.category === category;
-    })[0].rows.filter(function (row) {
-        return row.name === name;
-    })[0];
-    row.value = value;
-    r[category][name] = value;
-}
-
 var forcesData = [{
     category: 'forceCenter',
     isEnabled: false,
@@ -424,12 +411,6 @@ var forcesData = [{
     }]
 }];
 
-// Global Variables --------------------------------------------------------------------------------
-
-var topIds = ['Alice Walton', 'Carrie Walton Penner', 'Jim Walton', 'Dorris Fisher', 'Eli Broad', 'Greg Penner', 'Jonathan Sackler', 'Laurene Powell Jobs', 'Michael Bloomberg', 'Reed Hastings', 'Stacy Schusterman', 'John Arnold', 'Laura Arnold'];
-var mapObj = null;
-var isDragging = false;
-
 // Window Events -----------------------------------------------------------------------------------
 
 window.onload = function () {
@@ -456,6 +437,16 @@ window.onresize = function () {
 
 // Functions ---------------------------------------------------------------------------------------
 
+function SetRData(category, name, value) {
+    var row = rData.filter(function (optionsObj) {
+        return optionsObj.category === category;
+    })[0].rows.filter(function (row) {
+        return row.name === name;
+    })[0];
+    row.value = value;
+    r[category][name] = value;
+}
+
 var InitializePage = function InitializePage(error, results) {
     TestApp('InitializePage', 1);
     UpdateRValues();
@@ -474,10 +465,9 @@ function UpdateRValues() {
     SetRData('info', 'h', r.info.hImage + 4 * r.info.textRowH + 3 * r.info.margin);
     SetRData('map', 'wMin', r.info.h * r.map.whRatioMap);
     SetRData('options', 'wGroup', 2 * r.options.wMedium + 3 * r.options.wSmall + r.options.wSlider);
-    var clientWidth = body.node().clientWidth;
-    if (clientWidth >= r.map.wMin + r.info.w) {
-        SetRData('map', 'w', clientWidth - r.info.w);
-        SetRData('svg', 'w', clientWidth);
+    if (body.node().clientWidth >= r.map.wMin + r.info.w) {
+        SetRData('map', 'w', body.node().clientWidth - r.info.w);
+        SetRData('svg', 'w', body.node().clientWidth);
     } else {
         SetRData('map', 'w', r.map.wMin);
         SetRData('svg', 'w', r.map.wMin + r.info.w);
@@ -493,16 +483,12 @@ function UpdateRValues() {
 function HybridMapClass() {
     TestApp('HybridMapClass', 1);
     var that = this;
-    that.filteredOutObj = {
-        year: {},
-        report: {}
-    };
-    that.states = [];
-    that.nodes = [];
-    that.links = [];
     that.statesLoaded = [];
     that.nodesLoaded = [];
     that.linksLoaded = [];
+    that.states = [];
+    that.nodes = [];
+    that.links = [];
     that.nodeSelected = null;
     that.linksSelected = [];
     that.infoData = [];
@@ -515,6 +501,10 @@ function HybridMapClass() {
     that.nodeById = {};
     that.projection = d3.geoAlbersUsa();
     that.path = d3.geoPath();
+    that.filteredOutObj = {
+        year: {},
+        report: {}
+    };
 
     that.LoadStates = function (d) {
         TestApp('UpdateStates', 1);
@@ -974,10 +964,9 @@ function HybridMapClass() {
                             if (Object.keys(r).includes(optionsObj.category)) {
                                 SetRData(optionsObj.category, row.name, row.value);
                                 UpdateRValues();
-                                that.DrawMap().UpdateData().UpdateSimulation().DrawNetwork().DrawInfo().DrawOptions();
-                            } else {
-                                that.UpdateSimulation().DrawOptions();
+                                that.DrawMap().UpdateData().DrawNetwork().DrawInfo();
                             }
+                            that.UpdateSimulation().DrawOptions();
                         });
                         d3.select(this).append('label').classed('label-small', true).text(row.max);
                         break;

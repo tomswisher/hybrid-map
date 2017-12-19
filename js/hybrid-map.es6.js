@@ -2,42 +2,12 @@
 
 'use strict'; /* globals d3, console, nodes, count */ /* jshint -W069, unused:false */
 
-// Performance -------------------------------------------------------------------------------------
-
-let logsTest = 'in',
-    logsLvl1 = false,
-    logsLvl2 = false;
-let resizeWait = 150,
-    resizeCounter = 0;
-let stackLevel = 0,
-    stackLevelTemp = 0;
-let sizeNodesOld = -1,
-    sizeUsedOld = -1,
-    sizeTotalOld = -1;
-let sizeNodesNew = 0,
-    sizeUsedNew = 0,
-    sizeTotalNew = 0;
-let colorSource = '',
-    colorNodes = '',
-    colorUsed = '',
-    colorTotal = '';
-let stringSource = '',
-    stringNodes = '',
-    stringUsed = '',
-    stringTotal = '',
-    stringCombined = '',
-    stringSymbol = '';
-let mobileUserAgents = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
-    mobileBrowser = navigator && mobileUserAgents.test(navigator.userAgent);
-if (mobileBrowser) console.log('mobileBrowser', mobileBrowser);
-let isLoaded = false;
-
-// D3 Selections -----------------------------------------------------------------------------------
+// Selections --------------------------------------------------------------------------------------
 
 const body = d3.select('body');
 const svg = body.select('#svg');
 const svgDefs = body.select('#svg-defs');
-let svgDefsArrowheads = svgDefs.selectAll('marker.arrowhead');
+let svgDefsArrowheads = svgDefs.select(null);
 const bgRect = body.select('#bg-rect');
 const clipPathRect = body.select('#clip-path-rect');
 const statePathsG = body.select('#state-paths-g');
@@ -58,8 +28,42 @@ let optionsAlphaLabel = optionsDiv.select(null);
 let optionsAlphaSlider = optionsDiv.select(null);
 const debugDiv = body.select('#debug-div');
 
-// Visual Styling ----------------------------------------------------------------------------------
+// Variables ---------------------------------------------------------------------------------------
 
+let mapObj = null;
+let isLoaded = false;
+let isDragging = false;
+const mobileUserAgents = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i,
+    mobileBrowser = navigator && mobileUserAgents.test(navigator.userAgent);
+if (mobileBrowser) console.log('mobile browser detected: ' + navigator.userAgent);
+let topIds = [
+    'Alice Walton', 'Carrie Walton Penner', 'Jim Walton', 'Dorris Fisher', 'Eli Broad',
+    'Greg Penner', 'Jonathan Sackler', 'Laurene Powell Jobs', 'Michael Bloomberg',
+    'Reed Hastings', 'Stacy Schusterman', 'John Arnold', 'Laura Arnold'
+];
+let logsTest = 'in',
+    logsLvl1 = false;
+const resizeWait = 150;
+let resizeCounter = 0;
+let stackLevel = 0,
+    stackLevelTemp = 0;
+let sizeNodesOld = -1,
+    sizeUsedOld = -1,
+    sizeTotalOld = -1;
+let sizeNodesNew = 0,
+    sizeUsedNew = 0,
+    sizeTotalNew = 0;
+let colorSource = '',
+    colorNodes = '',
+    colorUsed = '',
+    colorTotal = '';
+let stringSource = '',
+    stringNodes = '',
+    stringUsed = '',
+    stringTotal = '',
+    stringCombined = '',
+    stringSymbol = '';
+const r = {};
 const rData = [
     {
         category: 'svg',
@@ -194,24 +198,12 @@ const rData = [
         ],
     }
 ];
-
-const r = {};
 rData.forEach(optionsObj => {
     r[optionsObj.category] = {};
     optionsObj.rows.forEach(row => {
         r[optionsObj.category][row.name] = row.value;
     });
 });
-
-function SetRData(category, name, value) {
-    let row = rData
-        .filter(optionsObj => optionsObj.category === category)[0]
-        .rows
-        .filter(row => row.name === name)[0];
-    row.value = value;
-    r[category][name] = value;
-}
-
 const forcesData = [
     {
         category: 'forceCenter',
@@ -435,26 +427,6 @@ const forcesData = [
     }
 ];
 
-// Global Variables --------------------------------------------------------------------------------
-
-let topIds = [
-    'Alice Walton',
-    'Carrie Walton Penner',
-    'Jim Walton',
-    'Dorris Fisher',
-    'Eli Broad',
-    'Greg Penner',
-    'Jonathan Sackler',
-    'Laurene Powell Jobs',
-    'Michael Bloomberg',
-    'Reed Hastings',
-    'Stacy Schusterman',
-    'John Arnold',
-    'Laura Arnold'
-];
-let mapObj = null;
-let isDragging = false;
-
 // Window Events -----------------------------------------------------------------------------------
 
 window.onload = () => {
@@ -491,6 +463,15 @@ window.onresize = () => {
 
 // Functions ---------------------------------------------------------------------------------------
 
+function SetRData(category, name, value) {
+    let row = rData
+        .filter(optionsObj => optionsObj.category === category)[0]
+        .rows
+        .filter(row => row.name === name)[0];
+    row.value = value;
+    r[category][name] = value;
+}
+
 const InitializePage = (error, results) => {
     TestApp('InitializePage', 1);
     UpdateRValues();
@@ -519,10 +500,9 @@ function UpdateRValues() {
     SetRData('info', 'h', r.info.hImage + 4 * r.info.textRowH + 3 * r.info.margin);
     SetRData('map', 'wMin', r.info.h * r.map.whRatioMap);
     SetRData('options', 'wGroup', 2 * r.options.wMedium + 3 * r.options.wSmall + r.options.wSlider);
-    let clientWidth = body.node().clientWidth;
-    if (clientWidth >= r.map.wMin + r.info.w) {
-        SetRData('map', 'w', clientWidth - r.info.w);
-        SetRData('svg', 'w', clientWidth);
+    if (body.node().clientWidth >= r.map.wMin + r.info.w) {
+        SetRData('map', 'w', body.node().clientWidth - r.info.w);
+        SetRData('svg', 'w', body.node().clientWidth);
     } else {
         SetRData('map', 'w', r.map.wMin);
         SetRData('svg', 'w', r.map.wMin + r.info.w);
@@ -538,16 +518,12 @@ function UpdateRValues() {
 function HybridMapClass() {
     TestApp('HybridMapClass', 1);
     let that = this;
-    that.filteredOutObj = {
-        year: {},
-        report: {}
-    };
-    that.states = [];
-    that.nodes = [];
-    that.links = [];
     that.statesLoaded = [];
     that.nodesLoaded = [];
     that.linksLoaded = [];
+    that.states = [];
+    that.nodes = [];
+    that.links = [];
     that.nodeSelected = null;
     that.linksSelected = [];
     that.infoData = [];
@@ -560,6 +536,10 @@ function HybridMapClass() {
     that.nodeById = {};
     that.projection = d3.geoAlbersUsa();
     that.path = d3.geoPath();
+    that.filteredOutObj = {
+        year: {},
+        report: {}
+    };
 
     that.LoadStates = d => {
         TestApp('UpdateStates', 1);
@@ -569,8 +549,7 @@ function HybridMapClass() {
             year: {},
             report: {}
         };
-        that
-            .DrawFilters();
+        that.DrawFilters();
         TestApp('UpdateStates', -1);
         return that;
     };
@@ -582,8 +561,7 @@ function HybridMapClass() {
             year: {},
             report: {}
         };
-        that
-            .DrawFilters();
+        that.DrawFilters();
         TestApp('LoadNodes', -1);
         return that;
     };
@@ -599,8 +577,7 @@ function HybridMapClass() {
             year: {},
             report: {}
         };
-        that
-            .DrawFilters();
+        that.DrawFilters();
         TestApp('LoadLinks', -1);
         return that;
     };
@@ -919,8 +896,7 @@ function HybridMapClass() {
                 if (!that.infoData.includes(that.nodeSelected)) {
                     that.infoData.push(that.nodeSelected);
                 }
-                that
-                    .DrawNetwork()
+                that.DrawNetwork()
                     .DrawInfo();
             })
             .on('mouseout', () => {
@@ -929,8 +905,7 @@ function HybridMapClass() {
                 }
                 that.nodeSelected = null;
                 that.linksSelected = [];
-                that
-                    .DrawNetwork()
+                that.DrawNetwork()
                     .DrawInfo();
             })
             .call(d3.drag()
@@ -1069,8 +1044,7 @@ function HybridMapClass() {
                             .attr('checked', true)
                             .on('change', function() {
                                 that.filteredOutObj.year[d] = !this.checked;
-                                that
-                                    .UpdateData()
+                                that.UpdateData()
                                     .DrawNetwork()
                                     .UpdateSimulation();
                             });
@@ -1130,18 +1104,13 @@ function HybridMapClass() {
                                         if (Object.keys(r).includes(optionsObj.category)) {
                                             SetRData(optionsObj.category, row.name, row.value);
                                             UpdateRValues();
-                                            that
-                                                .DrawMap()
+                                            that.DrawMap()
                                                 .UpdateData()
-                                                .UpdateSimulation()
                                                 .DrawNetwork()
-                                                .DrawInfo()
-                                                .DrawOptions();
-                                        } else {
-                                            that
-                                                .UpdateSimulation()
-                                                .DrawOptions();
+                                                .DrawInfo();
                                         }
+                                        that.UpdateSimulation()
+                                            .DrawOptions();
                                     });
                                 d3.select(this).append('label')
                                     .classed('label-small', true)
