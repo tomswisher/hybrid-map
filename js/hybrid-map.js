@@ -59,7 +59,6 @@ var stringSource = '',
     stringTotal = '',
     stringCombined = '',
     stringSymbol = '';
-var r = {};
 var rData = [{
     category: 'svg',
     rows: [{
@@ -85,10 +84,12 @@ var rData = [{
         name: 'strokeWidthState',
         value: 1
         // inputType: 'range',
-    }, {
-        name: 'mode',
-        value: 'states',
-        inputType: 'select'
+
+        // , {
+        //     name: 'mode',
+        //     value: 'states',
+        //     inputType: 'select',
+        // }
     }]
 }, {
     category: 'network',
@@ -159,7 +160,7 @@ var rData = [{
         name: 'wMedium',
         value: 110
     }, {
-        name: 'wSlider',
+        name: 'wInput',
         value: 100
     }, {
         name: 'wGroup'
@@ -177,16 +178,9 @@ var rData = [{
         name: 'ease',
         value: d3.easeLinear
     }]
-}];
-rData.forEach(function (optionsObj) {
-    r[optionsObj.category] = {};
-    optionsObj.rows.forEach(function (row) {
-        r[optionsObj.category][row.name] = row.value;
-    });
-});
-var forcesData = [{
+}, {
     category: 'forceCenter',
-    isEnabled: false,
+    isDisabled: true,
     isIsolated: false,
     rows: [{
         name: 'x',
@@ -197,7 +191,7 @@ var forcesData = [{
     }]
 }, {
     category: 'forceCollide',
-    isEnabled: true,
+    isDisabled: false,
     isIsolated: false,
     rows: [{
         name: 'iterations',
@@ -223,7 +217,7 @@ var forcesData = [{
     }]
 }, {
     category: 'forceLink',
-    isEnabled: false,
+    isDisabled: true,
     isIsolated: false,
     rows: [{
         name: 'links',
@@ -266,7 +260,7 @@ var forcesData = [{
     }]
 }, {
     category: 'forceManyBody',
-    isEnabled: false,
+    isDisabled: true,
     isIsolated: false,
     rows: [{
         name: 'strength',
@@ -303,7 +297,7 @@ var forcesData = [{
     }]
 }, {
     category: 'forceRadial',
-    isEnabled: false,
+    isDisabled: true,
     isIsolated: false,
     rows: [{
         name: 'strength',
@@ -329,7 +323,7 @@ var forcesData = [{
     }]
 }, {
     category: 'forceX',
-    isEnabled: true,
+    isDisabled: false,
     isIsolated: true,
     rows: [{
         name: 'strength',
@@ -350,7 +344,7 @@ var forcesData = [{
     }]
 }, {
     category: 'forceY',
-    isEnabled: true,
+    isDisabled: false,
     isIsolated: true,
     rows: [{
         name: 'strength',
@@ -371,7 +365,7 @@ var forcesData = [{
     }]
 }, {
     category: 'simulation',
-    isEnabled: true,
+    isDisabled: false,
     rows: [{
         name: 'alpha',
         inputType: 'range',
@@ -410,6 +404,22 @@ var forcesData = [{
         step: 0.1
     }]
 }];
+rData = rData.filter(function (d) {
+    return !d.isDisabled;
+});
+var r = {};
+rData.forEach(function (optionsObj) {
+    r[optionsObj.category] = {};
+    optionsObj.rows.forEach(function (row) {
+        row.valueDefault = row.value;
+        r[optionsObj.category][row.name] = row.value;
+        if (row.inputType === 'range') {
+            row.min = row.min !== undefined ? row.min : 0;
+            row.max = row.max !== undefined ? row.max : 5 * row.value;
+            row.step = 5 * row.value / 100;
+        }
+    });
+});
 
 // Window Events -----------------------------------------------------------------------------------
 
@@ -429,7 +439,7 @@ window.onresize = function () {
         } else if (resizeCounter === 1) {
             resizeCounter -= 1;
             if (logsLvl1) console.log(''.padStart(resizeCounter * 2, ' ') + resizeCounter);
-            UpdateRValues();
+            UpdateLayout();
             mapObj.DrawMap().DrawNetwork().DrawInfo().DrawFilters().UpdateData().UpdateSimulation().DrawOptions();
         }
     }, resizeWait);
@@ -449,7 +459,7 @@ function SetRData(category, name, value) {
 
 var InitializePage = function InitializePage(error, results) {
     TestApp('InitializePage', 1);
-    UpdateRValues();
+    UpdateLayout();
     mapObj = new HybridMapClass().LoadStates(results[0].features).DrawMap().LoadNodes(results[1].nodes).LoadLinks(results[1].links).UpdateData().DrawNetwork().DrawInfo().UpdateSimulation().DrawOptions();
     requestAnimationFrame(function () {
         body.classed('loading', false);
@@ -458,13 +468,13 @@ var InitializePage = function InitializePage(error, results) {
     TestApp('InitializePage', -1);
 };
 
-function UpdateRValues() {
-    TestApp('UpdateRValues', 1);
+function UpdateLayout() {
+    TestApp('UpdateLayout', 1);
     SetRData('info', 'wImage', r.info.w - 2 * r.info.margin);
     SetRData('info', 'hImage', r.info.wImage / r.info.whRatioImage);
     SetRData('info', 'h', r.info.hImage + 4 * r.info.textRowH + 3 * r.info.margin);
     SetRData('map', 'wMin', r.info.h * r.map.whRatioMap);
-    SetRData('options', 'wGroup', 2 * r.options.wMedium + 3 * r.options.wSmall + r.options.wSlider);
+    SetRData('options', 'wGroup', 2 * r.options.wMedium + 3 * r.options.wSmall + r.options.wInput);
     if (body.node().clientWidth >= r.map.wMin + r.info.w) {
         SetRData('map', 'w', body.node().clientWidth - r.info.w);
         SetRData('svg', 'w', body.node().clientWidth);
@@ -477,7 +487,7 @@ function UpdateRValues() {
     SetRData('svg', 'h', Math.max(r.map.h, r.info.h));
     SetRData('filters', 'w', r.map.w);
     SetRData('options', 'w', r.map.w);
-    TestApp('UpdateRValues', -1);
+    TestApp('UpdateLayout', -1);
 }
 
 function HybridMapClass() {
@@ -590,6 +600,9 @@ function HybridMapClass() {
             that.$inByState[d.target.state] += d.dollars;
             that.$total += d.dollars;
         });
+        that.nodes = that.nodes.filter(function (d) {
+            return that.$nodeScale(that.$inById[d.id]) || that.$nodeScale(that.$outById[d.id]);
+        });
         that.$nodeScale.domain([0, that.$total]);
         that.nodes.forEach(function (d) {
             var $in = that.$nodeScale(that.$inById[d.id]);
@@ -683,30 +696,15 @@ function HybridMapClass() {
         return that;
     };
 
-    that.optionsData = forcesData.filter(function (d) {
-        return d.isEnabled;
-    });
-    that.optionDatumAlpha = that.optionsData[that.optionsData.length - 1];
-    rData.forEach(function (optionsObj) {
-        optionsObj.rows.filter(function (row) {
-            return row.inputType;
-        }).forEach(function (row) {
-            row.min = row.min !== undefined ? row.min : 0;
-            row.max = row.max !== undefined ? row.max : 5 * row.value;
-            row.step = 5 * row.value / 100;
-        });
-        that.optionsData.push(optionsObj);
-    });
-
     that.UpdateSimulation = function () {
         TestApp('UpdateSimulation', 1);
         that.simulation = d3.forceSimulation().nodes(that.nodes).on('tick', that.Tick).stop();
-        that.optionsData.forEach(function (optionsObj) {
+        rData.forEach(function (optionsObj) {
             if (optionsObj.category === 'simulation') {
                 optionsObj.rows.forEach(function (row) {
                     that.simulation[row.name](row.value);
                 });
-            } else if (optionsObj.isEnabled !== true) {
+            } else if (optionsObj.isDisabled) {
                 return;
             } else if (optionsObj.category.substring(0, 5) !== 'force') {
                 return;
@@ -802,6 +800,7 @@ function HybridMapClass() {
     that.DrawNetwork = function () {
         TestApp('DrawNetwork', 1);
         nodeCircles = nodesG.selectAll('circle.node-circle').data(that.nodes);
+        nodeCircles.exit().remove();
         nodeCircles = nodeCircles.enter().append('circle').classed('node-circle', true).on('mouseover', function (d) {
             if (isDragging) {
                 return;
@@ -930,7 +929,7 @@ function HybridMapClass() {
             d3.select(this).selectAll('div.filters-year').data(datum.row).enter().append('div').classed('filters-year', true).each(function (d) {
                 d3.select(this).append('div').text(d);
                 d3.select(this).append('input').attr('type', 'checkbox').attr('checked', true).on('change', function () {
-                    that.filteredOutObj.year[d] = !this.checked;
+                    that.filteredOutObj[datum.key][d] = !this.checked;
                     that.UpdateData().DrawNetwork().UpdateSimulation();
                 });
             }).style('width', r.filters.wBox + 'px').style('height', 0.5 * r.filters.h + 'px');
@@ -942,7 +941,7 @@ function HybridMapClass() {
     that.DrawOptions = function () {
         TestApp('DrawOptions', 1);
         optionsDiv.style('width', r.options.w + 'px');
-        optionGroups = optionsDiv.selectAll('div.option-group').data(that.optionsData);
+        optionGroups = optionsDiv.selectAll('div.option-group').data(rData);
         optionGroups = optionGroups.enter().append('div').classed('option-group', true).each(function (optionsObj) {
             var rowsFiltered = optionsObj.rows.filter(function (row) {
                 return row.inputType;
@@ -963,7 +962,7 @@ function HybridMapClass() {
                             }
                             if (Object.keys(r).includes(optionsObj.category)) {
                                 SetRData(optionsObj.category, row.name, row.value);
-                                UpdateRValues();
+                                UpdateLayout();
                                 that.DrawMap().UpdateData().DrawNetwork().DrawInfo();
                             }
                             that.UpdateSimulation().DrawOptions();
@@ -971,7 +970,20 @@ function HybridMapClass() {
                         d3.select(this).append('label').classed('label-small', true).text(row.max);
                         break;
                     case 'select':
-                        d3.select(this).append('label').classed('label-small', true).text('select');
+                        d3.select(this).append('label').classed('label-small', true).text('');
+                        var dropdown = d3.select(this).append('select').on('change', function (d) {
+                            row.value = this.value;
+                            if (Object.keys(r).includes(optionsObj.category)) {
+                                SetRData(optionsObj.category, row.name, row.value);
+                                UpdateLayout();
+                                that.DrawMap().UpdateData().DrawNetwork().DrawInfo();
+                            }
+                            that.UpdateSimulation().DrawOptions();
+                        });
+                        dropdown.property('value', row.value);
+                        dropdown.selectAll('option').data(['States', 'Network']).enter().append('option').text(function (d) {
+                            return d;
+                        });
                         break;
                 }
                 if (row.name === 'alpha') {
@@ -985,7 +997,7 @@ function HybridMapClass() {
         });
         optionGroups.selectAll('label.label-small').style('width', r.options.wSmall + 'px');
         optionGroups.selectAll('label.label-medium').style('width', r.options.wMedium + 'px');
-        optionGroups.selectAll('input[type=\'Range\']').style('width', r.options.wSlider + 'px');
+        optionGroups.selectAll('input, select').style('width', r.options.wInput + 'px');
         optionGroups.selectAll('options-row *').style('height', r.options.hRow + 'px').style('line-height', r.options.hRow + 'px');
         TestApp('DrawOptions', -1);
         return that;
@@ -1007,9 +1019,9 @@ function HybridMapClass() {
         }).attr('y2', function (d) {
             return d.target.y;
         });
-        that.optionDatumAlpha.value = parseFloat(that.simulation.alpha()).toFixed(8);
-        optionsAlphaLabel.text(that.optionDatumAlpha.value);
-        optionsAlphaSlider.property('value', that.optionDatumAlpha.value);
+        SetRData('simulation', 'alpha', parseFloat(that.simulation.alpha()).toFixed(8));
+        optionsAlphaLabel.text(r.simulation.alpha);
+        optionsAlphaSlider.property('value', r.simulation.alpha);
         // TestApp('Tick', -1);
     };
 
