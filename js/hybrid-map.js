@@ -95,6 +95,42 @@ var rData = [{
 }, {
     category: 'network',
     rows: [{
+        name: 'A',
+        value: 3,
+        min: 3 - 5,
+        max: 3 + 6,
+        inputType: 'range'
+    }, {
+        name: 'B',
+        value: 1.75,
+        min: 1 - 5,
+        max: 1 + 5,
+        inputType: 'range'
+    }, {
+        name: 'C',
+        value: 8.65,
+        min: 8.7 - 5,
+        max: 8.7 + 5,
+        inputType: 'range'
+    }, {
+        name: 'D',
+        value: 6,
+        min: 6 - 5,
+        max: 6 + 6,
+        inputType: 'range'
+    }, {
+        name: 'E',
+        value: 3,
+        min: 3 - 5,
+        max: 3 + 6,
+        inputType: 'range'
+    }, {
+        name: 'F',
+        value: 10.25,
+        min: 12 - 5,
+        max: 12 + 5,
+        inputType: 'range'
+    }, {
         name: 'rMin',
         value: 3,
         inputType: 'range'
@@ -113,66 +149,7 @@ var rData = [{
     }, {
         name: 'arrowScale',
         value: 0.26,
-        min: 0.05,
-        max: 2,
-        step: 0.05,
         inputType: 'range'
-    }, {
-        name: 'A',
-        value: 0,
-        min: -20,
-        max: 20,
-        step: 0.5
-        // inputType: 'range',
-    }, {
-        name: 'B',
-        value: 0,
-        min: -20,
-        max: 20,
-        step: 0.5
-        // inputType: 'range',
-    }, {
-        name: 'C',
-        value: 12,
-        min: -20,
-        max: 20,
-        step: 0.5
-        // inputType: 'range',
-    }, {
-        name: 'D',
-        value: 6,
-        min: -20,
-        max: 20,
-        step: 0.5
-        // inputType: 'range',
-    }, {
-        name: 'E',
-        value: 0,
-        min: -20,
-        max: 20,
-        step: 0.5
-        // inputType: 'range',
-    }, {
-        name: 'F',
-        value: 12,
-        min: -20,
-        max: 20,
-        step: 0.5
-        // inputType: 'range',
-    }, {
-        name: 'G',
-        value: 3,
-        min: -20,
-        max: 20,
-        step: 0.5
-        // inputType: 'range',
-    }, {
-        name: 'H',
-        value: 6,
-        min: -20,
-        max: 20,
-        step: 0.5
-        // inputType: 'range',
     }]
 }, {
     category: 'info',
@@ -193,8 +170,7 @@ var rData = [{
         value: 10
     }, {
         name: 'textRowH',
-        value: 15,
-        inputType: 'range'
+        value: 15
     }]
 }, {
     category: 'filters',
@@ -219,7 +195,8 @@ var rData = [{
         value: 115
     }, {
         name: 'wInput',
-        value: 100
+        value: 200
+        // inputType: 'range',
     }, {
         name: 'wGroup'
     }, {
@@ -522,7 +499,7 @@ function SetRData(category, name, value) {
     if (!svgDefsArrows.select('path').empty()) {
         var num = 6;
         if (isDebug) {
-            debugText.property('innerHTML', String(r.network.A).padEnd(num) + String(r.network.B).padEnd(num) + '    ' + String(r.network.C).padEnd(num) + String(r.network.D).padEnd(num) + '    ' + String(r.network.E).padEnd(num) + String(r.network.F).padEnd(num) + '    ' + String(r.network.G).padEnd(num) + String(r.network.H).padEnd(num));
+            debugText.property('innerHTML', String(r.network.A).padEnd(num) + String(r.network.B).padEnd(num) + '    ' + String(r.network.C).padEnd(num) + String(r.network.D).padEnd(num) + '    ' + String(r.network.E).padEnd(num) + String(r.network.F).padEnd(num) + '    ');
         }
     }
 }
@@ -1006,20 +983,15 @@ function HybridMapClass() {
         }).transition().duration(r.transition.durationMedium).ease(r.transition.ease).attr('r', function (d) {
             return d.r;
         });
-        /*<path
-            class="arrow"
-            d="M-7,-4L0,0L-7,4L-6,0"
-            transform="translate(601.4125366210938,231.9962921142578) rotate(19.56897738993942)">
-        </path>*/
         svgDefsArrows = svgDefs.selectAll('marker.arrow').data(topIds.concat('misc'));
         svgDefsArrows = svgDefsArrows.enter().append('marker').classed('arrow', true).attr('id', function (d, i) {
             return 'arrow-id' + i;
         }).merge(svgDefsArrows);
         svgDefsArrows.each(function (datum, i) {
             var path = d3.select(this).selectAll('path').data([null]);
-            path = path.enter().append('path').merge(path)
-            // .attr('d', 'M 0 0 12 6 0 12 3 6 Z')
-            .attr('d', 'M' + ' ' + r.network.A + ',' + r.network.B + ' ' + r.network.C + ',' + r.network.D + ' ' + r.network.E + ',' + r.network.F + ' ' + r.network.G + ',' + r.network.H + ' ' + 'Z').attr('transform', 'scale(' + r.network.arrowScale + ')').style('stroke', function () {
+            path = path.enter().append('path').merge(path).attr('d', function (d) {
+                return 'M ' + r.network.A + ' ' + r.network.B + ' ' + r.network.C + ' ' + r.network.D + ' ' + r.network.E + ' ' + r.network.F + ' Z';
+            }).attr('transform', 'scale(' + r.network.arrowScale + ')').style('stroke', function () {
                 return i < topIds.length ? d3.schemeCategory20[i] : null;
             }).style('fill', function () {
                 return i < topIds.length ? d3.schemeCategory20[i] : null;
@@ -1068,7 +1040,12 @@ function HybridMapClass() {
             } else {
                 return 'none';
             }
-        }).transition().duration(r.transition.durationMedium).ease(r.transition.ease).style('stroke-width', function (d) {
+        }).transition().duration(r.transition.durationMedium).ease(r.transition.ease)
+        // .style('visibility', d => {
+        //     return (d.targetId === "Yes on 1240" && d.source.i === 3) ? 'visible' : 'hidden';
+        //     // return (d.source.i === 3) ? 'visible' : 'hidden';
+        // })
+        .style('stroke-width', function (d) {
             return Math.max(r.network.swMin, r.network.swFactor * d.dollars / that.$outTotal) + 'px';
         });
         TestApp('DrawNetwork', -1);
@@ -1185,6 +1162,10 @@ function HybridMapClass() {
         }).attr('y2', function (d) {
             return d.target.$out > 0 ? d.target.y : that.centroidByANSI[d.target.ansi][1];
         });
+        // .attr('x1', r.map.w / 2)
+        // .attr('x2', r.map.w / 2)
+        // .attr('y1', r.map.h)
+        // .attr('y2', 0);
         // TestApp('Tick', -1);
     };
 
