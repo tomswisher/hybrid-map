@@ -33,7 +33,7 @@ body {
 #svg #links-g {
   pointer-events: none;
 }
-#svg #links-g line.link-line {
+#svg #links-g path.link-path {
   stroke: rosybrown;
 }
 #svg #info-bg-rect {

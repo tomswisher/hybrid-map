@@ -16,7 +16,7 @@ let statePaths = statePathsG.select(null);
 const nodesG = body.select('#nodes-g');
 let nodeCircles = nodesG.select(null);
 const linksG = body.select('#links-g');
-let linkLines = linksG.select(null);
+let linkPaths = linksG.select(null);
 const infoG = body.select('#info-g');
 const infoBGRect = body.select('#info-bg-rect');
 let infoImageGs = infoG.select(null);
@@ -111,37 +111,31 @@ let rData = [
                 value: 3,
                 min: 3 - 5,
                 max: 3 + 6,
-                inputType: 'range',
             }, {
                 name: 'B',
                 value: 1.75,
                 min: 1 - 5,
                 max: 1 + 5,
-                inputType: 'range',
             }, {
                 name: 'C',
                 value: 8.65,
                 min: 8.7 - 5,
                 max: 8.7 + 5,
-                inputType: 'range',
             }, {
                 name: 'D',
                 value: 6,
                 min: 6 - 5,
                 max: 6 + 6,
-                inputType: 'range',
             }, {
                 name: 'E',
                 value: 3,
                 min: 3 - 5,
                 max: 3 + 6,
-                inputType: 'range',
             }, {
                 name: 'F',
                 value: 10.25,
                 min: 12 - 5,
                 max: 12 + 5,
-                inputType: 'range',
             }, {
                 name: 'rMin',
                 value: 3,
@@ -1123,19 +1117,16 @@ function HybridMapClass() {
             .attr('markerWidth', 112)
             .attr('markerHeight', 118)
             .attr('orient', 'auto');
-        linkLines = linksG.selectAll('line.link-line')
+        linkPaths = linksG.selectAll('path.link-path')
             .data(that.links);
-        linkLines.exit()
+        linkPaths.exit()
             .remove();
-        linkLines = linkLines.enter().append('line')
-            .classed('link-line', true)
-            .attr('x1', d => d.source.x)
-            .attr('y1', d => d.source.y)
-            .attr('x2', d => d.target.x)
-            .attr('y2', d => d.target.y)
+        linkPaths = linkPaths.enter().append('path')
+            .classed('link-path', true)
+            .attr('d', d => `M ${d.target.x} ${d.target.y} ${d.source.x} ${d.source.y} Z`)
             .style('stroke-width', '0px')
-            .merge(linkLines);
-        linkLines
+            .merge(linkPaths);
+        linkPaths
             .attr('marker-end', d => {
                 if (topIds.includes(d.source.id)) {
                     return 'url(#arrow-id' + d.source.i + ')';
@@ -1340,15 +1331,8 @@ function HybridMapClass() {
         nodeCircles
             .attr('cx', d => d.$out > 0 ? d.x : that.centroidByANSI[d.ansi][0])
             .attr('cy', d => d.$out > 0 ? d.y : that.centroidByANSI[d.ansi][1]);
-        linkLines
-            .attr('x1', d => d.source.x)
-            .attr('y1', d => d.source.y)
-            .attr('x2', d => d.target.$out > 0 ? d.target.x : that.centroidByANSI[d.target.ansi][0])
-            .attr('y2', d => d.target.$out > 0 ? d.target.y : that.centroidByANSI[d.target.ansi][1]);
-            // .attr('x1', r.map.w / 2)
-            // .attr('x2', r.map.w / 2)
-            // .attr('y1', r.map.h)
-            // .attr('y2', 0);
+        linkPaths
+            .attr('d', d => `M ${d.target.x} ${d.target.y} ${d.source.x} ${d.source.y} Z`);
         // TestApp('Tick', -1);
     };
 

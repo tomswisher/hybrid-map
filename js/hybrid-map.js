@@ -16,7 +16,7 @@ var statePaths = statePathsG.select(null);
 var nodesG = body.select('#nodes-g');
 var nodeCircles = nodesG.select(null);
 var linksG = body.select('#links-g');
-var linkLines = linksG.select(null);
+var linkPaths = linksG.select(null);
 var infoG = body.select('#info-g');
 var infoBGRect = body.select('#info-bg-rect');
 var infoImageGs = infoG.select(null);
@@ -98,38 +98,32 @@ var rData = [{
         name: 'A',
         value: 3,
         min: 3 - 5,
-        max: 3 + 6,
-        inputType: 'range'
+        max: 3 + 6
     }, {
         name: 'B',
         value: 1.75,
         min: 1 - 5,
-        max: 1 + 5,
-        inputType: 'range'
+        max: 1 + 5
     }, {
         name: 'C',
         value: 8.65,
         min: 8.7 - 5,
-        max: 8.7 + 5,
-        inputType: 'range'
+        max: 8.7 + 5
     }, {
         name: 'D',
         value: 6,
         min: 6 - 5,
-        max: 6 + 6,
-        inputType: 'range'
+        max: 6 + 6
     }, {
         name: 'E',
         value: 3,
         min: 3 - 5,
-        max: 3 + 6,
-        inputType: 'range'
+        max: 3 + 6
     }, {
         name: 'F',
         value: 10.25,
         min: 12 - 5,
-        max: 12 + 5,
-        inputType: 'range'
+        max: 12 + 5
     }, {
         name: 'rMin',
         value: 3,
@@ -999,18 +993,12 @@ function HybridMapClass() {
         }).attr('refX', (12 - 2.5) * r.network.arrowScale).attr('refY', 6 * r.network.arrowScale)
         // .attr('markerUnits', 'userSpaceOnUse')
         .attr('markerWidth', 112).attr('markerHeight', 118).attr('orient', 'auto');
-        linkLines = linksG.selectAll('line.link-line').data(that.links);
-        linkLines.exit().remove();
-        linkLines = linkLines.enter().append('line').classed('link-line', true).attr('x1', function (d) {
-            return d.source.x;
-        }).attr('y1', function (d) {
-            return d.source.y;
-        }).attr('x2', function (d) {
-            return d.target.x;
-        }).attr('y2', function (d) {
-            return d.target.y;
-        }).style('stroke-width', '0px').merge(linkLines);
-        linkLines.attr('marker-end', function (d) {
+        linkPaths = linksG.selectAll('path.link-path').data(that.links);
+        linkPaths.exit().remove();
+        linkPaths = linkPaths.enter().append('path').classed('link-path', true).attr('d', function (d) {
+            return 'M ' + d.target.x + ' ' + d.target.y + ' ' + d.source.x + ' ' + d.source.y + ' Z';
+        }).style('stroke-width', '0px').merge(linkPaths);
+        linkPaths.attr('marker-end', function (d) {
             if (topIds.includes(d.source.id)) {
                 return 'url(#arrow-id' + d.source.i + ')';
             } else {
@@ -1153,19 +1141,9 @@ function HybridMapClass() {
         }).attr('cy', function (d) {
             return d.$out > 0 ? d.y : that.centroidByANSI[d.ansi][1];
         });
-        linkLines.attr('x1', function (d) {
-            return d.source.x;
-        }).attr('y1', function (d) {
-            return d.source.y;
-        }).attr('x2', function (d) {
-            return d.target.$out > 0 ? d.target.x : that.centroidByANSI[d.target.ansi][0];
-        }).attr('y2', function (d) {
-            return d.target.$out > 0 ? d.target.y : that.centroidByANSI[d.target.ansi][1];
+        linkPaths.attr('d', function (d) {
+            return 'M ' + d.target.x + ' ' + d.target.y + ' ' + d.source.x + ' ' + d.source.y + ' Z';
         });
-        // .attr('x1', r.map.w / 2)
-        // .attr('x2', r.map.w / 2)
-        // .attr('y1', r.map.h)
-        // .attr('y2', 0);
         // TestApp('Tick', -1);
     };
 
