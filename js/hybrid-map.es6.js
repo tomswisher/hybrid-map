@@ -150,7 +150,7 @@ let rData = [
                 inputType: 'range',
             }, {
                 name: 'swFactor',
-                value: 250,
+                value: 0,
                 inputType: 'range',
             }, {
                 name: 'arrowScale',
@@ -1108,7 +1108,7 @@ function HybridMapClass() {
                         return `M ${r.network.A} ${r.network.B} ${r.network.C} ${r.network.D} ${r.network.E} ${r.network.F} Z`;
                     })
                     .attr('transform', 'scale(' + (r.network.arrowScale) + ')')
-                    .style('stroke', () => (i < topIds.length) ? d3.schemeCategory20[i] : null)
+                    // .style('stroke', () => (i < topIds.length) ? d3.schemeCategory20[i] : null)
                     .style('fill', () => (i < topIds.length) ? d3.schemeCategory20[i] : null);
             })
             .attr('refX', (12 - 2.5) * r.network.arrowScale)
@@ -1123,7 +1123,9 @@ function HybridMapClass() {
             .remove();
         linkPaths = linkPaths.enter().append('path')
             .classed('link-path', true)
-            .attr('d', d => `M ${d.target.x} ${d.target.y} ${d.source.x} ${d.source.y} Z`)
+            .attr('d', d => {
+                return `M ${d.source.x-d.source.r} ${d.source.y} ${d.target.x} ${d.target.y} ${d.source.x+d.source.r} ${d.source.y} Z`;
+            })
             .style('stroke-width', '0px')
             .merge(linkPaths);
         linkPaths
@@ -1134,7 +1136,7 @@ function HybridMapClass() {
                     return 'url(#arrow-id' + topIds.length + ')';
                 }
             })
-            .style('stroke', d => {
+            .style('fill', d => {
                 if (topIds.includes(d.source.id)) {
                     return d3.schemeCategory20[d.source.i];
                 } else if (topIds.includes(d.target.id)) {
@@ -1165,9 +1167,10 @@ function HybridMapClass() {
             //     return (d.targetId === "Yes on 1240" && d.source.i === 3) ? 'visible' : 'hidden';
             //     // return (d.source.i === 3) ? 'visible' : 'hidden';
             // })
-            .style('stroke-width', d => {
-                return Math.max(r.network.swMin, r.network.swFactor * d.dollars / that.$outTotal) + 'px';
-            });
+            // .style('stroke-width', d => {
+            //     return Math.max(r.network.swMin, r.network.swFactor * d.dollars / that.$outTotal) + 'px';
+            // })
+            ;
         TestApp('DrawNetwork', -1);
         return that;
     };
@@ -1332,7 +1335,9 @@ function HybridMapClass() {
             .attr('cx', d => d.$out > 0 ? d.x : that.centroidByANSI[d.ansi][0])
             .attr('cy', d => d.$out > 0 ? d.y : that.centroidByANSI[d.ansi][1]);
         linkPaths
-            .attr('d', d => `M ${d.target.x} ${d.target.y} ${d.source.x} ${d.source.y} Z`);
+            .attr('d', d => {
+                return `M ${d.source.x-d.source.r} ${d.source.y} ${d.target.x} ${d.target.y} ${d.source.x+d.source.r} ${d.source.y} Z`;
+            });
         // TestApp('Tick', -1);
     };
 

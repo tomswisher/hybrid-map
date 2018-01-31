@@ -138,7 +138,7 @@ var rData = [{
         inputType: 'range'
     }, {
         name: 'swFactor',
-        value: 250,
+        value: 0,
         inputType: 'range'
     }, {
         name: 'arrowScale',
@@ -985,9 +985,9 @@ function HybridMapClass() {
             var path = d3.select(this).selectAll('path').data([null]);
             path = path.enter().append('path').merge(path).attr('d', function (d) {
                 return 'M ' + r.network.A + ' ' + r.network.B + ' ' + r.network.C + ' ' + r.network.D + ' ' + r.network.E + ' ' + r.network.F + ' Z';
-            }).attr('transform', 'scale(' + r.network.arrowScale + ')').style('stroke', function () {
-                return i < topIds.length ? d3.schemeCategory20[i] : null;
-            }).style('fill', function () {
+            }).attr('transform', 'scale(' + r.network.arrowScale + ')')
+            // .style('stroke', () => (i < topIds.length) ? d3.schemeCategory20[i] : null)
+            .style('fill', function () {
                 return i < topIds.length ? d3.schemeCategory20[i] : null;
             });
         }).attr('refX', (12 - 2.5) * r.network.arrowScale).attr('refY', 6 * r.network.arrowScale)
@@ -996,7 +996,7 @@ function HybridMapClass() {
         linkPaths = linksG.selectAll('path.link-path').data(that.links);
         linkPaths.exit().remove();
         linkPaths = linkPaths.enter().append('path').classed('link-path', true).attr('d', function (d) {
-            return 'M ' + d.target.x + ' ' + d.target.y + ' ' + d.source.x + ' ' + d.source.y + ' Z';
+            return 'M ' + (d.source.x - d.source.r) + ' ' + d.source.y + ' ' + d.target.x + ' ' + d.target.y + ' ' + (d.source.x + d.source.r) + ' ' + d.source.y + ' Z';
         }).style('stroke-width', '0px').merge(linkPaths);
         linkPaths.attr('marker-end', function (d) {
             if (topIds.includes(d.source.id)) {
@@ -1004,7 +1004,7 @@ function HybridMapClass() {
             } else {
                 return 'url(#arrow-id' + topIds.length + ')';
             }
-        }).style('stroke', function (d) {
+        }).style('fill', function (d) {
             if (topIds.includes(d.source.id)) {
                 return d3.schemeCategory20[d.source.i];
             } else if (topIds.includes(d.target.id)) {
@@ -1033,9 +1033,10 @@ function HybridMapClass() {
         //     return (d.targetId === "Yes on 1240" && d.source.i === 3) ? 'visible' : 'hidden';
         //     // return (d.source.i === 3) ? 'visible' : 'hidden';
         // })
-        .style('stroke-width', function (d) {
-            return Math.max(r.network.swMin, r.network.swFactor * d.dollars / that.$outTotal) + 'px';
-        });
+        // .style('stroke-width', d => {
+        //     return Math.max(r.network.swMin, r.network.swFactor * d.dollars / that.$outTotal) + 'px';
+        // })
+        ;
         TestApp('DrawNetwork', -1);
         return that;
     };
@@ -1142,7 +1143,7 @@ function HybridMapClass() {
             return d.$out > 0 ? d.y : that.centroidByANSI[d.ansi][1];
         });
         linkPaths.attr('d', function (d) {
-            return 'M ' + d.target.x + ' ' + d.target.y + ' ' + d.source.x + ' ' + d.source.y + ' Z';
+            return 'M ' + (d.source.x - d.source.r) + ' ' + d.source.y + ' ' + d.target.x + ' ' + d.target.y + ' ' + (d.source.x + d.source.r) + ' ' + d.source.y + ' Z';
         });
         // TestApp('Tick', -1);
     };
