@@ -1017,7 +1017,7 @@ function HybridMapClass() {
                 .on('drag', that.Dragged)
                 .on('end', that.DragEnded)
             )
-            .attr('r', 0)
+            .attr('r', d => d.r)
             .merge(nodeCircles);
         nodeCircles
             .attr('cx', d => d.x)
@@ -1052,10 +1052,8 @@ function HybridMapClass() {
             .remove();
         linkPaths = linkPaths.enter().append('path')
             .classed('link-path', true)
-            .attr('d', d => {
-                return `M ${d.source.x-d.source.r} ${d.source.y} ${d.target.x} ${d.target.y} ${d.source.x+d.source.r} ${d.source.y} Z`;
-            })
-            .style('stroke-width', '0px')
+            .attr('d', '')
+            // .style('stroke-width', '0px')
             .merge(linkPaths);
         linkPaths
             .style('fill', d => {
@@ -1258,7 +1256,16 @@ function HybridMapClass() {
             .attr('cy', d => d.$out > 0 ? d.y : that.centroidByANSI[d.ansi][1]);
         linkPaths
             .attr('d', d => {
-                return `M ${d.source.x-d.source.r} ${d.source.y} ${d.target.x} ${d.target.y} ${d.source.x+d.source.r} ${d.source.y} Z`;
+                let angle = Math.atan2(d.target.y-d.source.y,d.target.x-d.source.x);
+                let x0 = d.source.x - d.source.r*Math.cos(angle+(1/2)*Math.PI);
+                let y0 = d.source.y + d.source.r*Math.sin(angle-(1/2)*Math.PI);
+                let x1 = d.target.x;
+                let y1 = d.target.y;
+                let x2 = d.source.x - d.source.r*Math.cos(angle+(3/2)*Math.PI);
+                let y2 = d.source.y + d.source.r*Math.sin(angle-(3/2)*Math.PI);
+                return `M ${x0} ${y0} ${x1} ${y1} ${x2} ${y2} Z`;
+                // return `M ${d.source.x-d.source.r} ${d.source.y} ${d.target.x} ${d.target.y} ${d.source.x+d.source.r} ${d.source.y} Z`;
+                // return `M ${d.source.x-d.source.r} ${d.source.y} ${d.target.x} ${d.target.y} ${d.source.x+d.source.r} ${d.source.y} Z`;
             });
         // TestApp('Tick', -1);
     };

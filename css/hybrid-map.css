@@ -25,15 +25,14 @@ body {
 #svg #nodes-g circle.node-circle {
   cursor: -webkit-grab;
   fill: rosybrown;
+  stroke: gainsboro;
   stroke-width: 1px;
 }
 #svg #links-g {
   pointer-events: none;
 }
 #svg #links-g path.link-path {
-  stroke: rosybrown;
-}
-#svg #links-g path.link-path {
+  stroke: gainsboro;
   fill: rosybrown;
 }
 #svg #info-bg-rect {

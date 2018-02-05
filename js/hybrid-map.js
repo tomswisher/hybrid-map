@@ -904,7 +904,9 @@ function HybridMapClass() {
         }).call(d3.drag()
         // .container(nodesG)
         // .subject(() => that.simulation.find(d3.event.x, d3.event.y, 100))
-        .on('start', that.DragStarted).on('drag', that.Dragged).on('end', that.DragEnded)).attr('r', 0).merge(nodeCircles);
+        .on('start', that.DragStarted).on('drag', that.Dragged).on('end', that.DragEnded)).attr('r', function (d) {
+            return d.r;
+        }).merge(nodeCircles);
         nodeCircles.attr('cx', function (d) {
             return d.x;
         }).attr('cy', function (d) {
@@ -938,9 +940,9 @@ function HybridMapClass() {
         });
         linkPaths = linksG.selectAll('path.link-path').data(that.links);
         linkPaths.exit().remove();
-        linkPaths = linkPaths.enter().append('path').classed('link-path', true).attr('d', function (d) {
-            return 'M ' + (d.source.x - d.source.r) + ' ' + d.source.y + ' ' + d.target.x + ' ' + d.target.y + ' ' + (d.source.x + d.source.r) + ' ' + d.source.y + ' Z';
-        }).style('stroke-width', '0px').merge(linkPaths);
+        linkPaths = linkPaths.enter().append('path').classed('link-path', true).attr('d', '')
+        // .style('stroke-width', '0px')
+        .merge(linkPaths);
         linkPaths.style('fill', function (d) {
             if (topIds.includes(d.source.id)) {
                 return d3.schemeCategory20[d.source.i];
@@ -1080,7 +1082,16 @@ function HybridMapClass() {
             return d.$out > 0 ? d.y : that.centroidByANSI[d.ansi][1];
         });
         linkPaths.attr('d', function (d) {
-            return 'M ' + (d.source.x - d.source.r) + ' ' + d.source.y + ' ' + d.target.x + ' ' + d.target.y + ' ' + (d.source.x + d.source.r) + ' ' + d.source.y + ' Z';
+            var angle = Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x);
+            var x0 = d.source.x - d.source.r * Math.cos(angle + 1 / 2 * Math.PI);
+            var y0 = d.source.y + d.source.r * Math.sin(angle - 1 / 2 * Math.PI);
+            var x1 = d.target.x;
+            var y1 = d.target.y;
+            var x2 = d.source.x - d.source.r * Math.cos(angle + 3 / 2 * Math.PI);
+            var y2 = d.source.y + d.source.r * Math.sin(angle - 3 / 2 * Math.PI);
+            return 'M ' + x0 + ' ' + y0 + ' ' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' Z';
+            // return `M ${d.source.x-d.source.r} ${d.source.y} ${d.target.x} ${d.target.y} ${d.source.x+d.source.r} ${d.source.y} Z`;
+            // return `M ${d.source.x-d.source.r} ${d.source.y} ${d.target.x} ${d.target.y} ${d.source.x+d.source.r} ${d.source.y} Z`;
         });
         // TestApp('Tick', -1);
     };
