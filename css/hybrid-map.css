@@ -36,6 +36,9 @@ body {
 #svg #links-g path.link-path {
   stroke: rosybrown;
 }
+#svg #links-g path.link-path {
+  fill: rosybrown;
+}
 #svg #info-bg-rect {
   fill: white;
   stroke: gainsboro;
