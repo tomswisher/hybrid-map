@@ -10,9 +10,6 @@ body {
 #svg {
   font-size: 14px;
 }
-#svg #svg-defs marker.arrow {
-  fill: rosybrown;
-}
 #svg #map-bg-rect {
   fill: #8bd1da;
 }

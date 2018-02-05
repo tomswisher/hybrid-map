@@ -7,7 +7,6 @@
 var body = d3.select('body');
 var svg = body.select('#svg');
 var svgDefs = body.select('#svg-defs');
-var svgDefsArrows = svgDefs.select(null);
 var mapBGRect = body.select('#map-bg-rect');
 var clipPath = body.select('#clip-path');
 var clipPathRect = clipPath.select(null);
@@ -95,36 +94,6 @@ var rData = [{
 }, {
     category: 'network',
     rows: [{
-        name: 'A',
-        value: 3,
-        min: 3 - 5,
-        max: 3 + 6
-    }, {
-        name: 'B',
-        value: 1.75,
-        min: 1 - 5,
-        max: 1 + 5
-    }, {
-        name: 'C',
-        value: 8.65,
-        min: 8.7 - 5,
-        max: 8.7 + 5
-    }, {
-        name: 'D',
-        value: 6,
-        min: 6 - 5,
-        max: 6 + 6
-    }, {
-        name: 'E',
-        value: 3,
-        min: 3 - 5,
-        max: 3 + 6
-    }, {
-        name: 'F',
-        value: 10.25,
-        min: 12 - 5,
-        max: 12 + 5
-    }, {
         name: 'rMin',
         value: 3,
         inputType: 'range'
@@ -139,10 +108,6 @@ var rData = [{
     }, {
         name: 'swFactor',
         value: 0,
-        inputType: 'range'
-    }, {
-        name: 'arrowScale',
-        value: 0.26,
         inputType: 'range'
     }]
 }, {
@@ -490,12 +455,6 @@ function SetRData(category, name, value) {
         row.value = parseFloat(value);
     }
     r[category][name] = value;
-    if (!svgDefsArrows.select('path').empty()) {
-        var num = 6;
-        if (isDebug) {
-            debugText.property('innerHTML', String(r.network.A).padEnd(num) + String(r.network.B).padEnd(num) + '    ' + String(r.network.C).padEnd(num) + String(r.network.D).padEnd(num) + '    ' + String(r.network.E).padEnd(num) + String(r.network.F).padEnd(num) + '    ');
-        }
-    }
 }
 
 function ManageOptions(mode) {
@@ -977,34 +936,12 @@ function HybridMapClass() {
         }).transition().duration(r.transition.durationMedium).ease(r.transition.ease).attr('r', function (d) {
             return d.r;
         });
-        svgDefsArrows = svgDefs.selectAll('marker.arrow').data(topIds.concat('misc'));
-        svgDefsArrows = svgDefsArrows.enter().append('marker').classed('arrow', true).attr('id', function (d, i) {
-            return 'arrow-id' + i;
-        }).merge(svgDefsArrows);
-        svgDefsArrows.each(function (datum, i) {
-            var path = d3.select(this).selectAll('path').data([null]);
-            path = path.enter().append('path').merge(path).attr('d', function (d) {
-                return 'M ' + r.network.A + ' ' + r.network.B + ' ' + r.network.C + ' ' + r.network.D + ' ' + r.network.E + ' ' + r.network.F + ' Z';
-            }).attr('transform', 'scale(' + r.network.arrowScale + ')')
-            // .style('stroke', () => (i < topIds.length) ? d3.schemeCategory20[i] : null)
-            .style('fill', function () {
-                return i < topIds.length ? d3.schemeCategory20[i] : null;
-            });
-        }).attr('refX', (12 - 2.5) * r.network.arrowScale).attr('refY', 6 * r.network.arrowScale)
-        // .attr('markerUnits', 'userSpaceOnUse')
-        .attr('markerWidth', 112).attr('markerHeight', 118).attr('orient', 'auto');
         linkPaths = linksG.selectAll('path.link-path').data(that.links);
         linkPaths.exit().remove();
         linkPaths = linkPaths.enter().append('path').classed('link-path', true).attr('d', function (d) {
             return 'M ' + (d.source.x - d.source.r) + ' ' + d.source.y + ' ' + d.target.x + ' ' + d.target.y + ' ' + (d.source.x + d.source.r) + ' ' + d.source.y + ' Z';
         }).style('stroke-width', '0px').merge(linkPaths);
-        linkPaths.attr('marker-end', function (d) {
-            if (topIds.includes(d.source.id)) {
-                return 'url(#arrow-id' + d.source.i + ')';
-            } else {
-                return 'url(#arrow-id' + topIds.length + ')';
-            }
-        }).style('fill', function (d) {
+        linkPaths.style('fill', function (d) {
             if (topIds.includes(d.source.id)) {
                 return d3.schemeCategory20[d.source.i];
             } else if (topIds.includes(d.target.id)) {
