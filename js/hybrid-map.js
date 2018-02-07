@@ -30,7 +30,7 @@ var debugText = body.select('#debug-text');
 
 // Variables ---------------------------------------------------------------------------------------
 
-var isDebug = true;
+var isDebug = false;
 var logsTest = 'in',
     logsLvl1 = false,
     resizeWait = 150;

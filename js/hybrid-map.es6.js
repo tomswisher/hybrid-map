@@ -30,7 +30,7 @@ const debugText = body.select('#debug-text');
 
 // Variables ---------------------------------------------------------------------------------------
 
-let isDebug = true;
+let isDebug = false;
 const logsTest = 'in',
     logsLvl1 = false,
     resizeWait = 150;
