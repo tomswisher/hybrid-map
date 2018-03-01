@@ -425,8 +425,8 @@ rData.forEach(optionsObj => {
 
 window.onload = () => {
     d3.queue()
-        .defer(d3.json, 'data/us-states-features.json')
-        .defer(d3.csv, 'data/cleaned-data-12-19-2017.csv')
+        .defer(d3.json, 'us-states-features.json')
+        .defer(d3.csv, 'cleaned-data-12-19-2017.csv')
         .awaitAll(InitializePage);
 };
 window.onresize = () => {
@@ -798,7 +798,7 @@ function HybridMapClass() {
                         if (!topIds.includes(datum.id)) {
                             return null;
                         } else {
-                            return 'img/' + datum.id + '.jpg';
+                            return 'img-' + datum.id + '.jpg';
                         }
                     });
             })

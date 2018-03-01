@@ -6,6 +6,6 @@
     "babel-watch": "^2.0.7"
   },
   "scripts": {
-    "js": "babel js/hybrid-map.es6.js --watch --out-file js/hybrid-map.js"
+    "js": "babel hybrid-map.es6.js --watch --out-file hybrid-map.js"
   }
 }
